@@ -1,4 +1,4 @@
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -23,6 +23,12 @@ class Word(models.Model):
         choices=LANGUAGE_CHOICES,
         default=ENGLISH,
     )
+    level = models.IntegerField(
+        default=0,
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(0)
+        ])
 
     def __str__(self):
         return self.word
@@ -47,6 +53,12 @@ class Phrase(models.Model):
         choices=LANGUAGE_CHOICES,
         default=ENGLISH,
     )
+    level = models.IntegerField(
+        default=0,
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(0)
+        ])
 
     def __str__(self):
         return self.phrase
