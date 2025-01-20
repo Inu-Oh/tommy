@@ -7,7 +7,7 @@ class Word(models.Model):
         max_length=39,
         validators=[MinLengthValidator(2, "A word must have at least one letter.")],
     )
-    word_translation = models.ManyToManyField('self')
+    word_translation = models.ManyToManyField('self', blank=True)
 
     ENGLISH = 'EN'
     FRENCH = 'FR'
@@ -37,7 +37,7 @@ class Phrase(models.Model):
         max_length=248,
         validators=[MinLengthValidator(5, "A phrase must have at least two words")],
     )
-    phrase_translation = models.ManyToManyField('self')
+    phrase_translation = models.ManyToManyField('self', blank=True)
 
     ENGLISH = 'EN'
     FRENCH = 'FR'
