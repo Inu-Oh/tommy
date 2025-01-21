@@ -1,4 +1,4 @@
-from tommy.models import Word, Phrase
+from tommy.models import Word, WordTranslation, Phrase, PhraseTranslation
 
 from django.shortcuts import render
 from django.views.generic import ListView, View
