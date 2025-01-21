@@ -59,8 +59,10 @@ class Word(models.Model):
 class PhraseTranslation(models.Model):
     phrase_translation = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "A phrase must have at least two words"),
-                    RegexValidator(r'[a-zA-Z]+\s+[a-zA-Z]+',"A phrase must have at least two words")],
+        validators=[MinLengthValidator(5, "This phrase is too short"),
+                    RegexValidator(
+                        r'[a-zA-Z]+\s+[a-zA-Z]+',
+                        "A phrase must have at least two words")],
     )
     ENGLISH = 'EN'
     FRENCH = 'FR'
@@ -83,8 +85,10 @@ class PhraseTranslation(models.Model):
 class Phrase(models.Model):
     phrase = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "A phrase must have at least two words"),
-                    RegexValidator(r'[a-zA-Z]+\s+[a-zA-Z]+',"A phrase must have at least two words")],
+        validators=[MinLengthValidator(5, "This phrase is too short"),
+                    RegexValidator(
+                        r'[a-zA-Z]+\s+[a-zA-Z]+',
+                        "A phrase must have at least two words")],
     )
     phrase_translation = models.ManyToManyField(PhraseTranslation)
 
