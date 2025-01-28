@@ -1,4 +1,4 @@
-from tommy.models import Language, Phrase, Translation
+from tommy.models import Language, Phrase, Profile, Translation
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
@@ -8,14 +8,15 @@ class Home(View, LoginRequiredMixin):
     template_name = 'tommy/home.html'
 
     def get(self, request):
-        languages = Language.objects.all()
+        profile = Profile.objects.get(user=request.user)
 
         context = {
-            'languages': languages,
+            'profile': profile,
         }
+        return render(request, self.template_name, context)
 
 
-class Glossary(ListView):
+class Glossary(ListView, LoginRequiredMixin):
     template_name = 'tommy/glossary.html'
 
     def get(self, request, language):
