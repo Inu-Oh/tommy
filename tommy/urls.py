@@ -7,5 +7,5 @@ urlpatterns = [
     path('', views.Home.as_view(), name='home'),
 
     # Dictionary view
-    path('dictionary', views.Dictionary.as_view(), name='dictionary'),
+    path('glossary', views.Glossary.as_view(), name='glossary'),
 ]

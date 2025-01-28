@@ -1,4 +1,4 @@
-from tommy.models import Word, WordTranslation, Phrase, PhraseTranslation
+from tommy.models import Phrase, Translation
 
 from django.shortcuts import render
 from django.views.generic import ListView, View
@@ -6,13 +6,13 @@ from django.views.generic import ListView, View
 class Home(View):
     template_name = 'tommy/home.html'
 
-class Dictionary(ListView):
-    template_name = 'tommy/dictionary.html'
+class Glossary(ListView):
+    template_name = 'tommy/glossary.html'
 
-    def get(self, request, language='English'):
-        words = Word.objects.filter(language=language)
+    def get(self, request, language):
+        phrases = Phrase.objects.filter(language=language)
         
         context = {
-            'words': words,
+            'phrases': phrases,
         }
         return render(request, self.template_name, context)

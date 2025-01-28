@@ -1,8 +1,7 @@
 from django.contrib import admin
-from tommy.models import Word, WordTranslation, Phrase, PhraseTranslation
+from tommy.models import Language, Phrase, Translation
 
-# Register your models here.
-admin.site.register(Word)
-admin.site.register(WordTranslation)
+
+admin.site.register(Language)
 admin.site.register(Phrase)
-admin.site.register(PhraseTranslation)
+admin.site.register(Translation)

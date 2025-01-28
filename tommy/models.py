@@ -1,116 +1,36 @@
-from django.core.validators import RegexValidator, MinLengthValidator, MaxValueValidator, MinValueValidator
+from django.core.validators import MinLengthValidator
 from django.db import models
 
 
-class WordTranslation(models.Model):
-    word_translation = models.CharField(
-        max_length=39,
-        validators=[MinLengthValidator(1, "A word must have at least one letter.")]
-    )
-    ENGLISH = 'EN'
-    FRENCH = 'FR'
-    CHINESE = 'CN'
-    LANGUAGE_CHOICES = [
-        (ENGLISH, 'English'),
-        (FRENCH, 'French'),
-        (CHINESE, 'Chinese'),
-    ]
+class Language(models.Model):
     language = models.CharField(
-        max_length=2,
-        choices=LANGUAGE_CHOICES,
-        default=ENGLISH,
+        max_length=20,
+        unique=True,
+        validators=[MinLengthValidator(3, "This name is too short")]
     )
 
     def __str__(self):
-        return self.word_translation
-    
+        return self.language
 
-class Word(models.Model):
-    word = models.CharField(
-        max_length=39,
-        validators=[MinLengthValidator(1, "A word must have at least one letter.")],
-    )
-    word_translation = models.ManyToManyField(WordTranslation)
-
-    ENGLISH = 'EN'
-    FRENCH = 'FR'
-    CHINESE = 'CN'
-    LANGUAGE_CHOICES = [
-        (ENGLISH, 'English'),
-        (FRENCH, 'French'),
-        (CHINESE, 'Chinese'),
-    ]
-    language = models.CharField(
-        max_length=2,
-        choices=LANGUAGE_CHOICES,
-        default=ENGLISH,
-    )
-    level = models.IntegerField(
-        default=0,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(0)
-        ])
-
-    def __str__(self):
-        return self.word
-
-
-class PhraseTranslation(models.Model):
-    phrase_translation = models.CharField(
+class Translation(models.Model):
+    translation = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "This phrase is too short"),
-                    RegexValidator(
-                        r'[a-zA-Z]+\s+[a-zA-Z]+',
-                        "A phrase must have at least two words")],
+        validators=[MinLengthValidator(5, "This phrase is too short")]
     )
-    ENGLISH = 'EN'
-    FRENCH = 'FR'
-    CHINESE = 'CN'
-    LANGUAGE_CHOICES = [
-        (ENGLISH, 'English'),
-        (FRENCH, 'French'),
-        (CHINESE, 'Chinese'),
-    ]
-    language = models.CharField(
-        max_length=2,
-        choices=LANGUAGE_CHOICES,
-        default=ENGLISH,
-    )
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.phrase_translation
+        return self.translation
 
 
 class Phrase(models.Model):
     phrase = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "This phrase is too short"),
-                    RegexValidator(
-                        r'[a-zA-Z]+\s+[a-zA-Z]+',
-                        "A phrase must have at least two words")],
+        validators=[MinLengthValidator(5, "This phrase is too short")]
     )
-    phrase_translation = models.ManyToManyField(PhraseTranslation)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    translations = models.ManyToManyField(Translation)
 
-    ENGLISH = 'EN'
-    FRENCH = 'FR'
-    CHINESE = 'CN'
-    LANGUAGE_CHOICES = [
-        (ENGLISH, 'English'),
-        (FRENCH, 'French'),
-        (CHINESE, 'Chinese'),
-    ]
-    language = models.CharField(
-        max_length=2,
-        choices=LANGUAGE_CHOICES,
-        default=ENGLISH,
-    )
-    level = models.IntegerField(
-        default=0,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(0)
-        ])
 
     def __str__(self):
         return self.phrase
