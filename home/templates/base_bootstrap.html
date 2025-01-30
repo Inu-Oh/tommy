@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}Pricer{% endblock title %}</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
+        
+        {% block head %}{% endblock head %}
+    </head>
+
+    <body>
+        <div class="container">
+
+            {% block navbar %}{% endblock navbar %}
+
+
+            <header class="header p-3 m-2 bg-light rounded-3 shadow">
+                <div class="container-fluid py-1 d-flex justify-content-between align-items-center">
+                    {% block page_header %}{% endblock page_header %}
+                </div>
+            </header>
+
+
+            <main>
+                {% block content %}{% endblock content %}
+            </main>
+
+            <div class="mt-3"></div>
+            <footer class="footer p-3 m-2 bg-light rounded-3 shadow">
+                <div class="container-fluid p-1 d-flex justify-content-around align-items-center">
+                    <p><a href="https://github.com/Inu-Oh/prcr" target="_blank" rel="noopener noreferrer"
+                        class="link-style">Git repo for Pricer</a></p>
+                    <p><a
+                        href="https://www.researchgate.net/publication/341214454_What_Kind_of_Work_Do_Asshole_Designers_Create_Describing_Properties_of_Ethical_Concern_on_Reddit"
+                        target="_blank" rel="noopener noreferrer" class="link-style">nuke asshole design</a></p>
+                    {% block footer %}{% endblock footer %}
+                </div>
+            </footer>
+
+        </div>
+    </body>
+</html>

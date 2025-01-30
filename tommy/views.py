@@ -8,7 +8,7 @@ class Home(View, LoginRequiredMixin):
     template_name = 'tommy/home.html'
 
     def get(self, request):
-        profile = Profile.objects.get(user=request.user)
+        profile = ''
 
         context = {
             'profile': profile,
