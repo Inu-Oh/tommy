@@ -8,10 +8,15 @@ class Home(View, LoginRequiredMixin):
     template_name = 'tommy/home.html'
 
     def get(self, request):
-        profile = ''
+        try:
+            profile = Profile.objects.get(user = request.user)
+        except:
+            profile = ''
+        languages = Language.objects.all()
 
         context = {
             'profile': profile,
+            'languages': languages,
         }
         return render(request, self.template_name, context)
 

@@ -14,7 +14,6 @@ class Language(models.Model):
         max_length=2,
         choices=LANGUAGE_CHOICES,
         unique=True,
-        validators=[MinLengthValidator(3, "This name is too short")],
     )
 
     def __str__(self):

@@ -1,5 +1,14 @@
-{% if not user_profile %}
-Choose a language
+{% if not profile %}
+Choose a language {{ user }}
 {% else %}
-Welcome
-{% endif %}
+Welcome  {{ profile.name }} ({{ profile.user }})<br>
+{% for lang in languages %}
+{% if profile.learning == lang %}
+Learning: English
+{% elif profile.learning == lang %}
+Learning: French
+{% endif %} {% endfor %}
+<br>
+Your XP: {{ profile.xp }}<br>
+Your Level: {{ profile.level }}
+{% endif %}<br>
