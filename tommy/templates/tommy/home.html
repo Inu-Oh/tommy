@@ -1,4 +1,6 @@
-{% extends "base_bootstrap.html" %}
+{% extends "base_menu.html" %}
+
+{% block header %}{% endblock header %}
 
 {% block content %}
     {% if not profile %}
@@ -22,3 +24,5 @@
 
     {% endif %}
 {% endblock content %}
+
+{% block footer %}{% endblock footer %}
