@@ -1,0 +1,17 @@
+{% block header %}
+    <div class="p-3 mb-4 bg-light border rounded-3">
+        <div class="container-fluid py-1">
+            <h1 class="display-4 text-muted">Create a new user account</h1>
+        </div>
+    </div>
+{% endblock header %}
+
+{% block content %}
+<div class="p-3 text-dark">
+    <form action="{% url 'accounts:register' %}" method='post'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% bootstrap_button button_type="submit" content="register" %}
+    </form>
+</div>
+{% endblock content %}

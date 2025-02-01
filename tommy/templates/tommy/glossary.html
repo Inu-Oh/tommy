@@ -1,0 +1,15 @@
+{% if not phrases %}
+
+    {% if user_lang == 'French' %}
+    No {{ user_lang }} phrases yet
+    {% elif user_lang == 'Anglais' %}
+    Pas encore de phrases {{ user_lang|lower }}
+    {% endif %}
+
+{% else %}
+
+    {% for phrase in phrases %}
+    {{ phrase }}
+    {% endfor %}
+
+{% endif %}
