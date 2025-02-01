@@ -1,20 +1,24 @@
-{% if not profile %}
-Log in or register<br>
-{{ user }}
-{% else %}
+{% extends "base_bootstrap.html" %}
 
-{% if user_lang == 'French' %}
-Welcome  {{ profile.name }} ({{ profile.user }})<br>
-Learning: {{ profile.learning }}<br>
-Votre XP: {{ profile.xp }}<br>
-Your Level: {{ profile.level }}
-{% endif %}<br>
+{% block content %}
+    {% if not profile %}
+    Log in or register<br>
+    {{ user }}
+    {% else %}
 
-{% if user_lang == 'Anglais' %}
-Bienvenue {{ profile.name }} ({{ profile.user }})<br>
-Apprentisage: {{ profile.learning }}<br>
-Votre XP: {{ profile.xp }}<br>
-Votre niveau: {{ profile.level }}
-{% endif %}<br>
+    {% if user_lang == 'French' %}
+    Welcome  {{ profile.name }} ({{ profile.user }})<br>
+    Learning: {{ profile.learning }}<br>
+    Votre XP: {{ profile.xp }}<br>
+    Your Level: {{ profile.level }}
+    {% endif %}<br>
 
-{% endif %}
+    {% if user_lang == 'Anglais' %}
+    Bienvenue {{ profile.name }} ({{ profile.user }})<br>
+    Apprentisage: {{ profile.learning }}<br>
+    Votre XP: {{ profile.xp }}<br>
+    Votre niveau: {{ profile.level }}
+    {% endif %}<br>
+
+    {% endif %}
+{% endblock content %}
