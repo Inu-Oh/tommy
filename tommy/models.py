@@ -4,14 +4,14 @@ from django.db import models
 
 
 class Language(models.Model):
-    ENGLISH = 'EN'
-    FRENCH = 'FR'
+    ENGLISH = 'Anglais'
+    FRENCH = 'French'
     LANGUAGE_CHOICES = [
-        (ENGLISH, 'English'),
+        (ENGLISH, 'Anglais'),
         (FRENCH, 'French'),
     ]
     language = models.CharField(
-        max_length=2,
+        max_length=20,
         choices=LANGUAGE_CHOICES,
         unique=True,
     )
@@ -26,7 +26,7 @@ class Profile(models.Model):
         max_length=20,
         validators=[MinLengthValidator(1, "Add your name")]
     )
-    learning = models.ForeignKey(Language, default='FR', on_delete=models.SET_DEFAULT) # Review
+    learning = models.ForeignKey(Language, default='French', on_delete=models.SET_DEFAULT) # Review
     xp = models.IntegerField(default=0)
     level = models.IntegerField(default=0)
 

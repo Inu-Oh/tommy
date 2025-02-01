@@ -10,13 +10,16 @@ class Home(View, LoginRequiredMixin):
     def get(self, request):
         try:
             profile = Profile.objects.get(user = request.user)
+            user_lang = str(profile.learning.language)
         except:
             profile = ''
+            user_lang = ''
         languages = Language.objects.all()
 
         context = {
             'profile': profile,
             'languages': languages,
+            'user_lang': user_lang,
         }
         return render(request, self.template_name, context)
 

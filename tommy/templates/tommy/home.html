@@ -1,14 +1,20 @@
 {% if not profile %}
-Choose a language {{ user }}
+Log in or register<br>
+{{ user }}
 {% else %}
+
+{% if user_lang == 'French' %}
 Welcome  {{ profile.name }} ({{ profile.user }})<br>
-{% for lang in languages %}
-{% if profile.learning == lang %}
-Learning: English
-{% elif profile.learning == lang %}
-Learning: French
-{% endif %} {% endfor %}
-<br>
-Your XP: {{ profile.xp }}<br>
+Learning: {{ profile.learning }}<br>
+Votre XP: {{ profile.xp }}<br>
 Your Level: {{ profile.level }}
 {% endif %}<br>
+
+{% if user_lang == 'Anglais' %}
+Bienvenue {{ profile.name }} ({{ profile.user }})<br>
+Apprentisage: {{ profile.learning }}<br>
+Votre XP: {{ profile.xp }}<br>
+Votre niveau: {{ profile.level }}
+{% endif %}<br>
+
+{% endif %}
