@@ -1,25 +1,28 @@
 {% extends "base_menu.html" %}
 
-{% block header %}{% endblock header %}
+{% block header %}
+    {% if profile %}    
+    <div class="container-fluid d-flex justify-content-between">
+        <p>{{ profile.name }} ({{ profile.user }})</p>
+        <p>XP {{ profile.xp }}
+        {% if user_lang == 'French' %}Level {% endif %} {% if user_lang == 'Anglais' %}niveau {% endif %}
+        {{ profile.level }}</p>
+    </div>
+    {% endif %}
+{% endblock header %}
 
-{% block content %}
+{% block content %} 
     {% if not profile %}
     Log in or register<br>
     {{ user }}
     {% else %}
 
     {% if user_lang == 'French' %}
-    Welcome  {{ profile.name }} ({{ profile.user }})<br>
-    Learning: {{ profile.learning }}<br>
-    Votre XP: {{ profile.xp }}<br>
-    Your Level: {{ profile.level }}
+    <p>Learning: {{ profile.learning }}</p>
     {% endif %}<br>
 
     {% if user_lang == 'Anglais' %}
-    Bienvenue {{ profile.name }} ({{ profile.user }})<br>
-    Formation: {{ profile.learning }}<br>
-    Votre XP: {{ profile.xp }}<br>
-    Votre niveau: {{ profile.level }}
+    <p>Formation: {{ profile.learning }}</p>
     {% endif %}<br>
 
     {% endif %}
