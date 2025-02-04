@@ -1,5 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import render
+from django.http.response import HttpResponse
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
@@ -21,4 +22,4 @@ class RegisterView(CreateView):
         
         form.save()
         success_url = reverse_lazy('tommy:home')
-        return reverse_lazy(success_url)
+        return redirect(success_url)
