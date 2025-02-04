@@ -10,8 +10,8 @@
 <div class="p-3 text-dark">
     <form action="{% url 'accounts:register' %}" method='post'>
         {% csrf_token %}
-        {% bootstrap_form form %}
-        {% bootstrap_button button_type="submit" content="register" %}
+        {{ form }}
+        <button type="submit">Sign Up</button>
     </form>
 </div>
 {% endblock content %}
