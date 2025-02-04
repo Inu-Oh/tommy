@@ -6,9 +6,10 @@ from django.urls import include, path, re_path
 from django.views.static import serve
 
 urlpatterns = [
-    path("", include('tommy.urls')),
-    path("accounts/", include("django.contrib.auth.urls")),
-    path("admin/", admin.site.urls),
+    path('', include('tommy.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('admin/', admin.site.urls),
     re_path(r'^oauth/', include('social_django.urls', namespace='social')),
 ]
 
