@@ -20,20 +20,6 @@ class Language(models.Model):
         return self.language
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    name = models.CharField(
-        max_length=20,
-        validators=[MinLengthValidator(1, "Add your name")]
-    )
-    learning = models.ForeignKey(Language, default='French', on_delete=models.SET_DEFAULT) # Review
-    xp = models.IntegerField(default=0)
-    level = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.user.username} Pofile"
-
-
 class Translation(models.Model):
     translation = models.CharField(
         max_length=248,

@@ -1,4 +1,5 @@
-from tommy.models import Language, Phrase, Profile, Translation
+from tommy.models import Language, Phrase, Translation
+from accounts.models import Profile
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
