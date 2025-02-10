@@ -1,9 +1,9 @@
-from tommy.models import Language, Phrase, Translation
-from accounts.models import Profile
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views.generic import ListView, View
+
+from tommy.models import Language, Phrase, Profile, Translation
+
 
 class Home(LoginRequiredMixin, View):
     template_name = 'tommy/home.html'

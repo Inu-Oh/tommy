@@ -30,6 +30,7 @@ class RegisterView(CreateView):
             return render(request, self.template_name, context)
         
         user_form.save() #Check for security issuse from DJ4E
+        profile_form.user = user_form.instance
         profile_form.save()
         success_url = reverse_lazy('tommy:home')
         return redirect(success_url)
