@@ -6,6 +6,9 @@ urlpatterns = [
     # Home page
     path('', views.Home.as_view(), name='home'),
 
+    # Profile creation and edit views
+    path('create_profile', views.ProfileCreateView.as_view(), name='create_profile'),
+
     # Dictionary view
     path('glossary', views.Glossary.as_view(), name='glossary'),
 ]

@@ -22,7 +22,11 @@ class Language(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    learning = models.ForeignKey(Language, default='French', on_delete=models.SET_DEFAULT) # Review
+    name = models.CharField(
+        max_length=25,
+        validators=[MinLengthValidator(1, "Choose a name I can call you")]
+    )
+    learning = models.ForeignKey(Language, default='French', on_delete=models.SET_DEFAULT)
     xp = models.IntegerField(default=0)
     level = models.IntegerField(default=0)
 

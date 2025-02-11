@@ -3,20 +3,25 @@
 {% block header %}
     {% if profile %}    
     <div class="container-fluid d-flex justify-content-between">
-        <p>{{ profile.name }} ({{ profile.user }})</p>
-        <p>XP {{ profile.xp }}
-        {% if user_lang == 'French' %}Level {% endif %} {% if user_lang == 'Anglais' %}niveau {% endif %}
+        <p>{{ profile.name }} ({{ user.email }})
+        {% if user_lang == 'French' %}Level {% endif %}
+        {% if user_lang == 'Anglais' %}niveau {% endif %}
         {{ profile.level }}</p>
+        <p>XP {{ profile.xp }}</p>
     </div>
     {% endif %}
 {% endblock header %}
 
 {% block content %} 
-    {% if not profile %}
-    Log in or register<br>
-    {{ user }}
-    {% else %}
+    {% if user.is_authenticated and not profile %}
+    <a href="{% url 'tommy:create_profile' %}"
+        class="btn btn-lg btn-primary">
+        Set up your learning profile.</a>
 
+    {% elif not user.is_authenticated %}
+    Log in or register<br>
+    
+    {% else %}
     {% if user_lang == 'French' %}
     <p>Learning: {{ profile.learning }}</p>
     {% endif %}<br>

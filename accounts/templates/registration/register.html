@@ -11,7 +11,6 @@
     <form action="{% url 'accounts:register' %}" method='post'>
         {% csrf_token %}
         {{ user_form }}
-        {{ profile_form }}
         <button type="submit">Sign Up</button>
     </form>
 </div>
