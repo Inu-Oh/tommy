@@ -13,10 +13,12 @@
     </head>
 
     <body>
+        
         <div class="container">
 
-            {% block navbar %}{% endblock navbar %}
-
+            {% if user.is_authenticated and profile %}
+                {% block navbar %}{% endblock navbar %}
+            {% endif %}
 
             <header class="header p-3 m-2 bg-light rounded-3 shadow-sm">
                 <div class="container-fluid py-1 d-flex justify-content-between align-items-center">
@@ -38,7 +40,8 @@
                     {% block footer %}{% endblock footer %}
                 </div>
             </footer>
-
+        
         </div>
+        
     </body>
 </html>
