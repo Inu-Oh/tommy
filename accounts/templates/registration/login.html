@@ -1,17 +1,33 @@
 {% extends "base_bootstrap.html" %}
 
+
+{% block header %}
+    <h1 class="display-3 text-muted pt-3">Log in or register</h1>
+{% endblock header %}
+
+
 {% block content %}
 
     {% if form.errors %}
         <p>Your username and password didn't match. Please try again.</p>
     {% endif %}
 
-
-    {% load crispy_forms_tags %}
     <form method="post" action="{% url 'login' %}" class="w-100">
         {% csrf_token %}
-        {{ form|crispy }}
-        <div class="container-fluid d-flex justify-content-between">
+        <div class="form-group">
+        
+            <label for="{{ form.username.id_for_label }}">Nom d'utilisateur | Username</label><br>
+            {{ form.username }}<br>
+            {{ form.username.errors }}
+    
+        </div>
+        <div class="form-group">
+           
+            <label for="{{ form.password.id_for_label }}">Mot de passe | Password</label><br>
+            {{ form.password }}<br>
+            {{ form.password.errors }}
+        </div>
+        <div class="container-fluid pt-3 d-flex justify-content-between">
             <input type="submit" class="btn btn-success" value="Login &raquo;" />
             <input type="hidden" class="next" value="{{ next }}" />
             {% comment %} <span class="pt-2">or</span> {% endcomment %}

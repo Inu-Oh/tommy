@@ -1,3 +1,4 @@
+from django.contrib.auth.views import LoginView
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -10,16 +11,16 @@ class RegisterView(CreateView):
     template_name = 'registration/register.html'
 
     def get(self, request):
-        user_form = UserCreateForm()
-        context = {'user_form': user_form}
+        form = UserCreateForm()
+        context = {'form': form}
         return render(request, self.template_name, context)
     
     def post(self, request):
-        user_form = UserCreateForm(request.POST)
-        if not user_form.is_valid():
-            context = {'user_form': user_form}
+        form = UserCreateForm(request.POST)
+        if not form.is_valid():
+            context = {'user_form': form}
             return render(request, self.template_name, context)
         
-        user_form.save() #Check for security issuse from DJ4E
+        form.save() #Check for security issuse from DJ4E
         success_url = reverse_lazy('tommy:home')
         return redirect(success_url)
