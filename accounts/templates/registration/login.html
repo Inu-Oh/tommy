@@ -7,13 +7,11 @@
 
 
 {% block content %}
-
-    {% if form.errors %}
-        <p>Your username and password didn't match. Please try again.</p>
-    {% endif %}
-
     <div class="container p-3">
         <form method="post" action="{% url 'login' %}">
+            {% if form.errors %}
+                <p>Your username and password didn't match. Please try again.</p>
+            {% endif %}
             {% csrf_token %}
             <div class="form-floating">
                 <input class="form-control" type="text" name="username" autofocus autocapitalize="none" 
