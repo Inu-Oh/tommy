@@ -3,11 +3,12 @@
 {% block header %}
     {% if profile %}    
     <div class="container-fluid d-flex justify-content-between">
-        <p>{{ profile.name }} ({{ user.email }})
-        {% if user_lang == 'French' %}Level {% endif %}
-        {% if user_lang == 'Anglais' %}niveau {% endif %}
-        {{ profile.level }}</p>
-        <p>XP {{ profile.xp }}</p>
+        <p class="fs-4 fw-bolder">{{ profile.name }}</p>
+        <p class="text-end fs-5">
+            <span class="badge rounded-pill bg-success">XP {{ profile.xp }} &#9679;
+            {% if user_lang == 'French' %}Level {% endif %}
+            {% if user_lang == 'Anglais' %}niveau {% endif %}
+            {{ profile.level }}</span></p>
     </div>
     {% endif %}
 {% endblock header %}
@@ -19,19 +20,23 @@
         class="btn btn-lg btn-primary m-3">
         Complete profile &raquo;
     </a>
-
-    {% elif not user.is_authenticated %}
-    Log in or register<br>
-    
+  
     {% else %}
-    {% if user_lang == 'French' %}
-    <p>Learning: {{ profile.learning }}</p>
-    {% endif %}<br>
+        {% if user_lang == 'French' %}
+        <p>Learning: {{ profile.learning }}</p>
+        <p><a href="#" class="btn btn-primary">Random pracitice</a></p>
+        <p><a href="#" class="btn btn-primary">Choose a module</a></p>
+        <p><a href="{% url "tommy:glossary" %}" 
+            class="btn btn-primary">Browse vocabulary</a></p>
+        {% endif %}<br>
 
-    {% if user_lang == 'Anglais' %}
-    <p>Formation: {{ profile.learning }}</p>
-    {% endif %}<br>
-
+        {% if user_lang == 'Anglais' %}
+        <p>Formation: {{ profile.learning }}</p>
+        <p><a href="#" class="btn btn-primary">Le Random pracitice</a></p>
+        <p><a href="#" class="btn btn-primary">Choose le module</a></p>
+        <p><a href="{% url "tommy:glossary" %}" 
+            class="btn btn-primary">Browse la vocabulary</a></p>
+        {% endif %}<br>
     {% endif %}
 {% endblock content %}
 
