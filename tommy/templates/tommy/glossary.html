@@ -16,9 +16,12 @@
     {% else %}
     <div class="container">
         {% for phrase in phrases %}
-        <p>{{ phrase.phrase }} &#9679; 
-            {% for translation in phrase.translations.all %}
-            {{ translation }}{% endfor %}</p>
+        <div class="row"><div class="col-4 text-end">{{ phrase.phrase }} </div>
+            <div class="col text-center"> &#9679; </div>
+            <div class="col-7 text-start">{% for translation in phrase.translations.all %}
+             {{ translation }}
+            {% endfor %}</div>
+        </div>
         {% endfor %}
     </div>
 
