@@ -52,17 +52,14 @@ class Glossary(LoginRequiredMixin, ListView):
     template_name = 'tommy/glossary.html'
 
     def get(self, request):
-        try:
-            profile = Profile.objects.get(user = request.user)
-            user_lang_obj = profile.learning
-            user_lang = str(user_lang_obj)
-        except:
-            profile = ''
-            user_lang = ''
+        profile = Profile.objects.get(user = request.user)
+        user_lang_obj = profile.learning
+        user_lang = str(user_lang_obj)
         phrases = Phrase.objects.filter(language=user_lang_obj)
         
         context = {
-            'phrases': phrases,
+            'profile': profile,
             'user_lang': user_lang,
+            'phrases': phrases,
         }
         return render(request, self.template_name, context)

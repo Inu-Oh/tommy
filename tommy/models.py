@@ -37,7 +37,7 @@ class Profile(models.Model):
 class Translation(models.Model):
     translation = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "This phrase is too short")]
+        validators=[MinLengthValidator(1, "This phrase is too short")]
     )
     language = models.ForeignKey(Language, on_delete=models.CASCADE)
 
@@ -48,7 +48,7 @@ class Translation(models.Model):
 class Phrase(models.Model):
     phrase = models.CharField(
         max_length=248,
-        validators=[MinLengthValidator(5, "This phrase is too short")]
+        validators=[MinLengthValidator(1, "This phrase is too short")]
     )
     language = models.ForeignKey(Language, on_delete=models.CASCADE)
     translations = models.ManyToManyField(Translation)
