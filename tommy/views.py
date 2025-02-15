@@ -48,8 +48,25 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         return redirect(success_url)
 
 
-class Glossary(LoginRequiredMixin, ListView):
+class GlossaryView(LoginRequiredMixin, ListView):
     template_name = 'tommy/glossary.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user = request.user)
+        user_lang_obj = profile.learning
+        user_lang = str(user_lang_obj)
+        phrases = Phrase.objects.filter(language=user_lang_obj)
+        
+        context = {
+            'profile': profile,
+            'user_lang': user_lang,
+            'phrases': phrases,
+        }
+        return render(request, self.template_name, context)
+
+
+class LearnView(LoginRequiredMixin, ListView):
+    template_name = 'tommy/learn.html'
 
     def get(self, request):
         profile = Profile.objects.get(user = request.user)

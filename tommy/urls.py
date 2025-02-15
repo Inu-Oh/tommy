@@ -10,5 +10,8 @@ urlpatterns = [
     path('create_profile', views.ProfileCreateView.as_view(), name='create_profile'),
 
     # Dictionary view
-    path('glossary', views.Glossary.as_view(), name='glossary'),
+    path('glossary', views.GlossaryView.as_view(), name='glossary'),
+
+    # Learn view
+    path('learn', views.LearnView.as_view(), name='learn'),
 ]

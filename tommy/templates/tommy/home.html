@@ -6,11 +6,9 @@
     {% if profile %}    
     <div class="container-fluid d-flex justify-content-between">
         <p class="fs-4 fw-bolder">{{ profile.name }}</p>
-        <p class="text-end fs-5">
-            <span class="badge rounded-pill bg-success">XP {{ profile.xp|intcomma }} &#9679;
-            {% if user_lang == 'French' %}Level {% endif %}
-            {% if user_lang == 'Anglais' %}niveau {% endif %}
-            {{ profile.level }}</span></p>
+        <p class="text-end fs-4">
+            <span class="badge rounded-pill bg-success fw-normal px-3">
+                XP {{ profile.xp|intcomma }}</span></p>
     </div>
     {% endif %}
 {% endblock header %}
@@ -18,7 +16,8 @@
 
 {% block content %} 
     {% if user.is_authenticated and not profile %}
-    Bienvenue | welcome, {{ user.username }}.<br>Click the button to complete your profile.
+    Bienvenue | welcome, {{ user.username }}.
+    <br>Click the button to complete your profile.
     <a href="{% url 'tommy:create_profile' %}"
         class="btn btn-lg btn-primary m-3">
         Complete profile &raquo;</a>
@@ -26,8 +25,8 @@
     {% else %}
         {% if user_lang == 'French' %}
         <p>Learning: {{ profile.learning }}</p>
-        <p><a href="#" class="btn btn-primary">Random pracitice</a></p>
-        <p><a href="#" class="btn btn-primary">Choose a module</a></p>
+        <p><a href="#" class="btn btn-primary">Learn</a></p>
+        <p><a href="#" class="btn btn-primary">Review</a></p>
         <p><a href="{% url "tommy:glossary" %}" 
             class="btn btn-primary">Browse vocabulary</a></p>
         {% endif %}<br>
