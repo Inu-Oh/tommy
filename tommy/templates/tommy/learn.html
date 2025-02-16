@@ -1,7 +1,13 @@
-{% extends "base_menu.html" %}
+{% extends "base_bootstrap.html" %}
 
 
-{% block header %}{% endblock header %}
+{% block header %}
+{% if user_lang == 'French' %}
+Translate the phrase from French to English
+{% elif user_lang == 'Anglais' %}
+Traduis la phrase anglais a francais
+{% endif %}
+{% endblock header %}
 
 
 {% block content %}
@@ -14,9 +20,9 @@
 
     {% else %}
     <div class="container">
-        {% for phrase in phrases %}
-        {{ phrase }}
-        {% endfor %}
+        
+        {{ phrases.0 }}
+        
     </div>
 
     {% endif %}
