@@ -2,11 +2,16 @@
 
 
 {% block header %}
-{% if user_lang == 'French' %}
-Translate the phrase from French to English
-{% elif user_lang == 'Anglais' %}
-Traduis la phrase anglais a francais
-{% endif %}
+<div class="container">
+    <p class="text-center pt-3">
+    {% if user_lang == 'French' %}
+        Translate from French to English
+
+    {% elif user_lang == 'Anglais' %}
+        Traduis d'anglais a francais
+
+    {% endif %}</p>
+</div>
 {% endblock header %}
 
 
@@ -19,14 +24,25 @@ Traduis la phrase anglais a francais
         {% endif %}
 
     {% else %}
-    <div class="container">
-        
-        {{ phrases.0 }}
-        
+    <div class="container">    
+        <p class="fs-4 pt-3">{{ phrases.0 }}</p>      
     </div>
 
     {% endif %}
 {% endblock content %}
 
 
-{% block footer %}{% endblock footer %}
+{% block footer %}
+    <div class="container p-3">
+        {% load crispy_forms_tags %}
+        <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+            {% if form.errors %}
+                <p>There was an error. Please try again.</p>
+            {% endif %}
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Check &raquo;" class="btn btn-success">
+        </form>
+    </div>
+    {% comment %} <div>{% debug %}</div> {% endcomment %}
+{% endblock footer %}

@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
 from .models import Language, Phrase, Profile, Translation
-from .forms import ProfileForm
+from .forms import ProfileForm, TestForm
 
 
 class Home(LoginRequiredMixin, View):
@@ -73,10 +73,12 @@ class LearnView(LoginRequiredMixin, ListView):
         user_lang_obj = profile.learning
         user_lang = str(user_lang_obj)
         phrases = Phrase.objects.filter(language=user_lang_obj)
+        form = TestForm()
         
         context = {
             'profile': profile,
             'user_lang': user_lang,
             'phrases': phrases,
+            'form': form,
         }
         return render(request, self.template_name, context)
