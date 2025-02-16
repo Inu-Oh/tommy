@@ -25,7 +25,7 @@
     {% else %}
         {% if user_lang == 'French' %}
         <p>Learning: {{ profile.learning }}</p>
-        <p><a href="#" class="btn btn-primary">Learn</a></p>
+        <p><a href="{% url "tommy:learn" %}" class="btn btn-primary">Learn</a></p>
         <p><a href="#" class="btn btn-primary">Review</a></p>
         <p><a href="{% url "tommy:glossary" %}" 
             class="btn btn-primary">Browse vocabulary</a></p>
