@@ -16,16 +16,16 @@
 
 
 {% block content %}
-    {% if not phrases %}
+    {% if not unlearned_phrases %}
         {% if user_lang == 'French' %}
-        No {{ user_lang }} phrases yet
+        No {{ user_lang }} phrases available
         {% elif user_lang == 'Anglais' %}
-        Pas encore de phrases {{ user_lang|lower }}
+        Pas de phrases {{ user_lang|lower }} disponibles
         {% endif %}
 
     {% else %}
     <div class="container">    
-        <p class="fs-4 pt-3">{{ phrases.0 }}</p>      
+        <p class="fs-4 pt-3"></p>      
     </div>
 
     {% endif %}
@@ -44,5 +44,5 @@
             <input type="submit" value="Check &raquo;" class="btn btn-success">
         </form>
     </div>
-    {% comment %} <div>{% debug %}</div> {% endcomment %}
+
 {% endblock footer %}

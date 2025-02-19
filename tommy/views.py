@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from .models import Language, Phrase, Profile, Translation
+from .models import Language, Phrase, LearnedPhrase, PhraseStrength, Profile, Translation
 from .forms import ProfileForm, TestForm
 
 
@@ -72,13 +72,13 @@ class LearnView(LoginRequiredMixin, ListView):
         profile = Profile.objects.get(user = request.user)
         user_lang_obj = profile.learning
         user_lang = str(user_lang_obj)
-        phrases = Phrase.objects.filter(language=user_lang_obj)
+        unlearned_phrases = LearnedPhrase(learner = request.user, phrase_learned=False)
         form = TestForm()
         
         context = {
             'profile': profile,
             'user_lang': user_lang,
-            'phrases': phrases,
+            'unlearned_phrases': unlearned_phrases,
             'form': form,
         }
         return render(request, self.template_name, context)
