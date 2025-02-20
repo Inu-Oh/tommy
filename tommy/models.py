@@ -23,10 +23,7 @@ class Phrase(models.Model):
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
     )
-    translations = models.CharField(
-        max_length=248,
-        validators=[MinLengthValidator(1, "This phrase is too short")]
-    )
+    translations = models.JSONField(default=list, blank=True)
     learned = models.ManyToManyField(settings.AUTH_USER_MODEL,
         through='UserLearned', related_name='user_learned')
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
