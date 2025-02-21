@@ -15,9 +15,9 @@ class UserCreateForm(UserCreationForm):
     # https://stackoverflow.com/a/637020
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
-        self.fields['email'].label = "Courriel | Email"
-        self.fields['username'].label = "Nom d'utilisateur | Username"
-        self.fields['password1'].label = "Mot de passe | Password"
-        self.fields['password2'].label = "Confirmez la mot de passe | Confirm password"
+        self.fields['email'].label = "Email"
+        self.fields['username'].label = "Username"
+        self.fields['password1'].label = "Password"
+        self.fields['password2'].label = "Confirm password"
 
     # Use gettext_lazy to edit help text and error messages

@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from .models import Language, Phrase, LearnedPhrase, PhraseStrength, Profile, Translation
+from .models import Phrase, Profile
 from .forms import ProfileForm, TestForm
 
 
@@ -13,14 +13,11 @@ class Home(LoginRequiredMixin, View):
     def get(self, request):
         try:
             profile = Profile.objects.get(user = request.user)
-            user_lang = str(profile.learning.language)
         except:
             profile = ''
-            user_lang = ''
 
         context = {
             'profile': profile,
-            'user_lang': user_lang,
         }
         return render(request, self.template_name, context)
 
@@ -53,13 +50,10 @@ class GlossaryView(LoginRequiredMixin, ListView):
 
     def get(self, request):
         profile = Profile.objects.get(user = request.user)
-        user_lang_obj = profile.learning
-        user_lang = str(user_lang_obj)
-        phrases = Phrase.objects.filter(language=user_lang_obj)
+        phrases = Phrase.objects.all()
         
         context = {
             'profile': profile,
-            'user_lang': user_lang,
             'phrases': phrases,
         }
         return render(request, self.template_name, context)
@@ -70,15 +64,10 @@ class LearnView(LoginRequiredMixin, ListView):
 
     def get(self, request):
         profile = Profile.objects.get(user = request.user)
-        user_lang_obj = profile.learning
-        user_lang = str(user_lang_obj)
-        unlearned_phrases = LearnedPhrase(learner = request.user, phrase_learned=False)
         form = TestForm()
         
         context = {
             'profile': profile,
-            'user_lang': user_lang,
-            'unlearned_phrases': unlearned_phrases,
             'form': form,
         }
         return render(request, self.template_name, context)

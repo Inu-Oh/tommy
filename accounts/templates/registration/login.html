@@ -2,7 +2,7 @@
 
 
 {% block header %}
-    <h1 class="display-3 text-muted pt-3">Log in or register</h1>
+    <h1 class="display-3 text-muted pt-3">Log in or sign up</h1>
 {% endblock header %}
 
 
@@ -17,7 +17,7 @@
                 <input class="form-control" type="text" name="username" autofocus autocapitalize="none" 
                     autocomplete="username" maxlength="150" required id="id_username" />
                 <label for="id_username" class="form-label" placeholder="Username">
-                    Nom d'utilisateur | Username</label>
+                    Username</label>
                 <div>{{ form.username.errors }}</div>
             </div>
             <br/>
@@ -25,7 +25,7 @@
                 <input class="form-control" type="password" name="password"
                     autocomplete="current-password" required id="id_password" />
                 <label for="id_password" class="form-label">
-                    Mot de passe | Password</label>
+                    Password</label>
                 <div>{{ form.password.errors }}</div>
             </div>
             <div class="container-fluid pt-3 d-flex justify-content-between">
@@ -33,7 +33,7 @@
                 <input type="hidden" class="next" value="{{ next }}" />
                 {% comment %} <span class="pt-2">or</span> {% endcomment %}
                 <a class="btn btn-primary" href="{% url 'accounts:register' %}">
-                    Register a new account &raquo;</a>
+                    Create a new account &raquo;</a>
             </div>
         </form>
     </div>

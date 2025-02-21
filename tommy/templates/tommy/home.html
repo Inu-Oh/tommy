@@ -16,28 +16,18 @@
 
 {% block content %} 
     {% if user.is_authenticated and not profile %}
-    Bienvenue | welcome, {{ user.username }}.
+    Welcome, {{ user.username }}.
     <br>Click the button to complete your profile.
     <a href="{% url 'tommy:create_profile' %}"
         class="btn btn-lg btn-primary m-3">
         Complete profile &raquo;</a>
   
     {% else %}
-        {% if user_lang == 'French' %}
-        <p>Learning: {{ profile.learning }}</p>
-        <p><a href="{% url "tommy:learn" %}" class="btn btn-primary">Learn</a></p>
-        <p><a href="#" class="btn btn-primary">Review</a></p>
-        <p><a href="{% url "tommy:glossary" %}" 
-            class="btn btn-primary">Browse vocabulary</a></p>
-        {% endif %}<br>
+    <p><a href="{% url "tommy:learn" %}" class="btn btn-primary">Learn</a></p>
+    <p><a href="#" class="btn btn-primary">Review</a></p>
+    <p><a href="{% url "tommy:glossary" %}" 
+        class="btn btn-primary">Browse vocabulary</a></p>
 
-        {% if user_lang == 'Anglais' %}
-        <p>Formation: {{ profile.learning }}</p>
-        <p><a href="#" class="btn btn-primary">Le Random pracitice</a></p>
-        <p><a href="#" class="btn btn-primary">Choose le module</a></p>
-        <p><a href="{% url "tommy:glossary" %}" 
-            class="btn btn-primary">Browse la vocabulary</a></p>
-        {% endif %}<br>
     {% endif %}
 {% endblock content %}
 

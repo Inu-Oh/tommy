@@ -3,29 +3,18 @@
 
 {% block header %}
 <div class="container">
-    <p class="text-center pt-3">
-    {% if user_lang == 'French' %}
-        Translate from French to English
-
-    {% elif user_lang == 'Anglais' %}
-        Traduis d'anglais a francais
-
-    {% endif %}</p>
+    <p class="text-center pt-3">Translate from French to English</p>
 </div>
 {% endblock header %}
 
 
 {% block content %}
     {% if not unlearned_phrases %}
-        {% if user_lang == 'French' %}
-        No {{ user_lang }} phrases available
-        {% elif user_lang == 'Anglais' %}
-        Pas de phrases {{ user_lang|lower }} disponibles
-        {% endif %}
-
+    No {{ user_lang }} phrases available
+    
     {% else %}
     <div class="container">    
-        <p class="fs-4 pt-3"></p>      
+        <p class="fs-4 pt-3">{{ phrase }}</p>      
     </div>
 
     {% endif %}

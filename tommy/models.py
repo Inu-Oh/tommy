@@ -23,14 +23,47 @@ class Phrase(models.Model):
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
     )
-    translations = models.JSONField(default=list, blank=True)
+    translations = models.JSONField(default=list)
     learned = models.ManyToManyField(settings.AUTH_USER_MODEL,
-        through='UserLearned', related_name='user_learned')
+        through='UserLearnedPhrase', related_name='user_learned')
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
-        through='UserStrength', related_name='user_strength')
+        through='UserPhraseStrength', related_name='user_strength')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.phrase
+
+
+class UserLearnedPhrase(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='user_learned_phrase')
+    phrase = models.ForeignKey(Phrase, on_delete=models.CASCADE)
+    learned = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'phrase')
+    
+    def __str__(self):
+        return '%s has learned the phrase "%s"'%(
+            self.user.username,
+            self.phrase.phrase
+        )
+
+
+class UserPhraseStrength(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='user_phrase_strength')
+    phrase = models.ForeignKey(Phrase, on_delete=models.CASCADE)
+    strength = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'phrase')
+    
+    def __str__(self):
+        return 'User: %s; Phrase: "%s"; Strength: "%d"'%(
+            self.user.username,
+            self.phrase.phrase,
+            self.strength
+        )
