@@ -23,7 +23,6 @@ class Phrase(models.Model):
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
     )
-    translations = models.JSONField(default=list)
     learned = models.ManyToManyField(settings.AUTH_USER_MODEL,
         through='UserLearnedPhrase', related_name='user_learned')
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
@@ -34,6 +33,25 @@ class Phrase(models.Model):
 
     def __str__(self):
         return self.phrase
+
+
+class Translation(models.Model):
+    translation = models.CharField(
+        max_length=248,
+        validators=[MinLengthValidator(1, "This phrase is too short")]
+    )
+    """ How to get all translations for the phrase ?
+    phrase = Phrase.objects.get(id=pk)
+    translations = phrase.translation_set.all()
+    """
+    phrase = models.ForeignKey(Phrase, null=True, on_delete=models.SET_NULL,
+        related_name='phrase_translation')
+
+    def __str__(self):
+        return 'Phrase: "%s" - Translation: "%s"'%(
+            self.phrase,
+            self.translation
+        )
 
 
 class UserLearnedPhrase(models.Model):
