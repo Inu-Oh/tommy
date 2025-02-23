@@ -15,6 +15,7 @@
 
 
 {% block content %} 
+<div class="container-fluid p-3 d-flex justify-content-around align-items-center">
     {% if user.is_authenticated and not profile %}
     Welcome, {{ user.username }}.
     <br>Click the button to complete your profile.
@@ -29,6 +30,7 @@
         class="btn btn-primary">Browse vocabulary</a></p>
 
     {% endif %}
+</div>
 {% endblock content %}
 
 

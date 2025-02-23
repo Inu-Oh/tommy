@@ -64,10 +64,16 @@ class UserLearnedPhrase(models.Model):
         unique_together = ('user', 'phrase')
     
     def __str__(self):
-        return '%s has learned the phrase "%s"'%(
-            self.user.username,
-            self.phrase.phrase
-        )
+        if (self.learned == True):
+            return '%s has learned the phrase "%s"'%(
+                self.user.username,
+                self.phrase.phrase
+            )
+        else:
+            return '%s has not yet learned the phrase "%s"'%(
+                self.user.username,
+                self.phrase.phrase
+            )
 
 
 class UserPhraseStrength(models.Model):
@@ -80,7 +86,7 @@ class UserPhraseStrength(models.Model):
         unique_together = ('user', 'phrase')
     
     def __str__(self):
-        return 'User: %s; Phrase: "%s"; Strength: "%d"'%(
+        return 'User: %s; Phrase: "%s"; Strength: %d'%(
             self.user.username,
             self.phrase.phrase,
             self.strength
