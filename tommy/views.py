@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
 from .models import Phrase, Translation, Profile, UserLearnedPhrase, UserPhraseStrength
-from .forms import ProfileForm, TestForm
+from .forms import LearnedPhraseForm, ProfileForm, TestForm, PhraseStrengthForm
 
 
 class Home(LoginRequiredMixin, View):
@@ -40,6 +40,22 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         profile = form.save(commit=False)
         profile.user = self.request.user
         profile.save()
+
+        # For all phrases, set user strength to 0 and learned to false
+        phrases = Phrase.objects.all()
+        for phrase in phrases:
+            learned_phrase = LearnedPhraseForm()
+            learned_phrase.phrase = phrase
+            learned_phrase.user = self.request.user
+            learned_phrase.learned = False
+            learned_phrase.save()
+            phrase_strength = PhraseStrengthForm()
+            phrase_strength.phrase = phrase
+            phrase_strength.user = self.request.user
+            phrase_strength.strength = 0
+            phrase_strength.save()
+        
+
         success_url = reverse_lazy('tommy:home')
 
         return redirect(success_url)
