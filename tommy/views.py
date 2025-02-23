@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from .models import Phrase, Profile
+from .models import Phrase, Translation, Profile, UserLearnedPhrase, UserPhraseStrength
 from .forms import ProfileForm, TestForm
 
 
@@ -51,10 +51,14 @@ class GlossaryView(LoginRequiredMixin, ListView):
     def get(self, request):
         profile = Profile.objects.get(user = request.user)
         phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+        phrase_strength_set = UserPhraseStrength.objects.filter(user = request.user)
         
         context = {
             'profile': profile,
             'phrases': phrases,
+            'translations': translations,
+            'phrase_strength_set': phrase_strength_set,
         }
         return render(request, self.template_name, context)
 
