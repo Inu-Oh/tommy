@@ -44,12 +44,14 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         # For all phrases, set user strength to 0 and learned to false
         phrases = Phrase.objects.all()
         for phrase in phrases:
-            learned_phrase = LearnedPhraseForm()
+            learned_phrase_form = LearnedPhraseForm()
+            learned_phrase = learned_phrase_form.save(commit=False)
             learned_phrase.phrase = phrase
             learned_phrase.user = self.request.user
             learned_phrase.learned = False
             learned_phrase.save()
-            phrase_strength = PhraseStrengthForm()
+            phrase_strength_form = PhraseStrengthForm()
+            phrase_strength = phrase_strength_form.save(commit=False)
             phrase_strength.phrase = phrase
             phrase_strength.user = self.request.user
             phrase_strength.strength = 0
