@@ -56,10 +56,8 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
             phrase_strength.user = self.request.user
             phrase_strength.strength = 0
             phrase_strength.save()
-        
 
         success_url = reverse_lazy('tommy:home')
-
         return redirect(success_url)
 
 
@@ -70,13 +68,15 @@ class GlossaryView(LoginRequiredMixin, ListView):
         profile = Profile.objects.get(user = request.user)
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
-        phrase_strength_set = UserPhraseStrength.objects.filter(user = request.user)
+        phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+        learned_phrase_set = UserLearnedPhrase.objects.filter(user=request.user)
         
         context = {
             'profile': profile,
             'phrases': phrases,
             'translations': translations,
             'phrase_strength_set': phrase_strength_set,
+            'learned_phrase_set': learned_phrase_set,
         }
         return render(request, self.template_name, context)
 
@@ -85,11 +85,20 @@ class LearnView(LoginRequiredMixin, ListView):
     template_name = 'tommy/learn.html'
 
     def get(self, request):
-        profile = Profile.objects.get(user = request.user)
+        profile = Profile.objects.get(user=request.user)
         form = TestForm()
+        unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
+        testing_phrase = unlearned_phrases.first()
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+        phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+        translations = Translation.objects.filter(phrase=phrase)
         
         context = {
             'profile': profile,
             'form': form,
+            'testing_phrase': testing_phrase,
+            'phrase': phrase,
+            'phrase_strength': phrase_strength,
+            'translations': translations,
         }
         return render(request, self.template_name, context)

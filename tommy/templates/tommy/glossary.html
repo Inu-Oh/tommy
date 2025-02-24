@@ -29,8 +29,14 @@
             <div class="col-1 text-center">{% if phrase_strength_set %}
                 {% for phrase_strength in phrase_strength_set %}
                 {% if phrase_strength.phrase == phrase %}
+                {% if learned_phrase_set %}
+                {% for learned_phrase in learned_phrase_set %}
+                {% if learned_phrase.phrase == phrase_strength.phrase %}
+                {% if learned_phrase.learned == False %}
+                {% comment %} What can I put here {% endcomment %}
+                {% else %}
                 {{ phrase_strength.strength }}
-                {% endif %}{% endfor %}{% endif %}
+                {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endfor %}{% endif %}
                 </div>
         </div>
         {% endfor %}
