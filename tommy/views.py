@@ -13,11 +13,13 @@ class Home(LoginRequiredMixin, View):
     def get(self, request):
         try:
             profile = Profile.objects.get(user = request.user)
+            unlearned_phrase_count = UserLearnedPhrase.objects.filter(learned=False, user=request.user).count()
         except:
             profile = ''
 
         context = {
             'profile': profile,
+            'unlearned_phrase_count': unlearned_phrase_count,
         }
         return render(request, self.template_name, context)
 
@@ -87,18 +89,24 @@ class LearnView(LoginRequiredMixin, ListView):
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
-        unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
-        testing_phrase = unlearned_phrases.first()
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-        phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
-        translations = Translation.objects.filter(phrase=phrase)
+        try:
+            unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
+            testing_phrase = unlearned_phrases.first()
+            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+            phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+            translations = Translation.objects.filter(phrase=phrase)
+
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase,
+                'phrase': phrase,
+                'phrase_strength': phrase_strength,
+                'translations': translations,
+            }
+            return render(request, self.template_name, context)
+        except:
+            finished_learning_url = reverse_lazy('tommy:home')
+            return redirect(finished_learning_url)
         
-        context = {
-            'profile': profile,
-            'form': form,
-            'testing_phrase': testing_phrase,
-            'phrase': phrase,
-            'phrase_strength': phrase_strength,
-            'translations': translations,
-        }
-        return render(request, self.template_name, context)
+        
