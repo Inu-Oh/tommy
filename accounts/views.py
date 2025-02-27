@@ -9,7 +9,7 @@ class RegisterView(CreateView):
     template_name = 'registration/register.html'
 
     def get(self, request):
-        if request.user is not None:
+        if request.user.is_authenticated:
             success_url = reverse_lazy('tommy:home')
             return redirect(success_url)
         form = UserCreateForm()
