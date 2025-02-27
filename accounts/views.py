@@ -9,6 +9,9 @@ class RegisterView(CreateView):
     template_name = 'registration/register.html'
 
     def get(self, request):
+        if request.user is not None:
+            success_url = reverse_lazy('tommy:home')
+            return redirect(success_url)
         form = UserCreateForm()
         context = {'form': form}
         return render(request, self.template_name, context)
