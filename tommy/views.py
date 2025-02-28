@@ -108,5 +108,42 @@ class LearnView(LoginRequiredMixin, ListView):
         except:
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
+    
+    def post(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm(request.POST)
+        unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
+        testing_phrase = unlearned_phrases.first()
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+        phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+        translations = Translation.objects.filter(phrase=phrase)
+
+        context = {
+            'profile': profile,
+            'form': form,
+            'testing_phrase': testing_phrase,
+            'phrase': phrase,
+            'phrase_strength': phrase_strength,
+            'translations': translations,
+        }
+        if not form.is_valid():
+            return render(request, self.template_name, context)
         
-        
+        testing_phrase.learned = True
+        testing_phrase.save()
+        if phrase_strength.views:
+            phrase_strength.views += 1
+        else:
+            phrase_strength.views = 1
+        correct = False
+        for _ in translations:
+            if form.cleaned_data['answer'] == phrase.phrase:
+                correct = True
+        if correct:
+            phrase_strength.strength = phrase_strength.strength + 50 / phrase_strength.views
+        else:
+            phrase_strength.strength = phrase_strength.strength - 50 / phrase_strength.views
+        phrase_strength.save()
+
+        success_url = reverse_lazy('tommy:learn')
+        return redirect(success_url)

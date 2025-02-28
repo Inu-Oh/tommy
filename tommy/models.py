@@ -80,6 +80,7 @@ class UserPhraseStrength(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='user_phrase_strength')
     phrase = models.ForeignKey(Phrase, on_delete=models.CASCADE)
+    views = models.IntegerField(default=0)
     strength = models.IntegerField(default=0)
 
     class Meta:
