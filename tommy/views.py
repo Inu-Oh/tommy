@@ -129,20 +129,22 @@ class LearnView(LoginRequiredMixin, ListView):
         if not form.is_valid():
             return render(request, self.template_name, context)
         
+        # Set phrase to learned for the user
         testing_phrase.learned = True
         testing_phrase.save()
+
+        # Update user phrase views
         if phrase_strength.views:
             phrase_strength.views += 1
         else:
             phrase_strength.views = 1
-        correct = False
+
+        # Calculate and set user phrase strength
+        score = -10
         for _ in translations:
             if form.cleaned_data['answer'] == phrase.phrase:
-                correct = True
-        if correct:
-            phrase_strength.strength = phrase_strength.strength + 50 / phrase_strength.views
-        else:
-            phrase_strength.strength = phrase_strength.strength - 50 / phrase_strength.views
+                score = 10
+        phrase_strength.strength = (phrase_strength.strength * phrase_strength.views + score) / phrase_strength.views
         phrase_strength.save()
 
         success_url = reverse_lazy('tommy:learn')
