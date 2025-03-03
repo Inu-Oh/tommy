@@ -201,7 +201,8 @@ class ReviewView(LoginRequiredMixin, View):
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
                 testing_phrase.correct += 1
-        testing_phrase.strength = testing_phrase.views - (testing_phrase.views - testing_phrase.correct)
+        print("((", testing_phrase.views, " - (", testing_phrase.views, " - ", testing_phrase.correct, ")) * 100) / ", testing_phrase.views)
+        testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
         success_url = reverse_lazy('tommy:review')
