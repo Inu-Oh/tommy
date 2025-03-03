@@ -13,13 +13,19 @@ class Home(LoginRequiredMixin, View):
     def get(self, request):
         try:
             profile = Profile.objects.get(user = request.user)
-            unlearned_phrase_count = UserLearnedPhrase.objects.filter(learned=False, user=request.user).count()
         except:
-            profile = ''
+            create_profile_url = reverse_lazy('tommy:create_profile')
+            return redirect(create_profile_url)
+        
+        unlearned_phrase_count = UserLearnedPhrase.objects.filter(
+            learned=False, user=request.user).count()
+        learned_phrase_count = UserLearnedPhrase.objects.filter(
+            learned=True, user=request.user).count()
 
         context = {
             'profile': profile,
             'unlearned_phrase_count': unlearned_phrase_count,
+            'learned_phrase_count': learned_phrase_count,
         }
         return render(request, self.template_name, context)
 
@@ -57,6 +63,7 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
             phrase_strength.phrase = phrase
             phrase_strength.user = self.request.user
             phrase_strength.strength = 0
+            phrase_strength.views = 0
             phrase_strength.save()
 
         success_url = reverse_lazy('tommy:home')
@@ -148,4 +155,66 @@ class LearnView(LoginRequiredMixin, ListView):
         phrase_strength.save()
 
         success_url = reverse_lazy('tommy:learn')
+        return redirect(success_url)
+
+
+class ReviewView(LoginRequiredMixin, ListView):
+    template_name = 'tommy/review.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm()
+        try:
+            print("do i get this far")
+            phrase_strength_set = UserPhraseStrength.objects.all(user=request.user)
+            print(phrase_strength_set)
+            testing_phrase = phrase_strength_set.earliest('strength')
+            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+            translations = Translation.objects.filter(phrase=phrase)
+
+            context = {
+                'profile': profile,
+                'form': form,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase,
+                'translations': translations,
+            }
+            return render(request, self.template_name, context)
+        except:
+            start_learning_url = reverse_lazy('tommy:learn')
+            return redirect(start_learning_url)
+    
+    def post(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm(request.POST)
+        phrase_strength_set = UserPhraseStrength.objects.all(user=request.user)
+        testing_phrase = phrase_strength_set.latest('strength')
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+        translations = Translation.objects.filter(phrase=phrase)
+
+        context = {
+            'profile': profile,
+            'form': form,
+            'phrase': phrase,
+            'testing_phrase': testing_phrase,
+            'translations': translations,
+        }
+        if not form.is_valid():
+            return render(request, self.template_name, context)
+
+        # Update user phrase views
+        if testing_phrase.views:
+            testing_phrase.views += 1
+        else:
+            testing_phrase.views = 1
+
+        # Calculate and set user phrase strength
+        score = -10
+        for _ in translations:
+            if form.cleaned_data['answer'] == phrase.phrase:
+                score = 10
+        testing_phrase.strength = (testing_phrase.strength * testing_phrase.views + score) / testing_phrase.views
+        testing_phrase.save()
+
+        success_url = reverse_lazy('tommy:review')
         return redirect(success_url)

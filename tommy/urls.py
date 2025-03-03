@@ -14,4 +14,7 @@ urlpatterns = [
 
     # Learn view
     path('learn', views.LearnView.as_view(), name='learn'),
+
+    # Review view
+    path('review', views.ReviewView.as_view(), name='review'),
 ]

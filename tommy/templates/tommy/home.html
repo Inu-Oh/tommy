@@ -7,7 +7,8 @@
     <div class="container-fluid d-flex justify-content-between">
         <p class="fs-4 fw-bolder">{{ profile.name }}</p>
         <p class="fs-6 pt-1">{% if unlearned_phrase_count %} Unlearned phrases: 
-            {{ unlearned_phrase_count}} - <i>Change to progress bar</i> {% endif %}</p>
+            {{ unlearned_phrase_count }} Learned: {{ learned_phrase_count }}
+            <i> - Change to progress bar</i> {% endif %}</p>
         <p class="text-end fs-4">
             <span class="badge rounded-pill bg-success fw-normal px-3">
                 XP {{ profile.xp|intcomma }}</span></p>
@@ -27,10 +28,12 @@
   
     {% else %}
         {% if unlearned_phrase_count > 0 %}
-        <p><a href="{% url "tommy:learn" %}" class="btn btn-primary">Learn</a></p>
+        <p><a href="{% url 'tommy:learn' %}" class="btn btn-primary">Learn</a></p>
         {% endif %}
-        <p><a href="#" class="btn btn-primary">Review</a></p>
-        <p><a href="{% url "tommy:glossary" %}" 
+        {% if learned_phrase_count > 0 %}
+        <p><a href="{% url 'tommy:review' %}" class="btn btn-primary">Review</a></p>
+        {% endif %}
+        <p><a href="{% url 'tommy:glossary' %}" 
             class="btn btn-primary">Browse vocabulary</a></p>
 
     {% endif %}

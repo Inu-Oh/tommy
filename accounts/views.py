@@ -19,7 +19,7 @@ class RegisterView(CreateView):
     def post(self, request):
         form = UserCreateForm(request.POST)
         if not form.is_valid():
-            context = {'user_form': form}
+            context = {'form': form}
             return render(request, self.template_name, context)
         
         form.save() #Check for security issuse from DJ4E

@@ -1,0 +1,43 @@
+{% extends "base_bootstrap.html" %}
+
+
+{% block header %}
+<div class="container">
+    <p class="text-center pt-3">Translate from French to English</p>
+</div>
+{% endblock header %}
+
+
+{% block content %}
+    {% if not testing_phrase %}
+    You have learned all the content
+    {% comment %} should redirect to another page {% endcomment %}
+    {% else %}
+    <div class="container">    
+        <p class="fs-4 pt-3">
+            Testing (learned) phrase: {{ testing_phrase.phrase }} {{ testing_phrase.learned }} {{ testing_phrase.user.username }} <br>
+            Phrase: {{ phrase }} <br>
+            Phrase strength: {{ phrase_strength.phrase }} {{ phrase_strength.strength }} {{ phrase_strength.user.username }} <br>
+        </p>      
+    </div>
+
+    {% endif %}
+{% endblock content %}
+
+
+{% block footer %}
+    <div class="container p-3">
+        <p>Translations: {% for translation in translations.all %}
+            {{ translation.translation }} {% endfor %} </p>
+        {% load crispy_forms_tags %}
+        <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+            {% if form.errors %}
+                <p>There was an error. Please try again.</p>
+            {% endif %}
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Check &raquo;" class="btn btn-success">
+        </form>
+    </div>
+
+{% endblock footer %}
