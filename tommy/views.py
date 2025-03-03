@@ -140,18 +140,13 @@ class LearnView(LoginRequiredMixin, ListView):
         testing_phrase.learned = True
         testing_phrase.save()
 
-        # Update user phrase views
-        if phrase_strength.views:
-            phrase_strength.views += 1
-        else:
-            phrase_strength.views = 1
-
-        # Calculate and set user phrase strength
-        score = -10
+        # Calculate and set user phrase strength data
+        phrase_strength.views = 1
+        score = -1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
-                score = 10
-        phrase_strength.strength = (phrase_strength.strength * phrase_strength.views + score) / phrase_strength.views
+                score = 1
+        phrase_strength.strength += score
         phrase_strength.save()
 
         success_url = reverse_lazy('tommy:learn')
@@ -203,14 +198,12 @@ class ReviewView(LoginRequiredMixin, ListView):
         print(form.cleaned_data['answer'], testing_phrase)
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        score = -10
+        score = -1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
-                score = 10
+                score = 1
         testing_phrase.strength += score
-        if testing_phrase.strength > 100:
-            testing_phrase.strength = 100
-        elif testing_phrase.strength < 0:
+        if testing_phrase.strength < 0:
             testing_phrase.strength = 0
         testing_phrase.save()
 
