@@ -148,8 +148,8 @@ class LearnView(LoginRequiredMixin, ListView):
 
         # Calculate and set user phrase strength
         score = -10
-        for _ in translations:
-            if form.cleaned_data['answer'] == phrase.phrase:
+        for translation in translations:
+            if form.cleaned_data['answer'] == translation.translation:
                 score = 10
         phrase_strength.strength = (phrase_strength.strength * phrase_strength.views + score) / phrase_strength.views
         phrase_strength.save()
@@ -165,9 +165,7 @@ class ReviewView(LoginRequiredMixin, ListView):
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         try:
-            print("do i get this far")
-            phrase_strength_set = UserPhraseStrength.objects.all(user=request.user)
-            print(phrase_strength_set)
+            phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
             testing_phrase = phrase_strength_set.earliest('strength')
             phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
             translations = Translation.objects.filter(phrase=phrase)
@@ -187,8 +185,8 @@ class ReviewView(LoginRequiredMixin, ListView):
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        phrase_strength_set = UserPhraseStrength.objects.all(user=request.user)
-        testing_phrase = phrase_strength_set.latest('strength')
+        phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+        testing_phrase = phrase_strength_set.earliest('strength')
         phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
         translations = Translation.objects.filter(phrase=phrase)
 
@@ -202,18 +200,18 @@ class ReviewView(LoginRequiredMixin, ListView):
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        # Update user phrase views
-        if testing_phrase.views:
-            testing_phrase.views += 1
-        else:
-            testing_phrase.views = 1
-
-        # Calculate and set user phrase strength
+        print(form.cleaned_data['answer'], testing_phrase)
+        # Calculate and set user phrase strength data
+        testing_phrase.views += 1
         score = -10
-        for _ in translations:
-            if form.cleaned_data['answer'] == phrase.phrase:
+        for translation in translations:
+            if form.cleaned_data['answer'] == translation.translation:
                 score = 10
-        testing_phrase.strength = (testing_phrase.strength * testing_phrase.views + score) / testing_phrase.views
+        testing_phrase.strength += score
+        if testing_phrase.strength > 100:
+            testing_phrase.strength = 100
+        elif testing_phrase.strength < 0:
+            testing_phrase.strength = 0
         testing_phrase.save()
 
         success_url = reverse_lazy('tommy:review')
