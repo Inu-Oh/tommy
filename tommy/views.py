@@ -64,6 +64,7 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
             phrase_strength.user = self.request.user
             phrase_strength.strength = 0
             phrase_strength.views = 0
+            phrase_strength.correct = 0
             phrase_strength.save()
 
         success_url = reverse_lazy('tommy:home')
@@ -90,7 +91,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
         return render(request, self.template_name, context)
 
 
-class LearnView(LoginRequiredMixin, ListView):
+class LearnView(LoginRequiredMixin, View):
     template_name = 'tommy/learn.html'
 
     def get(self, request):
@@ -142,18 +143,17 @@ class LearnView(LoginRequiredMixin, ListView):
 
         # Calculate and set user phrase strength data
         phrase_strength.views = 1
-        score = -1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
-                score = 1
-        phrase_strength.strength += score
+                phrase_strength.correct = 1
+                phrase_strength.strength = 100
         phrase_strength.save()
 
         success_url = reverse_lazy('tommy:learn')
         return redirect(success_url)
 
 
-class ReviewView(LoginRequiredMixin, ListView):
+class ReviewView(LoginRequiredMixin, View):
     template_name = 'tommy/review.html'
 
     def get(self, request):
@@ -198,13 +198,10 @@ class ReviewView(LoginRequiredMixin, ListView):
         print(form.cleaned_data['answer'], testing_phrase)
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        score = -1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
-                score = 1
-        testing_phrase.strength += score
-        if testing_phrase.strength < 0:
-            testing_phrase.strength = 0
+                testing_phrase.correct += 1
+        testing_phrase.strength = testing_phrase.views - (testing_phrase.views - testing_phrase.correct)
         testing_phrase.save()
 
         success_url = reverse_lazy('tommy:review')
