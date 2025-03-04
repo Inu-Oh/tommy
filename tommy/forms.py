@@ -34,5 +34,6 @@ class TestForm(forms.Form):
         max_length=248,
         min_length=1,
         strip=True,
-        label=''
+        label='',
+        widget=forms.TextInput(attrs={'autofocus': True})
     )

@@ -96,6 +96,7 @@ class LearnView(LoginRequiredMixin, View):
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
         form = TestForm()
         try:
             unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
@@ -111,6 +112,7 @@ class LearnView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'phrase_strength': phrase_strength,
                 'translations': translations,
+                'xp': xp,
             }
             return render(request, self.template_name, context)
         except:
@@ -119,6 +121,7 @@ class LearnView(LoginRequiredMixin, View):
     
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
         form = TestForm(request.POST)
         unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
         testing_phrase = unlearned_phrases.first()
@@ -133,6 +136,7 @@ class LearnView(LoginRequiredMixin, View):
             'phrase': phrase,
             'phrase_strength': phrase_strength,
             'translations': translations,
+            'xp': xp,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
@@ -149,6 +153,10 @@ class LearnView(LoginRequiredMixin, View):
                 phrase_strength.strength = 100
         phrase_strength.save()
 
+        # Add XP points to user profile
+        profile.xp += 5
+        profile.save()
+
         success_url = reverse_lazy('tommy:learn')
         return redirect(success_url)
 
@@ -158,6 +166,7 @@ class ReviewView(LoginRequiredMixin, View):
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
         form = TestForm()
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
@@ -171,6 +180,7 @@ class ReviewView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'testing_phrase': testing_phrase,
                 'translations': translations,
+                'xp': xp,
             }
             return render(request, self.template_name, context)
         except:
@@ -179,6 +189,7 @@ class ReviewView(LoginRequiredMixin, View):
     
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
@@ -191,6 +202,7 @@ class ReviewView(LoginRequiredMixin, View):
             'phrase': phrase,
             'testing_phrase': testing_phrase,
             'translations': translations,
+            'xp': xp,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
@@ -202,6 +214,10 @@ class ReviewView(LoginRequiredMixin, View):
                 testing_phrase.correct += 1
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
+
+        # Add XP points to user profile
+        profile.xp += 5
+        profile.save()
 
         success_url = reverse_lazy('tommy:review')
         return redirect(success_url)
