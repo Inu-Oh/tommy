@@ -22,11 +22,11 @@
         
         <div class="row">
             <div class="col-4 text-end">{{ phrase.phrase }} </div>
-            <div class="col-7 text-start">
+            <div class="col-6 text-start">
                 {% for translation in translations %}{% if translation.phrase == phrase %}
                 &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
                 {% endif %}{% endfor %}</div>
-            <div class="col-1 text-center">{% if phrase_strength_set %}
+            <div class="col-2 text-end">{% if phrase_strength_set %}
                 {% for phrase_strength in phrase_strength_set %}
                 {% if phrase_strength.phrase == phrase %}
                 {% if learned_phrase_set %}
@@ -35,7 +35,12 @@
                 {% if learned_phrase.learned == False %}
                 {% comment %} What can I put here {% endcomment %}
                 {% else %}
-                {{ phrase_strength.strength }}
+                {% if phrase_strength.strength > 90 %}Excellent
+                {% elif phrase_strength.strength > 80 %}Amazing
+                {% elif phrase_strength.strength > 60 %}Great
+                {% elif phrase_strength.strength > 40 %}Good
+                {% elif phrase_strength.strength > 20 %}Keep at it
+                {% else %}Practice{% endif %}
                 {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endfor %}{% endif %}
                 </div>
         </div>

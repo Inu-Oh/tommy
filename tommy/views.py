@@ -195,13 +195,11 @@ class ReviewView(LoginRequiredMixin, View):
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        print(form.cleaned_data['answer'], testing_phrase)
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
                 testing_phrase.correct += 1
-        print("((", testing_phrase.views, " - (", testing_phrase.views, " - ", testing_phrase.correct, ")) * 100) / ", testing_phrase.views)
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
