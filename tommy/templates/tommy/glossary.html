@@ -19,7 +19,7 @@
     {% else %}
     <div class="container">
         {% for phrase in phrases %}
-        
+        {% if phrase.language == "French" %}
         <div class="row">
             <div class="col-4 text-end">{{ phrase.phrase }} </div>
             <div class="col-6 text-start">
@@ -38,9 +38,10 @@
                 {% elif phrase_strength.strength > 40 %}Good
                 {% elif phrase_strength.strength > 20 %}Keep at it
                 {% else %}Practice{% endif %}
-                {% endif %}{% endfor %}{% endif %}
+                {% endif %}{% endif %}{% endfor %}{% endif %}
                 </div>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
 </div>
