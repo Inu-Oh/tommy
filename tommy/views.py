@@ -3,8 +3,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from .models import Phrase, Translation, Profile, UserLearnedPhrase, UserPhraseStrength
-from .forms import LearnedPhraseForm, ProfileForm, TestForm, PhraseStrengthForm
+from .models import Phrase, Translation, Profile, UserPhraseStrength
+from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
 
 class Home(LoginRequiredMixin, View):
@@ -17,9 +17,9 @@ class Home(LoginRequiredMixin, View):
             create_profile_url = reverse_lazy('tommy:create_profile')
             return redirect(create_profile_url)
         
-        unlearned_phrase_count = UserLearnedPhrase.objects.filter(
+        unlearned_phrase_count = UserPhraseStrength.objects.filter(
             learned=False, user=request.user).count()
-        learned_phrase_count = UserLearnedPhrase.objects.filter(
+        learned_phrase_count = UserPhraseStrength.objects.filter(
             learned=True, user=request.user).count()
 
         context = {
@@ -52,16 +52,11 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         # For all phrases, set user strength to 0 and learned to false
         phrases = Phrase.objects.all()
         for phrase in phrases:
-            learned_phrase_form = LearnedPhraseForm()
-            learned_phrase = learned_phrase_form.save(commit=False)
-            learned_phrase.phrase = phrase
-            learned_phrase.user = self.request.user
-            learned_phrase.learned = False
-            learned_phrase.save()
             phrase_strength_form = PhraseStrengthForm()
             phrase_strength = phrase_strength_form.save(commit=False)
             phrase_strength.phrase = phrase
             phrase_strength.user = self.request.user
+            phrase_strength.learned = False
             phrase_strength.strength = 0
             phrase_strength.views = 0
             phrase_strength.correct = 0
@@ -79,14 +74,12 @@ class GlossaryView(LoginRequiredMixin, ListView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
-        learned_phrase_set = UserLearnedPhrase.objects.filter(user=request.user)
         
         context = {
             'profile': profile,
             'phrases': phrases,
             'translations': translations,
             'phrase_strength_set': phrase_strength_set,
-            'learned_phrase_set': learned_phrase_set,
         }
         return render(request, self.template_name, context)
 
@@ -99,18 +92,15 @@ class LearnView(LoginRequiredMixin, View):
         xp = profile.xp
         form = TestForm()
         try:
-            unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
-            testing_phrase = unlearned_phrases.first()
+            phrase_strength_set = UserPhraseStrength.objects.filter(learned=False, user=request.user)
+            testing_phrase = phrase_strength_set.first()
             phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-            phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
             translations = Translation.objects.filter(phrase=phrase)
 
             context = {
                 'profile': profile,
                 'form': form,
                 'testing_phrase': testing_phrase,
-                'phrase': phrase,
-                'phrase_strength': phrase_strength,
                 'translations': translations,
                 'xp': xp,
             }
@@ -123,18 +113,15 @@ class LearnView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         xp = profile.xp
         form = TestForm(request.POST)
-        unlearned_phrases = UserLearnedPhrase.objects.filter(learned=False, user=request.user)
-        testing_phrase = unlearned_phrases.first()
+        phrase_strength_set = UserPhraseStrength.objects.filter(learned=False, user=request.user)
+        testing_phrase = phrase_strength_set.first()
         phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-        phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
         translations = Translation.objects.filter(phrase=phrase)
 
         context = {
             'profile': profile,
             'form': form,
             'testing_phrase': testing_phrase,
-            'phrase': phrase,
-            'phrase_strength': phrase_strength,
             'translations': translations,
             'xp': xp,
         }
@@ -146,12 +133,12 @@ class LearnView(LoginRequiredMixin, View):
         testing_phrase.save()
 
         # Calculate and set user phrase strength data
-        phrase_strength.views = 1
+        testing_phrase.views = 1
         for translation in translations:
             if form.cleaned_data['answer'] == translation.translation:
-                phrase_strength.correct = 1
-                phrase_strength.strength = 100
-        phrase_strength.save()
+                testing_phrase.correct = 1
+                testing_phrase.strength = 100
+        testing_phrase.save()
 
         # Add XP points to user profile
         profile.xp += 5
@@ -169,7 +156,7 @@ class ReviewView(LoginRequiredMixin, View):
         xp = profile.xp
         form = TestForm()
         try:
-            phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+            phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('strength')
             phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
             translations = Translation.objects.filter(phrase=phrase)
@@ -177,7 +164,6 @@ class ReviewView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'phrase': phrase,
                 'testing_phrase': testing_phrase,
                 'translations': translations,
                 'xp': xp,
@@ -191,7 +177,7 @@ class ReviewView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         xp = profile.xp
         form = TestForm(request.POST)
-        phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+        phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
         phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
         translations = Translation.objects.filter(phrase=phrase)
@@ -199,7 +185,6 @@ class ReviewView(LoginRequiredMixin, View):
         context = {
             'profile': profile,
             'form': form,
-            'phrase': phrase,
             'testing_phrase': testing_phrase,
             'translations': translations,
             'xp': xp,

@@ -29,11 +29,8 @@
             <div class="col-2 text-end">{% if phrase_strength_set %}
                 {% for phrase_strength in phrase_strength_set %}
                 {% if phrase_strength.phrase == phrase %}
-                {% if learned_phrase_set %}
-                {% for learned_phrase in learned_phrase_set %}
-                {% if learned_phrase.phrase == phrase_strength.phrase %}
-                {% if learned_phrase.learned == False %}
-                {% comment %} What can I put here {% endcomment %}
+                {% if phrase_strength.leaned == False %}
+                Learn
                 {% else %}
                 {% if phrase_strength.strength > 90 %}Excellent
                 {% elif phrase_strength.strength > 80 %}Amazing
@@ -41,7 +38,7 @@
                 {% elif phrase_strength.strength > 40 %}Good
                 {% elif phrase_strength.strength > 20 %}Keep at it
                 {% else %}Practice{% endif %}
-                {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endfor %}{% endif %}
+                {% endif %}{% endfor %}{% endif %}
                 </div>
         </div>
         {% endfor %}

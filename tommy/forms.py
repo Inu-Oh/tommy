@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Profile, UserLearnedPhrase, UserPhraseStrength
+from .models import Profile, UserPhraseStrength
 
 
 class ProfileForm(forms.ModelForm):
@@ -12,13 +12,6 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
         self.fields['name'].label = "First name "
-
-
-class LearnedPhraseForm(forms.ModelForm):
-
-    class Meta:
-        model = UserLearnedPhrase
-        fields = []
 
 
 class PhraseStrengthForm(forms.ModelForm):
