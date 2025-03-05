@@ -13,14 +13,11 @@
     You have learned all the content
     {% comment %} should redirect to another page {% endcomment %}
     {% else %}
-    <div class="container">  
-        <p class="text-end fs-4">
+    <div class="container-fluid d-flex justify-content-between">  
+        <p class="fs-4 p-5 ">{{ testing_phrase.phrase }}</p>
+        <p class="text-end pe-3 fs-4">
             <span class="badge rounded-pill bg-success fw-normal px-3">
-                XP {{ xp }}</span></p> 
-        <p class="fs-4 pt-3">
-            Testing (learned) phrase: {{ testing_phrase.phrase }} {{ testing_phrase.learned }} {{ testing_phrase.user.username }} <br>
-            Phrase: {{ phrase }} <br>
-        </p>      
+            XP {{ xp }}</span></p> 
     </div>
 
     {% endif %}
@@ -28,9 +25,7 @@
 
 
 {% block footer %}
-    <div class="container p-3">
-        <p>Translations: {% for translation in translations.all %}
-            {{ translation.translation }} {% endfor %} </p>
+    <div class="container p-5">
         {% load crispy_forms_tags %}
         <form action="" method="post" id="upload_form" enctype="multipart/form-data">
             {% if form.errors %}
@@ -38,7 +33,8 @@
             {% endif %}
             {% csrf_token %}
             {{ form|crispy }}
-            <input type="submit" value="Check &raquo;" class="btn btn-success">
+            {% comment %} Leave submit button off unless wanted
+             <input type="submit" value="Check &raquo;" class="btn btn-success"> {% endcomment %}
         </form>
     </div>
 
