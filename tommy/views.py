@@ -100,7 +100,8 @@ class LearnView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'testing_phrase': testing_phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
                 'translations': translations,
                 'xp': xp,
             }
@@ -121,7 +122,8 @@ class LearnView(LoginRequiredMixin, View):
         context = {
             'profile': profile,
             'form': form,
-            'testing_phrase': testing_phrase,
+            'testing_phrase': testing_phrase, # Phrase strength object
+            'phrase': phrase,
             'translations': translations,
             'xp': xp,
         }
@@ -164,7 +166,8 @@ class ReviewView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'testing_phrase': testing_phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
                 'translations': translations,
                 'xp': xp,
             }
@@ -185,7 +188,8 @@ class ReviewView(LoginRequiredMixin, View):
         context = {
             'profile': profile,
             'form': form,
-            'testing_phrase': testing_phrase,
+            'testing_phrase': testing_phrase, # Phrase strength object
+            'phrase': phrase,
             'translations': translations,
             'xp': xp,
         }

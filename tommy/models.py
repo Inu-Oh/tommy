@@ -19,6 +19,13 @@ class Profile(models.Model):
 
 
 class Phrase(models.Model):
+    FRENCH = "French"
+    ENGLISH = "English"
+    LANGUAGES = [
+        (FRENCH, "French"),
+        (ENGLISH, "English")
+    ]
+    language = models.CharField(max_length=12, choices=LANGUAGES, default=FRENCH)
     phrase = models.CharField(
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
@@ -34,6 +41,13 @@ class Phrase(models.Model):
 
 
 class Translation(models.Model):
+    FRENCH = "French"
+    ENGLISH = "English"
+    LANGUAGES = [
+        (FRENCH, "French"),
+        (ENGLISH, "English")
+    ]
+    language = models.CharField(max_length=12, choices=LANGUAGES, default=FRENCH)
     translation = models.CharField(
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
