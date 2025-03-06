@@ -31,6 +31,7 @@
         <p><a href="{% url 'tommy:learn' %}" class="btn btn-primary">Learn</a></p>
         {% endif %}
         {% if learned_phrase_count > 0 %}
+        <p><a href="{% url 'tommy:practice' %}" class="btn btn-primary">Practice</a></p>
         <p><a href="{% url 'tommy:review' %}" class="btn btn-primary">Review</a></p>
         {% endif %}
         <p><a href="{% url 'tommy:glossary' %}" 

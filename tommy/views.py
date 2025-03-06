@@ -150,8 +150,8 @@ class LearnView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-class ReviewView(LoginRequiredMixin, View):
-    template_name = 'tommy/review.html'
+class PracticeView(LoginRequiredMixin, View):
+    template_name = 'tommy/practice.html'
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
@@ -182,6 +182,68 @@ class ReviewView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+        translations = Translation.objects.filter(phrase=phrase)
+
+        context = {
+            'profile': profile,
+            'form': form,
+            'testing_phrase': testing_phrase, # Phrase strength object
+            'phrase': phrase,
+            'translations': translations,
+            'xp': xp,
+        }
+        if not form.is_valid():
+            return render(request, self.template_name, context)
+
+        # Calculate and set user phrase strength data
+        testing_phrase.views += 1
+        for translation in translations:
+            if form.cleaned_data['answer'] == translation.translation:
+                testing_phrase.correct += 1
+        testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
+        testing_phrase.save()
+
+        # Add XP points to user profile
+        profile.xp += 5
+        profile.save()
+
+        success_url = reverse_lazy('tommy:practice')
+        return redirect(success_url)
+
+
+class ReviewView(LoginRequiredMixin, View):
+    template_name = 'tommy/review.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
+        form = TestForm()
+        try:
+            phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
+            testing_phrase = phrase_strength_set.earliest('updated_at')
+            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+            translations = Translation.objects.filter(phrase=phrase)
+
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
+                'translations': translations,
+                'xp': xp,
+            }
+            return render(request, self.template_name, context)
+        except:
+            start_learning_url = reverse_lazy('tommy:learn')
+            return redirect(start_learning_url)
+    
+    def post(self, request):
+        profile = Profile.objects.get(user=request.user)
+        xp = profile.xp
+        form = TestForm(request.POST)
+        phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
+        testing_phrase = phrase_strength_set.earliest('updated_at')
         phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
         translations = Translation.objects.filter(phrase=phrase)
 
