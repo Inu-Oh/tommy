@@ -18,6 +18,16 @@ class Profile(models.Model):
         return f"{self.user.username} Profile"
 
 
+class Module(models.Model):
+    name = models.CharField(
+        max_length=24,
+        validators=[MinLengthValidator(5, "This name is too short")]
+    )
+
+    def __str__(self):
+        return self.name
+
+
 class Phrase(models.Model):
     FRENCH = "French"
     ENGLISH = "English"
@@ -32,6 +42,7 @@ class Phrase(models.Model):
     )
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
         through='UserPhraseStrength', related_name='user_strength')
+    module = models.ForeignKey(Module, null=True, on_delete=models.SET_NULL)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
