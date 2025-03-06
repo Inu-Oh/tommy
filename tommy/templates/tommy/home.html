@@ -6,11 +6,16 @@
     {% if profile %}    
     <div class="container-fluid d-flex justify-content-between">
         <p class="fs-4 fw-bolder">{{ profile.name }}</p>
-        <p class="fs-6 pt-1">{% if unlearned_phrase_count %} Unlearned phrases: 
-            {{ unlearned_phrase_count }} Learned: {{ learned_phrase_count }}
-            <i> - Change to progress bar</i> {% endif %}</p>
+        <div style="width:39%" class="pb-2">
+            <label for="prog-bar">Course progress</label>
+            <div class="progress" id="prog-bar" style="width: 100%; height: 25px;">
+                <div class="progress-bar progress-bar-striped bg-danger fw-bold fs-6"
+                    role="progressbar" style="width: {{ progress }}%;"
+                    aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ progress }}%</div>
+        </div></div>
         <p class="text-end fs-4">
-            <span class="badge rounded-pill bg-success fw-normal px-3">
+            <span class="badge rounded-pill bg-success fw-bold px-3">
                 XP {{ profile.xp|intcomma }}</span></p>
     </div>
     {% endif %}

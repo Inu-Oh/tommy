@@ -21,11 +21,13 @@ class Home(LoginRequiredMixin, View):
             learned=False, user=request.user).count()
         learned_phrase_count = UserPhraseStrength.objects.filter(
             learned=True, user=request.user).count()
-
+        progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
+ 
         context = {
             'profile': profile,
             'unlearned_phrase_count': unlearned_phrase_count,
             'learned_phrase_count': learned_phrase_count,
+            'progress': progress,
         }
         return render(request, self.template_name, context)
 
@@ -84,6 +86,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
         return render(request, self.template_name, context)
 
 
+# Selects unlearned phrases for testing
 class LearnView(LoginRequiredMixin, View):
     template_name = 'tommy/learn.html'
 
@@ -150,6 +153,7 @@ class LearnView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
+# Selects weakest strength phrases for testing
 class PracticeView(LoginRequiredMixin, View):
     template_name = 'tommy/practice.html'
 
@@ -212,6 +216,7 @@ class PracticeView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
+# Selects phrases not seen for longest time for testing
 class ReviewView(LoginRequiredMixin, View):
     template_name = 'tommy/review.html'
 
