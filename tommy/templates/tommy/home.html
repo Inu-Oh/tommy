@@ -15,7 +15,7 @@
                     {{ progress }}%</div>
         </div></div>
         <p class="text-end fs-4">
-            <span class="badge rounded-pill bg-success fw-bold px-3">
+            <span class="badge bg-success fw-bold px-3">
                 XP {{ profile.xp|intcomma }}</span></p>
     </div>
     {% endif %}
@@ -33,14 +33,17 @@
   
     {% else %}
         {% if unlearned_phrase_count > 0 %}
-        <p><a href="{% url 'tommy:learn' %}" class="btn btn-primary">Learn</a></p>
+        <p><a href="{% url 'tommy:learn' %}"
+            class="btn btn-lg btn-outline-primary">Learn &#x1F4DA;</a></p>
         {% endif %}
         {% if learned_phrase_count > 0 %}
-        <p><a href="{% url 'tommy:practice' %}" class="btn btn-primary">Practice</a></p>
-        <p><a href="{% url 'tommy:review' %}" class="btn btn-primary">Review</a></p>
+        <p><a href="{% url 'tommy:practice' %}"
+            class="btn btn-lg btn-outline-primary">Practice &#x1F4AF;</a></p>
+        <p><a href="{% url 'tommy:review' %}"
+            class="btn btn-lg btn-outline-primary">Review &#x1F4AD;</a></p>
         {% endif %}
         <p><a href="{% url 'tommy:glossary' %}" 
-            class="btn btn-primary">Browse vocabulary</a></p>
+            class="btn btn-lg btn-outline-primary">Study &#x1F4D1;</a></p>
 
     {% endif %}
 </div>
