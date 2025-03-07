@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from .models import Phrase, Translation, Profile, UserPhraseStrength
+from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
 
@@ -86,6 +86,30 @@ class GlossaryView(LoginRequiredMixin, ListView):
         }
         return render(request, self.template_name, context)
 
+
+class ModulesView(LoginRequiredMixin, ListView):
+    template_name = 'tommy/modules.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user = request.user)
+        phrases = UserPhraseStrength.objects.filter(user = request.user)
+        unlearned_phrase_set = phrases.filter(
+            learned=False, user=request.user)
+        unlearned_phrase_count = unlearned_phrase_set.count()
+        learned_phrase_set= phrases.filter(
+            learned=True, user=request.user)
+        learned_phrase_count = learned_phrase_set.count()
+        progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
+        modules = Module.objects.all()
+
+        context = {
+            'profile': profile,
+            'unlearned_phrase_count': unlearned_phrase_count,
+            'learned_phrase_count': learned_phrase_count,
+            'progress': progress,
+            'modules': modules,
+        }
+        return render(request, self.template_name, context)
 
 # Selects unlearned phrases for testing
 class LearnView(LoginRequiredMixin, View):

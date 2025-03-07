@@ -12,6 +12,9 @@ urlpatterns = [
     # Dictionary view
     path('glossary', views.GlossaryView.as_view(), name='glossary'),
 
+    # Modules view
+    path('modules', views.ModulesView.as_view(), name='modules'),
+
     # Learn view
     path('learn', views.LearnView.as_view(), name='learn'),
 

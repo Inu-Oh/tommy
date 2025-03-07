@@ -1,0 +1,35 @@
+{% extends "base_menu.html" %}
+{% load humanize %}
+
+{% block header %}
+    {% if profile %}    
+    <div class="container-fluid d-flex justify-content-between">
+        <p class="fs-4 fw-bolder">{{ profile.name }}</p>
+        <div style="width:39%" class="pb-2">
+            <label for="prog-bar">Course progress</label>
+            <div class="progress" id="prog-bar" style="width: 100%; height: 25px;">
+                <div class="progress-bar progress-bar-striped bg-danger fw-bold fs-6"
+                    role="progressbar" style="width: {{ progress }}%;"
+                    aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ progress }}%</div>
+        </div></div>
+        <p class="text-end fs-4">
+            <span class="badge bg-success fw-bold px-3">
+                XP {{ profile.xp|intcomma }}</span></p>
+    </div>
+    {% endif %}
+{% endblock header %}
+
+
+{% block content %} 
+<div class="container-fluid p-3 d-flex justify-content-around align-items-center">
+    {% for module in modules %}
+    <p><a href="{% url 'tommy:learn' %}"
+    class="btn btn-lg btn-outline-primary">
+    <span title="Learn from your mistakes">{{ module }}</span></a></p>
+    {% endfor %}
+</div>
+{% endblock content %}
+
+
+{% block footer %}{% endblock footer %}
