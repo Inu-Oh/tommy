@@ -34,16 +34,20 @@
     {% else %}
         {% if unlearned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:learn' %}"
-            class="btn btn-lg btn-outline-primary">Learn &#x1F4DA;</a></p>
+            class="btn btn-lg btn-outline-primary">
+            <span title="Learn new words">Learn &#x1F4DA;</span></a></p>
         {% endif %}
         {% if learned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:practice' %}"
-            class="btn btn-lg btn-outline-primary">Practice &#x1F4AF;</a></p>
+            class="btn btn-lg btn-outline-primary">
+            <span title="Learn from your mistakes">Practice &#x1F4AF;</span></a></p>
         <p><a href="{% url 'tommy:review' %}"
-            class="btn btn-lg btn-outline-primary">Review &#x1F4AD;</a></p>
+            class="btn btn-lg btn-outline-primary">
+            <span title="Review what you've learned">Review &#x1F4AD;</span></a></p>
         {% endif %}
         <p><a href="{% url 'tommy:glossary' %}" 
-            class="btn btn-lg btn-outline-primary">Study &#x1F4D1;</a></p>
+            class="btn btn-lg btn-outline-primary">
+            <span title="Browse phrases and translations">Study &#x1F4D1;</span></a></p>
 
     {% endif %}
 </div>
