@@ -23,10 +23,9 @@
 
 {% block content %} 
 <div class="container-fluid p-3 d-flex justify-content-around align-items-center">
-    {% for module in modules %}
-    <p><a href="{% url 'tommy:learn' module.id %}"
-    class="btn btn-lg btn-outline-primary">
-    <span title="Learn from your mistakes">{{ module }}</span></a></p>
+    {% for open_module in open_modules %}
+    <p><a href="{% url 'tommy:learn' open_module.id %}"
+        class="btn btn-lg btn-outline-primary">{{ open_module }}</a></p>
     {% endfor %}
 </div>
 {% endblock content %}

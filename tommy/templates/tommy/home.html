@@ -35,12 +35,12 @@
         {% if unlearned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:modules' %}"
             class="btn btn-lg btn-outline-primary">
-            <span title="Learn new words">Learn &#x1F4DA;</span></a></p>
+            <span title="Learn new expressions">Learn &#x1F4DA;</span></a></p>
         {% endif %}
         {% if learned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:practice' %}"
             class="btn btn-lg btn-outline-primary">
-            <span title="Learn from your mistakes">Practice &#x1F4AF;</span></a></p>
+            <span title="Correct past mistakes">Practice &#x1F4AF;</span></a></p>
         <p><a href="{% url 'tommy:review' %}"
             class="btn btn-lg btn-outline-primary">
             <span title="Review what you've learned">Review &#x1F4AD;</span></a></p>

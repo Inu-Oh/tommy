@@ -103,24 +103,17 @@ class ModulesView(LoginRequiredMixin, ListView):
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
 
-        # Distinguish between completed and unlearned modules
-        unlearned_modules = []
-        completed_modules = []
+        # Create a list of modules the user has not completed
+        open_modules = []
         for module in modules:
             # Get all phrases in module
             phrase_set = phrases.filter(module=module)
-            # If unlearned save in unlearned modules list
+            # If module includes unlearned phrases add to open modules list
             for phrase in phrase_set:
                 for unlearned_phrase in unlearned_phrase_set:
                     if unlearned_phrase.phrase == phrase:
-                        unlearned_modules.append(module.name)
-                        continue
-            # Else save in completed modules list
-            for phrase in phrase_set:
-                for learned_phrase in learned_phrase_set:
-                    if learned_phrase.phrase == phrase:
-                        completed_modules.append(module.name)
-                        continue
+                        if not module.name in open_modules:
+                            open_modules.append(module.name)
 
         context = {
             'profile': profile,
@@ -128,8 +121,7 @@ class ModulesView(LoginRequiredMixin, ListView):
             'learned_phrase_count': learned_phrase_count,
             'progress': progress,
             'modules': modules,
-            'unlearned_modules': unlearned_modules,
-            'completed_modules': completed_modules,
+            'open_modules': open_modules,
         }
         return render(request, self.template_name, context)
 
