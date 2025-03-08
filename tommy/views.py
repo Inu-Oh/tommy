@@ -105,6 +105,7 @@ class ModulesView(LoginRequiredMixin, ListView):
 
         # Create a list of modules the user has not completed
         open_modules = []
+        closed_modules = []
         for module in modules:
             # Get all phrases in module
             phrase_set = phrases.filter(module=module)
@@ -112,8 +113,12 @@ class ModulesView(LoginRequiredMixin, ListView):
             for phrase in phrase_set:
                 for unlearned_phrase in unlearned_phrase_set:
                     if unlearned_phrase.phrase == phrase:
-                        if not module.name in open_modules:
-                            open_modules.append(module.name)
+                        if not module in open_modules:
+                            open_modules.append(module)
+                for learned_phrase in learned_phrase_set:
+                    if learned_phrase.phrase == phrase:
+                        if not module in closed_modules:
+                            closed_modules.append(module)
 
         context = {
             'profile': profile,
