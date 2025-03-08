@@ -24,7 +24,7 @@
 {% block content %} 
 <div class="container-fluid p-3 d-flex justify-content-around align-items-center">
     {% for module in modules %}
-    <p><a href="{% url 'tommy:learn' %}"
+    <p><a href="{% url 'tommy:learn' module.id %}"
     class="btn btn-lg btn-outline-primary">
     <span title="Learn from your mistakes">{{ module }}</span></a></p>
     {% endfor %}
@@ -32,4 +32,4 @@
 {% endblock content %}
 
 
-{% block footer %}{% endblock footer %}
+{% block footer %}{% debug %}{% endblock footer %}

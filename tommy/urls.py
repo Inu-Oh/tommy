@@ -16,7 +16,7 @@ urlpatterns = [
     path('modules', views.ModulesView.as_view(), name='modules'),
 
     # Learn view
-    path('learn', views.LearnView.as_view(), name='learn'),
+    path('learn/<int:pk>', views.LearnView.as_view(), name='learn'),
 
     # Practice view
     path('practice',views.PracticeView.as_view(), name='practice'),

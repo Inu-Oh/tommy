@@ -92,15 +92,35 @@ class ModulesView(LoginRequiredMixin, ListView):
 
     def get(self, request):
         profile = Profile.objects.get(user = request.user)
-        phrases = UserPhraseStrength.objects.filter(user = request.user)
-        unlearned_phrase_set = phrases.filter(
+        phrases = Phrase.objects.all()
+        user_phrase_data = UserPhraseStrength.objects.filter(user = request.user)
+        unlearned_phrase_set = user_phrase_data.filter(
             learned=False, user=request.user)
         unlearned_phrase_count = unlearned_phrase_set.count()
-        learned_phrase_set= phrases.filter(
+        learned_phrase_set= user_phrase_data.filter(
             learned=True, user=request.user)
         learned_phrase_count = learned_phrase_set.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
+
+        # Distinguish between completed and unlearned modules
+        unlearned_modules = []
+        completed_modules = []
+        for module in modules:
+            # Get all phrases in module
+            phrase_set = phrases.filter(module=module)
+            # If unlearned save in unlearned modules list
+            for phrase in phrase_set:
+                for unlearned_phrase in unlearned_phrase_set:
+                    if unlearned_phrase.phrase == phrase:
+                        unlearned_modules.append(module.name)
+                        continue
+            # Else save in completed modules list
+            for phrase in phrase_set:
+                for learned_phrase in learned_phrase_set:
+                    if learned_phrase.phrase == phrase:
+                        completed_modules.append(module.name)
+                        continue
 
         context = {
             'profile': profile,
@@ -108,6 +128,8 @@ class ModulesView(LoginRequiredMixin, ListView):
             'learned_phrase_count': learned_phrase_count,
             'progress': progress,
             'modules': modules,
+            'unlearned_modules': unlearned_modules,
+            'completed_modules': completed_modules,
         }
         return render(request, self.template_name, context)
 
@@ -115,14 +137,19 @@ class ModulesView(LoginRequiredMixin, ListView):
 class LearnView(LoginRequiredMixin, View):
     template_name = 'tommy/learn.html'
 
-    def get(self, request):
+    def get(self, request, pk):
         profile = Profile.objects.get(user=request.user)
         xp = profile.xp
         form = TestForm()
+        module = Module.objects.get(id=pk)
         try:
-            phrase_strength_set = UserPhraseStrength.objects.filter(learned=False, user=request.user)
+            phrase = Phrase.objects.filter(module=module)
+            phrase_strength_set = UserPhraseStrength.objects.filter(
+                learned=False,
+                user=request.user,
+                phrase=phrase
+            )
             testing_phrase = phrase_strength_set.first()
-            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
             translations = Translation.objects.filter(phrase=phrase)
 
             context = {
@@ -138,13 +165,18 @@ class LearnView(LoginRequiredMixin, View):
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
     
-    def post(self, request):
+    def post(self, request, pk):
         profile = Profile.objects.get(user=request.user)
         xp = profile.xp
         form = TestForm(request.POST)
-        phrase_strength_set = UserPhraseStrength.objects.filter(learned=False, user=request.user)
+        module = Module.objects.get(id=pk)
+        phrase = Phrase.objects.filter(module=module)
+        phrase_strength_set = UserPhraseStrength.objects.filter(
+            learned=False,
+            user=request.user,
+            phrase=phrase
+        )
         testing_phrase = phrase_strength_set.first()
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
         translations = Translation.objects.filter(phrase=phrase)
 
         context = {
@@ -177,7 +209,7 @@ class LearnView(LoginRequiredMixin, View):
         profile.xp += 5
         profile.save()
 
-        success_url = reverse_lazy('tommy:learn')
+        success_url = reverse_lazy('tommy:learn', kwargs={'pk': pk})
         return redirect(success_url)
 
 
