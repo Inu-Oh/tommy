@@ -107,18 +107,18 @@ class ModulesView(LoginRequiredMixin, ListView):
         open_modules = []
         closed_modules = []
         for module in modules:
-            # Get all phrases in module
+            # Get all phrases in module to compare with learned and unlearned phrases
             phrase_set = phrases.filter(module=module)
-            # If module includes unlearned phrases add to open modules list
+            # If module includes unlearned phrases add to open modules list...
             for phrase in phrase_set:
                 for unlearned_phrase in unlearned_phrase_set:
                     if unlearned_phrase.phrase == phrase:
                         if not module in open_modules:
                             open_modules.append(module)
-                for learned_phrase in learned_phrase_set:
-                    if learned_phrase.phrase == phrase:
-                        if not module in closed_modules:
-                            closed_modules.append(module)
+        # ...else add to closed modules list
+        for module in modules:
+            if not module in open_modules:
+                closed_modules.append(module)
 
         context = {
             'profile': profile,
@@ -127,8 +127,10 @@ class ModulesView(LoginRequiredMixin, ListView):
             'progress': progress,
             'modules': modules,
             'open_modules': open_modules,
+            'closed_modules': closed_modules,
         }
         return render(request, self.template_name, context)
+
 
 # Selects unlearned phrases for testing
 class LearnView(LoginRequiredMixin, View):
@@ -140,25 +142,29 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm()
         module = Module.objects.get(id=pk)
         try:
-            phrase = Phrase.objects.filter(module=module)
-            phrase_strength_set = UserPhraseStrength.objects.filter(
+            phrases = Phrase.objects.filter(module=module)
+            unlearned_phrases = UserPhraseStrength.objects.filter(
                 learned=False,
-                user=request.user,
-                phrase=phrase
+                user=request.user
             )
-            testing_phrase = phrase_strength_set.first()
-            translations = Translation.objects.filter(phrase=phrase)
+            # Get an unlearned phrase for testing and its translations
+            for unlearned in unlearned_phrases:
+                if unlearned.phrase in phrases:
+                    testing_phrase = unlearned.phrase
+                    break
+            translations = Translation.objects.filter(phrase=testing_phrase)
 
             context = {
                 'profile': profile,
-                'form': form,
-                'testing_phrase': testing_phrase, # Phrase strength object
-                'phrase': phrase,
-                'translations': translations,
                 'xp': xp,
+                'form': form,
+                'module': module,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'translations': translations,
+
             }
             return render(request, self.template_name, context)
-        except:
+        except: # If no unlearned phrase is found, redirect to home page
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
     
@@ -167,27 +173,32 @@ class LearnView(LoginRequiredMixin, View):
         xp = profile.xp
         form = TestForm(request.POST)
         module = Module.objects.get(id=pk)
-        phrase = Phrase.objects.filter(module=module)
-        phrase_strength_set = UserPhraseStrength.objects.filter(
+        # Change the code below to get the testing phrase without repeating the search
+        phrases = Phrase.objects.filter(module=module)
+        unlearned_phrases = UserPhraseStrength.objects.filter(
             learned=False,
-            user=request.user,
-            phrase=phrase
+            user=request.user
         )
-        testing_phrase = phrase_strength_set.first()
-        translations = Translation.objects.filter(phrase=phrase)
+        # Get an unlearned phrase for testing and its translations
+        for unlearned in unlearned_phrases:
+            if unlearned.phrase in phrases:
+                testing_phrase = unlearned
+                break
+        translations = Translation.objects.filter(phrase=testing_phrase.phrase)
 
         context = {
             'profile': profile,
-            'form': form,
-            'testing_phrase': testing_phrase, # Phrase strength object
-            'phrase': phrase,
-            'translations': translations,
             'xp': xp,
+            'form': form,
+            'module': module,
+            'testing_phrase': testing_phrase, # Phrase strength object
+            'translations': translations,
         }
         if not form.is_valid():
+            # Add error message if form is not valid
             return render(request, self.template_name, context)
         
-        # Set phrase to learned for the user
+        # Set phrase to learned for the current user
         testing_phrase.learned = True
         testing_phrase.save()
 

@@ -29,11 +29,12 @@
         class="btn btn-lg btn-outline-primary">{{ module.name }}</a></p>
     {% endif %}{% endfor %}
     {% for closed_module in closed_modules %}{% if closed_module == module %}
-    <p><a class="btn btn-lg btn-outline-secondary">{{ module.name }}</a></p>
+    <p class="btn btn-lg btn-outline-secondary text-dark disabled">
+        {{ module.name }}</p>
     {% endif %}{% endfor %}
     {% endfor %}
 </div>
 {% endblock content %}
 
 
-{% block footer %}{% debug %}{% endblock footer %}
+{% block footer %}{% endblock footer %}
