@@ -1,0 +1,41 @@
+{% extends "base_bootstrap.html" %}
+{% load humanize %}
+
+{% block header %}
+<div class="container">
+    <p class="text-center pt-3 fs-2">
+        {{ result }}
+    </p>
+</div>
+{% endblock header %}
+
+
+{% block content %}
+    {% if not testing_phrase %}
+    Error with feedback on testing phrase
+    {% comment %} should redirect to another page {% endcomment %}
+    {% else %}
+    <div class="container-fluid d-flex justify-content-between">
+        <p class="fs-2 p-4 ">{{ testing_phrase.phrase }}</p>
+        <p class="fs-2 p-2">{{ user_answer }}</p>
+        <p class="text-end pe-3 fs-4">
+            <span class="badge bg-success fw-normal px-3">
+            XP {{ profile.xp|intcomma }}</span></p> 
+    </div>
+
+    {% endif %}
+{% endblock content %}
+
+
+{% block footer %}
+    <div class="container-fluid d-flex justify-content-between">
+    <p>{% for translation in translations %}
+        &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
+    {% endfor %}</p>
+    {% if testing_view == "tommy:accent" %}
+    <p><a href="{% url 'tommy:accent' %}"></a></p>
+    {% elif testing_view == "tommy:practice" %}
+    <p><a href="{% url 'tommy:accent' %}"></a></p>
+    {% endif %}
+    </div>
+{% endblock footer %}

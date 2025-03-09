@@ -1,8 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, View, CreateView
 
+from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
@@ -79,12 +80,18 @@ class GlossaryView(LoginRequiredMixin, ListView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+        unlearned_phrase_count = phrase_strength_set.filter(
+            learned=False, user=request.user).count()
+        learned_phrase_count = phrase_strength_set.filter(
+            learned=True, user=request.user).count()
+        progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         
         context = {
             'profile': profile,
             'phrases': phrases,
             'translations': translations,
             'phrase_strength_set': phrase_strength_set,
+            'progress': progress,
         }
         return render(request, self.template_name, context)
 
@@ -397,5 +404,43 @@ class AccentView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        success_url = reverse_lazy('tommy:accent')
+        success_url = reverse_lazy('tommy:feedback')
+        request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['user_answer'] = user_answer
+        request.session['testing_view'] = 'tommy:accent'
         return redirect(success_url)
+
+
+# Feedback page for test results in review, practice and accent testing views
+class PracticeFeedbackView(LoginRequiredMixin, View):
+    template_name = 'tommy/feedback.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user=request.user)
+        testing_phrase = request.session.get('testing_phrase')
+        phrase = Phrase.objects.get(phrase=testing_phrase)
+        testing_phrase = UserPhraseStrength.objects.get(
+            phrase=phrase,
+            user=request.user)
+        user_answer = request.session.get('user_answer')
+        translations = Translation.objects.filter(phrase=phrase)
+        testing_view = request.session.get('testing_view')
+
+        result = None 
+        for translation in translations:
+            if user_answer == translation.translation:
+                correct = ["Amazing", "Awesome", "Great", "Yes!", "You got it"]
+                result = choice(correct)
+        if result == None:
+            wrong = ["Better luck next time", "Keep practicing", "Keep at it", "You'll get it"]
+            result = choice(wrong)
+        print(testing_view)
+        context = {
+            'profile': profile,
+            'user_answer': user_answer,
+            'testing_phrase': testing_phrase,
+            'translations': translations,
+            'testing_view': testing_view,
+            'result': result,
+        }
+        return render(request, self.template_name, context)
