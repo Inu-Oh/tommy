@@ -36,8 +36,8 @@
                 {% elif phrase_strength.strength > 80 %}Amazing
                 {% elif phrase_strength.strength > 60 %}Great
                 {% elif phrase_strength.strength > 40 %}Good
-                {% elif phrase_strength.strength > 20 %}Keep at it
-                {% else %}Practice{% endif %}
+                {% elif phrase_strength.learned == False %}Learn
+                {% else %}Keep at it{% endif %}
                 {% endif %}{% endif %}{% endfor %}{% endif %}
                 </div>
         </div>

@@ -1,5 +1,5 @@
 {% extends "base_bootstrap.html" %}
-
+{% load humanize %}
 
 {% block header %}
 <div class="container">
@@ -23,7 +23,7 @@
         <p class="fs-2 p-4 ">{{ testing_phrase.phrase }}</p>
         <p class="text-end pe-3 fs-4">
             <span class="badge rounded-pill bg-success fw-normal px-3">
-            XP {{ xp }}</span></p> 
+            XP {{ profile.xp|intcomma }}</span></p> 
     </div>
 
     {% endif %}

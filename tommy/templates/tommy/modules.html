@@ -22,14 +22,14 @@
 
 
 {% block content %} 
-<div class="container-fluid p-3 d-flex justify-content-around align-items-center">
+<div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
     {% for module in modules %}
     {% for open_module in open_modules %}{% if open_module == module %}
-    <p><a href="{% url 'tommy:learn' module.id %}"
+    <p class="mx-5 my-3"><a href="{% url 'tommy:learn' module.id %}"
         class="btn btn-lg btn-outline-primary">{{ module.name }}</a></p>
     {% endif %}{% endfor %}
     {% for closed_module in closed_modules %}{% if closed_module == module %}
-    <p class="btn btn-lg btn-outline-secondary text-dark disabled">
+    <p class="btn btn-lg btn-outline-secondary text-dark disabled mx-5 my-3">
         {{ module.name }}</p>
     {% endif %}{% endfor %}
     {% endfor %}

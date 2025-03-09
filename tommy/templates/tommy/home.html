@@ -23,7 +23,7 @@
 
 
 {% block content %} 
-<div class="container-fluid p-3 d-flex justify-content-around align-items-center">
+<div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
     {% if user.is_authenticated and not profile %}
         Welcome, {{ user.username }}.
         <br>Click the button to complete your profile.
@@ -34,21 +34,23 @@
     {% else %}
         {% if unlearned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:modules' %}"
-            class="btn btn-lg btn-outline-primary">
+            class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Learn new expressions">Learn &#x1F4DA;</span></a></p>
         {% endif %}
         {% if learned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:practice' %}"
-            class="btn btn-lg btn-outline-primary">
+            class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Correct past mistakes">Practice &#x1F4AF;</span></a></p>
         <p><a href="{% url 'tommy:review' %}"
-            class="btn btn-lg btn-outline-primary">
+            class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Review what you've learned">Review &#x1F4AD;</span></a></p>
         {% endif %}
+        <p><a href="{% url 'tommy:accent' %}" 
+            class="btn btn-lg btn-outline-primary mx-4 my-3">
+            <span title="Use correct French accents">Extreme &#x1F92F;</span></a></p>
         <p><a href="{% url 'tommy:glossary' %}" 
-            class="btn btn-lg btn-outline-primary">
+            class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Browse phrases and translations">Study &#x1F4D1;</span></a></p>
-
     {% endif %}
 </div>
 {% endblock content %}

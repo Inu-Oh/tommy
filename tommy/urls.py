@@ -15,12 +15,15 @@ urlpatterns = [
     # Modules view
     path('modules', views.ModulesView.as_view(), name='modules'),
 
-    # Learn view
+    # Learn new phrases
     path('learn/<int:pk>', views.LearnView.as_view(), name='learn'),
 
-    # Practice view
+    # Practice weakest phrases
     path('practice',views.PracticeView.as_view(), name='practice'),
 
-    # Review view
+    # Review phrases not seen for longes time
     path('review', views.ReviewView.as_view(), name='review'),
+
+    # Practice correct accent translations
+    path('accent', views.AccentView.as_view(), name='accent'),
 ]

@@ -3,6 +3,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
+from unidecode import unidecode
+
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
@@ -132,13 +134,12 @@ class ModulesView(LoginRequiredMixin, ListView):
         return render(request, self.template_name, context)
 
 
-# Selects unlearned phrases for testing
+# Selects unlearned phrases for testing / accent not tested
 class LearnView(LoginRequiredMixin, View):
     template_name = 'tommy/learn.html'
 
     def get(self, request, pk):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm()
         module = Module.objects.get(id=pk)
         try:
@@ -156,7 +157,6 @@ class LearnView(LoginRequiredMixin, View):
 
             context = {
                 'profile': profile,
-                'xp': xp,
                 'form': form,
                 'module': module,
                 'testing_phrase': testing_phrase, # Phrase strength object
@@ -170,7 +170,6 @@ class LearnView(LoginRequiredMixin, View):
     
     def post(self, request, pk):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm(request.POST)
         module = Module.objects.get(id=pk)
         # Change the code below to get the testing phrase without repeating the search
@@ -188,22 +187,21 @@ class LearnView(LoginRequiredMixin, View):
 
         context = {
             'profile': profile,
-            'xp': xp,
             'form': form,
             'module': module,
             'testing_phrase': testing_phrase, # Phrase strength object
             'translations': translations,
         }
         if not form.is_valid():
-            # Add error message if form is not valid
+            # REVISE: Add error message if form is not valid
             return render(request, self.template_name, context)
         
         # Set phrase to learned for the current user
         testing_phrase.learned = True
         testing_phrase.save()
 
-        # Clean up data for user's answer before testing
-        user_answer = form.cleaned_data['answer'].strip()
+        # Clean up data for user's answer and don't grade accent before testing
+        user_answer = unidecode(form.cleaned_data['answer'].strip())
 
         # Calculate and set user phrase strength data
         testing_phrase.views = 1
@@ -211,23 +209,21 @@ class LearnView(LoginRequiredMixin, View):
             if user_answer == translation.translation:
                 testing_phrase.correct = 1
                 testing_phrase.strength = 100
+                # Add XP points to user profile
+                profile.xp += 5
+                profile.save()
         testing_phrase.save()
-
-        # Add XP points to user profile
-        profile.xp += 5
-        profile.save()
 
         success_url = reverse_lazy('tommy:learn', kwargs={'pk': pk})
         return redirect(success_url)
 
 
-# Selects weakest strength phrases for testing
+# Selects weakest strength phrases for testing / accent not tested
 class PracticeView(LoginRequiredMixin, View):
     template_name = 'tommy/practice.html'
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm()
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
@@ -241,7 +237,6 @@ class PracticeView(LoginRequiredMixin, View):
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'phrase': phrase,
                 'translations': translations,
-                'xp': xp,
             }
             return render(request, self.template_name, context)
         except:
@@ -250,7 +245,6 @@ class PracticeView(LoginRequiredMixin, View):
     
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
@@ -263,37 +257,34 @@ class PracticeView(LoginRequiredMixin, View):
             'testing_phrase': testing_phrase, # Phrase strength object
             'phrase': phrase,
             'translations': translations,
-            'xp': xp,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        # Clean up data for user's answer before testing
-        user_answer = form.cleaned_data['answer'].strip()
+        # Clean up data for user's answer before testing and don't grade accent
+        user_answer = unidecode(form.cleaned_data['answer'].strip())
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         for translation in translations:
             if user_answer == translation.translation:
                 testing_phrase.correct += 1
+                # Add XP points to user profile
+                profile.xp += 5
+                profile.save()
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
-
-        # Add XP points to user profile
-        profile.xp += 5
-        profile.save()
 
         success_url = reverse_lazy('tommy:practice')
         return redirect(success_url)
 
 
-# Selects phrases not seen for longest time for testing
+# Selects phrases not seen for longest time for testing / accent not tested
 class ReviewView(LoginRequiredMixin, View):
     template_name = 'tommy/review.html'
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm()
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
@@ -307,7 +298,6 @@ class ReviewView(LoginRequiredMixin, View):
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'phrase': phrase,
                 'translations': translations,
-                'xp': xp,
             }
             return render(request, self.template_name, context)
         except:
@@ -316,7 +306,6 @@ class ReviewView(LoginRequiredMixin, View):
     
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
-        xp = profile.xp
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('updated_at')
@@ -329,12 +318,72 @@ class ReviewView(LoginRequiredMixin, View):
             'testing_phrase': testing_phrase, # Phrase strength object
             'phrase': phrase,
             'translations': translations,
-            'xp': xp,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        # Clean up data for user's answer before testing
+        # Clean up data for user's answer before testing and don't grade accent
+        user_answer = unidecode(form.cleaned_data['answer'].strip())
+
+        # Calculate and set user phrase strength data
+        testing_phrase.views += 1
+        for translation in translations:
+            if user_answer == translation.translation:
+                testing_phrase.correct += 1
+                # Add XP points to user profile
+                profile.xp += 5
+                profile.save()
+        testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
+        testing_phrase.save()
+
+        success_url = reverse_lazy('tommy:review')
+        return redirect(success_url)
+
+
+# Test correct accent on phrases not seen for longest time
+class AccentView(LoginRequiredMixin, View):
+    template_name = 'tommy/accent.html'
+
+    def get(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm()
+        try:
+            phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
+            testing_phrase = phrase_strength_set.earliest('updated_at')
+            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+            translations = Translation.objects.filter(phrase=phrase)
+
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
+                'translations': translations,
+            }
+            return render(request, self.template_name, context)
+        except:
+            start_learning_url = reverse_lazy('tommy:learn')
+            return redirect(start_learning_url)
+    
+    def post(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm(request.POST)
+        phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
+        testing_phrase = phrase_strength_set.earliest('updated_at')
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
+        translations = Translation.objects.filter(phrase=phrase)
+
+        context = {
+            'profile': profile,
+            'form': form,
+            'testing_phrase': testing_phrase, # Phrase strength object
+            'phrase': phrase,
+            'translations': translations,
+        }
+        if not form.is_valid():
+            return render(request, self.template_name, context)
+
+        # Clean up data for user's answer before testing and don't test for correct accent
         user_answer = form.cleaned_data['answer'].strip()
 
         # Calculate and set user phrase strength data
@@ -342,12 +391,11 @@ class ReviewView(LoginRequiredMixin, View):
         for translation in translations:
             if user_answer == translation.translation:
                 testing_phrase.correct += 1
+                # Add XP points to user profile
+                profile.xp += 5
+                profile.save()
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        # Add XP points to user profile
-        profile.xp += 5
-        profile.save()
-
-        success_url = reverse_lazy('tommy:review')
+        success_url = reverse_lazy('tommy:accent')
         return redirect(success_url)
