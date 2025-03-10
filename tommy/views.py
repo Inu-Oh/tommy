@@ -230,6 +230,17 @@ class PracticeView(LoginRequiredMixin, View):
     template_name = 'tommy/practice.html'
 
     def get(self, request):
+       # Get and pass current test count to the request session
+        try: # to get test count for current excercise session
+            test_count = request.session.get('test_count')
+            if test_count >= 12: # reset test count to zero for next session
+                request.session['test_count'] = 0
+                # end current exercise session and redirect to home page
+                finished_exercise_url = reverse_lazy('tommy:home')
+                return redirect(finished_exercise_url)
+        except: # if test count doesn't exist initiate it
+            request.session['test_count'] = 0
+
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         try:
@@ -245,6 +256,9 @@ class PracticeView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'translations': translations,
             }
+            # Iterate test count for each phrase test before passing to session
+            request.session['test_count'] += 1
+
             return render(request, self.template_name, context)
         except:
             start_learning_url = reverse_lazy('tommy:learn')
@@ -282,7 +296,11 @@ class PracticeView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        success_url = reverse_lazy('tommy:practice')
+        # Prepare data for feedback view and pass the current test count
+        success_url = reverse_lazy('tommy:feedback')
+        request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['user_answer'] = user_answer
+        request.session['testing_view'] = 'tommy:practice'
         return redirect(success_url)
 
 
@@ -291,6 +309,17 @@ class ReviewView(LoginRequiredMixin, View):
     template_name = 'tommy/review.html'
 
     def get(self, request):
+       # Get and pass current test count to the request session
+        try: # to get test count for current excercise session
+            test_count = request.session.get('test_count')
+            if test_count >= 15: # reset test count to zero for next session
+                request.session['test_count'] = 0
+                # end current exercise session and redirect to home page
+                finished_exercise_url = reverse_lazy('tommy:home')
+                return redirect(finished_exercise_url)
+        except: # if test count doesn't exist initiate it
+            request.session['test_count'] = 0
+
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         try:
@@ -306,6 +335,9 @@ class ReviewView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'translations': translations,
             }
+            # Iterate test count for each phrase test before passing to session
+            request.session['test_count'] += 1
+
             return render(request, self.template_name, context)
         except:
             start_learning_url = reverse_lazy('tommy:learn')
@@ -343,7 +375,11 @@ class ReviewView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        success_url = reverse_lazy('tommy:review')
+        # Prepare data for feedback view and pass the current test count
+        success_url = reverse_lazy('tommy:feedback')
+        request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['user_answer'] = user_answer
+        request.session['testing_view'] = 'tommy:review'
         return redirect(success_url)
 
 
@@ -352,6 +388,17 @@ class AccentView(LoginRequiredMixin, View):
     template_name = 'tommy/accent.html'
 
     def get(self, request):
+        # Get and pass current test count to the request session
+        try: # to get test count for current excercise session
+            test_count = request.session.get('test_count')
+            if test_count >= 12: # reset test count to zero for next session
+                request.session['test_count'] = 0
+                # end current exercise session and redirect to home page
+                finished_exercise_url = reverse_lazy('tommy:home')
+                return redirect(finished_exercise_url)
+        except: # if test count doesn't exist initiate it
+            request.session['test_count'] = 0
+
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         try:
@@ -367,17 +414,8 @@ class AccentView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'translations': translations,
             }
-            # Pass current test count to the request session
-            try: # to get test count for current excercise session
-                test_count = request.session.get('test_count')
-                if test_count > 3: # end exercise session and redirect to home page
-                    finished_exercise_url = reverse_lazy('tommy:home')
-                    return redirect(finished_exercise_url)
-            except: # if test count doesn't exist initiate it
-                test_count = 0
-            # Iterate test count for each phrase test before passing
-            test_count += 1
-            request.session['test_count'] = test_count
+            # Iterate test count for each phrase test before passing to session
+            request.session['test_count'] += 1
 
             return render(request, self.template_name, context)
         except:
@@ -417,12 +455,10 @@ class AccentView(LoginRequiredMixin, View):
         testing_phrase.save()
 
         # Prepare data for feedback view and pass the current test count
-        test_count = request.session.get('test_count')
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
         request.session['testing_view'] = 'tommy:accent'
-        request.session['test_count'] = test_count
         return redirect(success_url)
 
 
@@ -444,10 +480,10 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
         result = None 
         for translation in translations:
             if user_answer == translation.translation:
-                correct = ["Amazing", "Awesome", "Great", "Yes!", "You got it"]
+                correct = ["Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow", "You're good at this"]
                 result = choice(correct)
         if result == None:
-            wrong = ["Better luck next time", "Keep practicing", "Keep at it", "You'll get it"]
+            wrong = ["Better luck next time", "Keep practicing", "Keep at it", "You'll get it next time", "It'll stick eventually"]
             result = choice(wrong)
         print(testing_view)
         context = {
@@ -459,6 +495,4 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
             'result': result,
         }
         # Retrieve and pass on test count for the current exercise session
-        test_count = request.session.get('test_count')
-        request.session['test_count'] = test_count
         return render(request, self.template_name, context)
