@@ -19,7 +19,23 @@ class Home(LoginRequiredMixin, View):
         except:
             create_profile_url = reverse_lazy('tommy:create_profile')
             return redirect(create_profile_url)
-        
+        # Delete session data from exercises if any
+        try:
+            del request.session['test_count']
+            del request.session['testing_phrase']
+            del request.session['user_answer']
+            del request.session['testing_view']
+        except:
+            pass
+        try:
+            del request.session['module_id']
+            del request.session['testing_phrase']
+            del request.session['user_answer']
+            del request.session['testing_view']
+        except:
+            pass
+
+
         unlearned_phrase_count = UserPhraseStrength.objects.filter(
             learned=False, user=request.user).count()
         learned_phrase_count = UserPhraseStrength.objects.filter(
