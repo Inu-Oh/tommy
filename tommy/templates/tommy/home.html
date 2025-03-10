@@ -32,11 +32,11 @@
             Complete profile &raquo;</a>
   
     {% else %}
-        {% if unlearned_phrase_count > 0 %}
+    {% if unlearned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:modules' %}"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Learn new expressions">Learn &#x1F4DA;</span></a></p>
-        {% endif %}
+    {% endif %}
         {% if learned_phrase_count > 0 %}
         <p><a href="{% url 'tommy:practice' %}"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
@@ -44,10 +44,10 @@
         <p><a href="{% url 'tommy:review' %}"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Review what you've learned">Review &#x1F4AD;</span></a></p>
-        {% endif %}
         <p><a href="{% url 'tommy:accent' %}" 
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Use correct French accents">Extreme &#x1F92F;</span></a></p>
+    {% endif %}
         <p><a href="{% url 'tommy:glossary' %}" 
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Browse phrases and translations">Study &#x1F4D1;</span></a></p>

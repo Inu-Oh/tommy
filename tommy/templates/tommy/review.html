@@ -39,8 +39,6 @@
             {% endif %}
             {% csrf_token %}
             {{ form|crispy }}
-            {% comment %} Leave submit button off unless wanted
-             <input type="submit" value="Check &raquo;" class="btn btn-success"> {% endcomment %}
         </form>
     </div>
 

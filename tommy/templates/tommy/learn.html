@@ -17,7 +17,6 @@
 {% block content %}
     {% if not testing_phrase %}
     You have learned all the content
-    {% comment %} should redirect to another page {% endcomment %}
     {% else %}
     <div class="container-fluid d-flex justify-content-between">  
         <p class="fs-2 p-4 ">{{ testing_phrase.phrase }}</p>
@@ -39,8 +38,6 @@
             {% endif %}
             {% csrf_token %}
             {{ form|crispy }}
-            {% comment %} Leave submit button off unless wanted
-             <input type="submit" value="Check &raquo;" class="btn btn-success"> {% endcomment %}
         </form>
     </div>
 

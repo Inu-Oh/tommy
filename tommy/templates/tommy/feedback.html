@@ -13,7 +13,6 @@
 {% block content %}
     {% if not testing_phrase %}
     Error with feedback on testing phrase
-    {% comment %} should redirect to another page {% endcomment %}
     {% else %}
     <div class="container-fluid d-flex justify-content-between">
         <p class="fs-2 p-3 ">{{ testing_phrase.phrase }}</p>
@@ -33,7 +32,14 @@
         {% for translation in translations %}
         &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
         {% endfor %}</p>
-    <p><a href="{% url testing_view %}" autofocus
-        class="btn btn-lg btn-primary mt-3">Next test question</a></p>
-    </div>
+    {% if testing_view == 'tommy:learn' %}
+        <p><a href="{% url testing_view module_id %}" autofocus
+            class="btn btn-lg btn-primary mt-3">Next test question</a></p>
+        </div>
+    {% else %}
+        <p><a href="{% url testing_view %}" autofocus
+            class="btn btn-lg btn-primary mt-3">Next test question</a></p>
+        </div>
+    {% endif %}
+
 {% endblock footer %}

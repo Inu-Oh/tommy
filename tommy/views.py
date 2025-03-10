@@ -35,7 +35,7 @@ class Home(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-# Adds a GUI name and creates user testing objects for all course phrases
+# Adds a user name for the GUI and creates user testing objects for all course phrases
 class ProfileCreateView(LoginRequiredMixin, CreateView):
     template_name = 'tommy/create_profile.html'
 
@@ -221,7 +221,12 @@ class LearnView(LoginRequiredMixin, View):
                 profile.save()
         testing_phrase.save()
 
-        success_url = reverse_lazy('tommy:learn', kwargs={'pk': pk})
+        # Prepare data for feedback view
+        success_url = reverse_lazy('tommy:feedback')
+        request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['testing_view'] = 'tommy:learn'
+        request.session['module_id'] = pk
         return redirect(success_url)
 
 
@@ -296,10 +301,10 @@ class PracticeView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        # Prepare data for feedback view and pass the current test count
+        # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
-        request.session['user_answer'] = user_answer
+        request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['testing_view'] = 'tommy:practice'
         return redirect(success_url)
 
@@ -375,10 +380,10 @@ class ReviewView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        # Prepare data for feedback view and pass the current test count
+        # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
-        request.session['user_answer'] = user_answer
+        request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['testing_view'] = 'tommy:review'
         return redirect(success_url)
 
@@ -454,7 +459,7 @@ class AccentView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
-        # Prepare data for feedback view and pass the current test count
+        # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
@@ -485,7 +490,11 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
         if result == None:
             wrong = ["Better luck next time", "Keep practicing", "Keep at it", "You'll get it next time", "It'll stick eventually"]
             result = choice(wrong)
-        print(testing_view)
+        try:
+            module_id = request.session.get('module_id')
+        except:
+            module_id = None
+
         context = {
             'profile': profile,
             'user_answer': user_answer,
@@ -493,6 +502,7 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
             'translations': translations,
             'testing_view': testing_view,
             'result': result,
+            'module_id': module_id,
         }
         # Retrieve and pass on test count for the current exercise session
         return render(request, self.template_name, context)
