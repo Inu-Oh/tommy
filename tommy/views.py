@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
 from random import choice
@@ -367,6 +367,18 @@ class AccentView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'translations': translations,
             }
+            # Pass current test count to the request session
+            try: # to get test count for current excercise session
+                test_count = request.session.get('test_count')
+                if test_count > 3: # end exercise session and redirect to home page
+                    finished_exercise_url = reverse_lazy('tommy:home')
+                    return redirect(finished_exercise_url)
+            except: # if test count doesn't exist initiate it
+                test_count = 0
+            # Iterate test count for each phrase test before passing
+            test_count += 1
+            request.session['test_count'] = test_count
+
             return render(request, self.template_name, context)
         except:
             start_learning_url = reverse_lazy('tommy:learn')
@@ -404,10 +416,13 @@ class AccentView(LoginRequiredMixin, View):
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
+        # Prepare data for feedback view and pass the current test count
+        test_count = request.session.get('test_count')
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
         request.session['testing_view'] = 'tommy:accent'
+        request.session['test_count'] = test_count
         return redirect(success_url)
 
 
@@ -443,4 +458,7 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
             'testing_view': testing_view,
             'result': result,
         }
+        # Retrieve and pass on test count for the current exercise session
+        test_count = request.session.get('test_count')
+        request.session['test_count'] = test_count
         return render(request, self.template_name, context)

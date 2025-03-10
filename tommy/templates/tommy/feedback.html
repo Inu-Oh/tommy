@@ -16,8 +16,8 @@
     {% comment %} should redirect to another page {% endcomment %}
     {% else %}
     <div class="container-fluid d-flex justify-content-between">
-        <p class="fs-2 p-4 ">{{ testing_phrase.phrase }}</p>
-        <p class="fs-2 p-2">{{ user_answer }}</p>
+        <p class="fs-2 p-3 ">{{ testing_phrase.phrase }}</p>
+        <p class="fs-2 p-3">{{ user_answer }}</p>
         <p class="text-end pe-3 fs-4">
             <span class="badge bg-success fw-normal px-3">
             XP {{ profile.xp|intcomma }}</span></p> 
@@ -29,13 +29,11 @@
 
 {% block footer %}
     <div class="container-fluid d-flex justify-content-between">
-    <p>{% for translation in translations %}
+    <p class="fs-3 p-3">All translations&nbsp;&nbsp;
+        {% for translation in translations %}
         &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
-    {% endfor %}</p>
-    {% if testing_view == "tommy:accent" %}
-    <p><a href="{% url 'tommy:accent' %}"></a></p>
-    {% elif testing_view == "tommy:practice" %}
-    <p><a href="{% url 'tommy:accent' %}"></a></p>
-    {% endif %}
+        {% endfor %}</p>
+    <p><a href="{% url testing_view %}" autofocus
+        class="btn btn-lg btn-primary mt-3">Next Test</a></p>
     </div>
 {% endblock footer %}
