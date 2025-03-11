@@ -22,3 +22,6 @@ urlpatterns += [
         name='site_path'
         ),
 ]
+
+# Configure admin page titles
+admin.site.site_header = "Tommy Lanaguage App Admin"
