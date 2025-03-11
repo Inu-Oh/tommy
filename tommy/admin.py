@@ -2,17 +2,29 @@ from django.contrib import admin
 from tommy.models import Module, Phrase, Profile, Translation, UserPhraseStrength
 
 
-admin.site.register(Module)
-admin.site.register(Profile)
-admin.site.register(Translation)
-admin.site.register(UserPhraseStrength)
+admin.site.register(UserPhraseStrength) # Disable before activating
+
+@admin.register(Module)
+class ModuleAdmin(admin.ModelAdmin):
+    search_fields = ('module',)
+
 
 @admin.register(Phrase)
 class PhraseAdmin(admin.ModelAdmin):
     list_display = ('phrase', 'language', 'module')
     ordering = ('phrase', 'language', 'module')
     search_fields = ('phrase',)
-    list_filter = ('language', 'module', 'phrase')
-    
+    list_filter = ('language', 'module')
 
 
+@admin.register(Profile)
+class  ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'name', 'xp')
+    fields = ('user',)
+    search_fields = ('name',)
+
+
+@admin.register(Translation)
+class TranslationAdmin(admin.ModelAdmin):
+    list_display = ('translation', 'phrase')
+    search_fields = ('translation',)
