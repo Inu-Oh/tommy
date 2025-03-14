@@ -52,11 +52,19 @@
             <div class="col-2 text-end fw-bold">Strength</div>
         </div>
     </div>
-    {% if not phrases %}
-    No  phrases yet
-
-    {% else %}
+    
     <div class="container">
+        {% if not translations and search_translations %}
+        <div class="row justify-content-center p-5 fs-5">
+            Your search found no translations for "{{ search_translations }}"
+        </div>
+        {% endif %}
+        {% if not phrases and search_phrases %}
+        <div class="row justify-content-center p-5 fs-5">
+            Your search found no phrases for "{{ search_phrases }}"
+        </div>
+        {% else %}
+        
         {% for phrase in phrases %}
         {% if phrase.language == "French" %}
         {% for translation in translations %}
