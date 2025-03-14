@@ -69,16 +69,15 @@
             <div class="col-2 text-end">{% if phrase_strength_set %}
                 {% for phrase_strength in phrase_strength_set %}
                 {% if phrase_strength.phrase == phrase %}
-                {% if phrase_strength.leaned == False %}
-                Learn
-                {% else %}
                 {% if phrase_strength.strength > 90 %}Excellent
                 {% elif phrase_strength.strength > 80 %}Amazing
                 {% elif phrase_strength.strength > 60 %}Great
                 {% elif phrase_strength.strength > 40 %}Good
-                {% elif phrase_strength.learned == False %}Learn
+                {% elif phrase_strength.learned == False %}
+                <a href="{% url 'tommy:learn' phrase.module.id %}"
+                    class="text-decoration-none">Learn</a>
                 {% else %}Keep at it{% endif %}
-                {% endif %}{% endif %}{% endfor %}{% endif %}</div>
+                {% endif %}{% endfor %}{% endif %}</div>
         </div>
         {% endif %}{% endfor %}{% endif %}{% endfor %}
     </div>
