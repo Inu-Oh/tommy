@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
@@ -101,13 +102,23 @@ class GlossaryView(LoginRequiredMixin, ListView):
         learned_phrase_count = phrase_strength_set.filter(
             learned=True, user=request.user).count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
-        
+
+        # Searches
+        search_phrases = request.GET.get("search_phrases", False)
+        if search_phrases:
+            phrases = phrases.filter(Q(phrase__icontains=search_phrases)).select_related().distinct()
+        search_translations = request.GET.get("search_translations", False)
+        if search_translations:
+            translations = translations.filter(Q(translation__icontains=search_translations)).select_related().distinct()
+
         context = {
             'profile': profile,
             'phrases': phrases,
             'translations': translations,
             'phrase_strength_set': phrase_strength_set,
             'progress': progress,
+            'search_phrases': search_phrases,
+            'search_translations': search_translations,
         }
         return render(request, self.template_name, context)
 
