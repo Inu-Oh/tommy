@@ -494,8 +494,8 @@ class AccentView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-# Feedback page for test results in review, practice and accent testing views
-class PracticeFeedbackView(LoginRequiredMixin, View):
+# Feedback page for test results
+class FeedbackView(LoginRequiredMixin, View):
     template_name = 'tommy/feedback.html'
 
     def get(self, request):
@@ -512,10 +512,16 @@ class PracticeFeedbackView(LoginRequiredMixin, View):
         result = None 
         for translation in translations:
             if user_answer == translation.translation:
-                correct = ["Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow", "You're good at this"]
+                correct = [
+                    "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
+                    "You're good at this", "You're great!", "You're awesome"
+                    ]
                 result = choice(correct)
         if result == None:
-            wrong = ["Better luck next time", "Keep practicing", "Keep at it", "You'll get it next time", "It'll stick eventually"]
+            wrong = [
+                "Better luck next time", "Keep practicing", "Keep at it",
+                "You'll get it next time", "It'll stick eventually"
+                ]
             result = choice(wrong)
         try:
             module_id = request.session.get('module_id')

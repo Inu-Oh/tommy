@@ -28,5 +28,5 @@ urlpatterns = [
     path('accent', views.AccentView.as_view(), name='accent'),
 
     # Feedback page for practice, review and accent practice views
-    path('feedback', views.PracticeFeedbackView.as_view(), name='feedback'),
+    path('feedback', views.FeedbackView.as_view(), name='feedback'),
 ]
