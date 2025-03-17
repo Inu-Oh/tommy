@@ -235,12 +235,12 @@ class LearnView(LoginRequiredMixin, View):
         testing_phrase.save()
 
         # Clean up data for user's answer and don't grade accent before testing
-        user_answer = unidecode(form.cleaned_data['answer'].strip())
+        user_answer = form.cleaned_data['answer'].strip()
 
         # Calculate and set user phrase strength data
         testing_phrase.views = 1
         for translation in translations:
-            if user_answer == translation.translation:
+            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct = 1
                 testing_phrase.strength = 100
                 # Add XP points to user profile
@@ -315,12 +315,12 @@ class PracticeView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
 
         # Clean up data for user's answer before testing and don't grade accent
-        user_answer = unidecode(form.cleaned_data['answer'].strip())
+        user_answer = form.cleaned_data['answer'].strip()
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         for translation in translations:
-            if user_answer == translation.translation:
+            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
@@ -399,7 +399,7 @@ class ReviewView(LoginRequiredMixin, View):
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         for translation in translations:
-            if user_answer == translation.translation:
+            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
@@ -478,7 +478,7 @@ class AccentView(LoginRequiredMixin, View):
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         for translation in translations:
-            if user_answer == translation.translation:
+            if user_answer.lower() == translation.translation.lower():
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
