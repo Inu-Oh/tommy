@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.static import serve
 
+
 urlpatterns = [
     path('', include('tommy.urls')),
     path('accounts/', include('accounts.urls')),
@@ -21,6 +22,14 @@ urlpatterns += [
          'show_indexes': True},
         name='site_path'
         ),
+]
+
+# Serve the favicon
+urlpatterns += [
+    path('favicon.ico', serve, {
+        'path': 'favicon.ico',
+        'document_root': os.path.join(BASE_DIR, 'home/static')
+    }),
 ]
 
 # Configure admin page titles

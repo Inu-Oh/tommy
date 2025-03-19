@@ -1,0 +1,43 @@
+:root {
+    --inuOhSky:#f3f4f8;
+    --inuOhKimono:#e4625b;
+    --inuOhHair:#62aeb1;
+    --inuOhYukata:#fdf7d2;
+    --inuOhFan:#edc23a;
+    --inuOhDrum:#ae9b87;
+    --inuOhHat:#80999c;
+}
+
+body {
+    background-color: var(--inuOhDrum) !important;
+}
+
+.nav, .footer {
+    background-color: var(--inuOhHair) !important;
+}
+
+#gravatar {
+    width: 39px;
+}
+
+.header, .heading {
+    background-color: var(--inuOhKimono) !important;
+}
+
+.main {
+    background-color: var(--inuOhSky) !important;
+}
+
+mark {
+    background-color: var(--inuOhFan) !important;
+}
+
+.link-style {
+    color: navy !important;
+    text-decoration: none !important;
+}
+
+.link-style:hover, .muted-link-style:hover {
+    color: navy !important;
+    text-shadow: 0 0 3px hotpink !important;
+}
