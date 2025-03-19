@@ -83,7 +83,7 @@
                 {% elif phrase_strength.strength > 40 %}Good
                 {% elif phrase_strength.learned == False %}
                 <a href="{% url 'tommy:learn' phrase.module.id %}"
-                    class="text-decoration-none">Learn</a>
+                    class="text-decoration-none link-style">Learn</a>
                 {% else %}Keep at it{% endif %}
                 {% endif %}{% endfor %}{% endif %}</div>
         </div>
