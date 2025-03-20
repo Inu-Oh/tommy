@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
+from datetime import datetime
 from random import choice
 from unidecode import unidecode
 
@@ -35,14 +36,27 @@ class Home(LoginRequiredMixin, View):
             del request.session['testing_view']
         except:
             pass
-
-
-        unlearned_phrase_count = UserPhraseStrength.objects.filter(
+        
+        # Get user phrase strength data for progress bar and strengh recalculation
+        user_phrase_strength = UserPhraseStrength.objects.all()
+        unlearned_phrase_count = user_phrase_strength.filter(
             learned=False, user=request.user).count()
-        learned_phrase_count = UserPhraseStrength.objects.filter(
-            learned=True, user=request.user).count()
+        learned_phrases = user_phrase_strength.filter(
+            learned=True, user=request.user)
+        learned_phrase_count = learned_phrases.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
- 
+        # Refresh phrase strength based on last seen
+        for phrase in learned_phrases:
+            print("Now:              ", datetime.now())
+            print("Phrase updated at:", phrase.updated_at)
+            now = datetime.now()
+            then = phrase.updated_at.date.__str__
+            print(now.day, then) 
+          
+            # delta = datetime(updated) - datetime.now()
+            # if datetime.today() != phrase.updated_at.today():
+
+
         context = {
             'profile': profile,
             'unlearned_phrase_count': unlearned_phrase_count,
