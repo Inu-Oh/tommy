@@ -2,8 +2,6 @@ from django.contrib import admin
 from tommy.models import Module, Phrase, Profile, Translation, UserPhraseStrength
 
 
-admin.site.register(UserPhraseStrength) # Disable before activating
-
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
     search_fields = ('module',)
@@ -18,7 +16,7 @@ class PhraseAdmin(admin.ModelAdmin):
 
 
 @admin.register(Profile)
-class  ProfileAdmin(admin.ModelAdmin):
+class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'name', 'xp')
     fields = ('user',)
     search_fields = ('name',)
@@ -28,3 +26,10 @@ class  ProfileAdmin(admin.ModelAdmin):
 class TranslationAdmin(admin.ModelAdmin):
     list_display = ('translation', 'phrase')
     search_fields = ('translation',)
+
+
+@admin.register(UserPhraseStrength) # Dev only. Disable before production
+class UserPhraseStrengthAdmin(admin.ModelAdmin):
+    list_display = ('user', 'learned', 'phrase', 'strength')
+    list_filter = ('user', 'learned')
+    search_fields = ('phrase', )
