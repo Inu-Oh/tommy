@@ -60,6 +60,7 @@ class Home(LoginRequiredMixin, View):
             print(phrase.phrase, "before recalc strength :", phrase.strength) # For testing
             if days_since_reset > 0:
                 phrase.strength -= days_since_reset
+                phrase.save()
             print(phrase.phrase, "after recalc strength :", phrase.strength) # For testing
 
         context = {
