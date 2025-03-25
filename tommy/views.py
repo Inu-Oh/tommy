@@ -47,7 +47,24 @@ class Home(LoginRequiredMixin, View):
             learned=True, user=request.user)
         learned_phrase_count = learned_phrases.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
- 
+
+        context = {
+            'profile': profile,
+            'unlearned_phrase_count': unlearned_phrase_count,
+            'learned_phrase_count': learned_phrase_count,
+            'progress': progress,
+        }
+        return render(request, self.template_name, context)
+
+
+# Recalculates user phrase after each login based on time elapsed
+class ResetView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        user_phrase_strength = UserPhraseStrength.objects.all()
+        learned_phrases = user_phrase_strength.filter(
+            learned=True, user=request.user)
+
         # Refresh phrase strength based on last time seen
         for phrase in learned_phrases:
             today = datetime.now()
@@ -62,14 +79,9 @@ class Home(LoginRequiredMixin, View):
                 phrase.strength -= days_since_reset
                 phrase.save()
             print(phrase.phrase, "after recalc strength :", phrase.strength) # For testing
-
-        context = {
-            'profile': profile,
-            'unlearned_phrase_count': unlearned_phrase_count,
-            'learned_phrase_count': learned_phrase_count,
-            'progress': progress,
-        }
-        return render(request, self.template_name, context)
+        
+        success_url = 'tommy:home'
+        return redirect(success_url)
 
 
 # Adds a user name for the GUI and creates user testing objects for all course phrases

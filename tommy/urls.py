@@ -9,6 +9,9 @@ urlpatterns = [
     # Profile creation and edit views
     path('create_profile', views.ProfileCreateView.as_view(), name='create_profile'),
 
+    # Recalculate user phrase strength after each login
+    path('reset/', views.ResetView.as_view(), name='reset'),
+
     # Dictionary view
     path('glossary', views.GlossaryView.as_view(), name='glossary'),
 
