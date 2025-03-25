@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from random import choice
 from unidecode import unidecode
 
@@ -27,6 +27,7 @@ class Home(LoginRequiredMixin, View):
             del request.session['testing_phrase']
             del request.session['user_answer']
             del request.session['testing_view']
+            del request.session['respone_accuracy']
         except:
             pass
         try:
@@ -34,6 +35,7 @@ class Home(LoginRequiredMixin, View):
             del request.session['testing_phrase']
             del request.session['user_answer']
             del request.session['testing_view']
+            del request.session['respone_accuracy']
         except:
             pass
         
@@ -45,17 +47,20 @@ class Home(LoginRequiredMixin, View):
             learned=True, user=request.user)
         learned_phrase_count = learned_phrases.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
-        # Refresh phrase strength based on last seen
+ 
+        # Refresh phrase strength based on last time seen
         for phrase in learned_phrases:
-            print("Now:              ", datetime.now())
-            print("Phrase updated at:", phrase.updated_at)
-            now = datetime.now()
-            then = phrase.updated_at.date.__str__
-            print(now.day, then) 
-          
-            # delta = datetime(updated) - datetime.now()
-            # if datetime.today() != phrase.updated_at.today():
-
+            today = datetime.now()
+            day = phrase.updated_at.day
+            month = phrase.updated_at.month
+            year = phrase.updated_at.year
+            day_of_last_reset = datetime(day=day, month=month, year=year)
+            delta =  today - day_of_last_reset
+            days_since_reset = delta.days
+            print(phrase.phrase, "before recalc strength :", phrase.strength) # For testing
+            if days_since_reset > 0:
+                phrase.strength -= days_since_reset
+            print(phrase.phrase, "after recalc strength :", phrase.strength) # For testing
 
         context = {
             'profile': profile,
@@ -253,6 +258,7 @@ class LearnView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views = 1
+        respone_accuracy = False
         for translation in translations:
             if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct = 1
@@ -260,12 +266,14 @@ class LearnView(LoginRequiredMixin, View):
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
+                respone_accuracy = True
         testing_phrase.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:learn'
         request.session['module_id'] = pk
         return redirect(success_url)
@@ -333,12 +341,14 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
+        respone_accuracy = False
         for translation in translations:
             if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
+                respone_accuracy = True
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -346,6 +356,7 @@ class PracticeView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:practice'
         return redirect(success_url)
 
@@ -412,12 +423,14 @@ class ReviewView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
+        respone_accuracy = False
         for translation in translations:
             if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
+                respone_accuracy = True
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -425,6 +438,7 @@ class ReviewView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:review'
         return redirect(success_url)
 
@@ -491,12 +505,14 @@ class AccentView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
+        respone_accuracy = False
         for translation in translations:
             if user_answer.lower() == translation.translation.lower():
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
+                respone_accuracy = True
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -504,6 +520,7 @@ class AccentView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
+        request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:accent'
         return redirect(success_url)
 
@@ -520,18 +537,17 @@ class FeedbackView(LoginRequiredMixin, View):
             phrase=phrase,
             user=request.user)
         user_answer = request.session.get('user_answer')
+        response_accuracy = request.session.get('respone_accuracy')
         translations = Translation.objects.filter(phrase=phrase)
         testing_view = request.session.get('testing_view')
 
-        result = None 
-        for translation in translations:
-            if user_answer == translation.translation:
-                correct = [
-                    "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
-                    "You're good at this", "You're great!", "You're awesome"
-                    ]
-                result = choice(correct)
-        if result == None:
+        if response_accuracy:
+            correct = [
+                "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
+                "You're good at this", "You're great!", "You're awesome"
+                ]
+            result = choice(correct)
+        else:
             wrong = [
                 "Better luck next time", "Keep practicing", "Keep at it",
                 "You'll get it next time", "It'll stick eventually"
@@ -545,6 +561,7 @@ class FeedbackView(LoginRequiredMixin, View):
         context = {
             'profile': profile,
             'user_answer': user_answer,
+            'response_accuracy': response_accuracy,
             'testing_phrase': testing_phrase,
             'translations': translations,
             'testing_view': testing_view,
