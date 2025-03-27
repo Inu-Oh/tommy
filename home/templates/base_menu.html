@@ -3,11 +3,11 @@
 {% load app_tags %} <!-- see home/templatetags/app_tags.py -->
 
 {% block navbar %}
-<nav class="nav p-2 m-2 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
+<nav class="nav p-2 my-3 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
     <div class="container-fluid">
         {% url 'tommy:home' as x %}
         <a class="navbar-brand link-style" href="{{ x }}">Tommy</a>
-        <ul class="navbar-nav container-fluid d-flex justify-content-around align-items-center">
+        <ul class="navbar-nav container-fluid d-flex justify-content-around">
 {% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
             <li>
                 <a class="nav-link link-style" href="{{ x }}" role="button">

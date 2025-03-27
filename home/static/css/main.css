@@ -10,8 +10,11 @@ body {
     background-color: var(--body_bg) !important;
 }
 
-.nav {
+.nav, .nonav {
     background-color: var(--nav_bg) !important;
+    display: block;
+    height: 3.5em;
+    overflow: auto;
 }
 
 #gravatar {
@@ -20,14 +23,24 @@ body {
 
 .header {
     background-color: var(--header_bg) !important;
+    display: block;
+    height: 9em;
+    overflow: auto;
+
 }
 
 .main {
     background-color: var(--main_bg) !important;
+    display: block;
+    height: 22em;
+    overflow: auto;
 }
 
 .footer {
     background-color: var(--footer_bg) !important;
+    display: block;
+    height: 13em;
+    overflow: auto;
 }
 
 .link-style {

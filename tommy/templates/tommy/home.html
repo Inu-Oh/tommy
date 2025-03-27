@@ -56,4 +56,12 @@
 {% endblock content %}
 
 
-{% block footer %}{% endblock footer %}
+{% block footer %}
+<div class="p-3 fs-4">
+    {% if unlearned_phrase_count == 0 %}
+    <p>Choose an activity to practice what you've learned.</p>
+    {% else%}
+    <p>Choose an activity to learn new phrases or review past content.</p>
+    {% endif %}
+</div>
+{% endblock footer %}
