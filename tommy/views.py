@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, View, CreateView
 
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from random import choice
 from unidecode import unidecode
 
@@ -74,6 +74,7 @@ class ResetView(LoginRequiredMixin, View):
             day_of_last_reset = datetime(day=day, month=month, year=year)
             delta =  today - day_of_last_reset
             days_since_reset = delta.days
+            print("Days since reset:", days_since_reset, " - Today:", today, " - Day of last reset", day_of_last_reset)
             print(phrase.phrase, "before recalc strength :", phrase.strength) # For testing
             if days_since_reset > 0:
                 phrase.strength -= days_since_reset
