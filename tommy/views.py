@@ -329,7 +329,7 @@ class PracticeView(LoginRequiredMixin, View):
 
             return render(request, self.template_name, context)
         except:
-            start_learning_url = reverse_lazy('tommy:learn')
+            start_learning_url = reverse_lazy('tommy:modules')
             return redirect(start_learning_url)
     
     def post(self, request):
@@ -411,7 +411,7 @@ class ReviewView(LoginRequiredMixin, View):
 
             return render(request, self.template_name, context)
         except:
-            start_learning_url = reverse_lazy('tommy:learn')
+            start_learning_url = reverse_lazy('tommy:modules')
             return redirect(start_learning_url)
     
     def post(self, request):
@@ -493,7 +493,7 @@ class AccentView(LoginRequiredMixin, View):
 
             return render(request, self.template_name, context)
         except:
-            start_learning_url = reverse_lazy('tommy:learn')
+            start_learning_url = reverse_lazy('tommy:modules')
             return redirect(start_learning_url)
     
     def post(self, request):

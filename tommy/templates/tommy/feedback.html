@@ -1,6 +1,15 @@
 {% extends "base_bootstrap.html" %}
 {% load humanize %}
 
+{% block nonav %}
+<div class="nav p-2 my-3 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
+    <div class="container-fluid">
+        <p> </p>
+    </div>
+</div>
+{% endblock nonav %}
+
+
 {% block header %}
 <div class="container-fluid d-flex justify-content-between">
     <p class="text-center p-3 fs-2">
