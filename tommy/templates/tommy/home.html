@@ -23,6 +23,14 @@
 
 
 {% block content %} 
+<div class="p-3 fs-4">
+    <h5>Activities</h5>
+    {% comment %} {% if unlearned_phrase_count == 0 %}
+    <p>Choose an activity to practice what you've learned.</p>
+    {% else%}
+    <p>Choose an activity to learn new phrases or review past content.</p>
+    {% endif %} {% endcomment %}
+</div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
     {% if user.is_authenticated and not profile %}
         Welcome, {{ user.username }}.
@@ -33,22 +41,22 @@
   
     {% else %}
     {% if unlearned_phrase_count > 0 %}
-        <p><a href="{% url 'tommy:modules' %}"
+        <p><a href="{% url 'tommy:modules' %}" alt="Learn new expressions"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Learn new expressions">Learn &#x1F4DA;</span></a></p>
     {% endif %}
         {% if learned_phrase_count > 0 %}
-        <p><a href="{% url 'tommy:practice' %}"
+        <p><a href="{% url 'tommy:practice' %}" alt="Strengthen weakest phrases"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
-            <span title="Correct past mistakes">Practice &#x1F4AF;</span></a></p>
-        <p><a href="{% url 'tommy:review' %}"
+            <span title="Strengthen weakest phrases">Practice &#x1F4AF;</span></a></p>
+        <p><a href="{% url 'tommy:review' %}" alt="Review what you've learned"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Review what you've learned">Review &#x1F4AD;</span></a></p>
-        <p><a href="{% url 'tommy:accent' %}" 
+        <p><a href="{% url 'tommy:accent' %}"  alt="Use correct French accents"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Use correct French accents">Extreme &#x1F92F;</span></a></p>
     {% endif %}
-        <p><a href="{% url 'tommy:glossary' %}" 
+        <p><a href="{% url 'tommy:glossary' %}" alt="Browse phrases and translations"
             class="btn btn-lg btn-outline-primary mx-4 my-3">
             <span title="Browse phrases and translations">Study &#x1F4D1;</span></a></p>
     {% endif %}
@@ -57,11 +65,7 @@
 
 
 {% block footer %}
-<div class="p-3 fs-4">
-    {% if unlearned_phrase_count == 0 %}
-    <p>Choose an activity to practice what you've learned.</p>
-    {% else%}
-    <p>Choose an activity to learn new phrases or review past content.</p>
-    {% endif %}
+<div class="container p-5">
+    <p> </p>
 </div>
 {% endblock footer %}
