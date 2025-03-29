@@ -2,9 +2,12 @@
 {% load humanize %}
 
 {% block nonav %}
-<div class="nav p-2 my-3 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
+<div class="nonav px-3 my-3 navbar rounded-3 shadow-sm">
     <div class="container-fluid">
-        <p> </p>
+        <p class="fs-4 ps-3 fw-bolder">{{ profile.name }}</p>
+        <p class="text-end p-2 fs-4">
+            <span class="badge bg-success px-3">
+            XP {{ profile.xp|intcomma }}</span></p> 
     </div>
 </div>
 {% endblock nonav %}
@@ -12,12 +15,12 @@
 
 {% block header %}
 <div class="container-fluid d-flex justify-content-between">
-    <p class="text-center p-3 fs-2">
-        {{ result }}
+    <p class="text-center p-3 fs-3">
+        {{ result }} 
+        {% if response_accuracy == True %}
+        <span class="text-success fw-bold">
+            &nbsp;&nbsp;&nbsp;&nbsp;+5 XP</span>{% endif %}
     </p>
-    <p class="text-end fs-4">
-        <span class="badge bg-success px-3">
-            XP {{ profile.xp|intcomma }}</span></p>
 </div>
 {% endblock header %}
 
@@ -26,16 +29,18 @@
     {% if not testing_phrase %}
     Error with feedback on testing phrase
     {% else %}
-    <div class="container-fluid d-flex justify-content-around">
-        <div>
-            <p class="fs-2 lh-1 text-dark text-start">
-                <span class="fs-6 lh-1">Test phrase</span><br>
+    <div class="row container-fluid d-flex justify content between">
+        <div class="col-4 text-end">
+            <p class="fs-2 lh-1">
+                <span class="fs-6 text-muted">Test phrase</span><br>
                 {{ testing_phrase.phrase }}</p>
         </div>
-        <div>
-            <p class="fs-2 lh-1 text-dark text-start">
-                <span class="fs-6 lh-1">Your answer</span><br>
-                {{ user_answer }}</p>
+        <div class="col-8 text-start">
+            <p class="fs-2 lh-1">
+                <span class="fs-6 text-muted">Translations</span><br>
+                {% for translation in translations %}
+                &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
+                {% endfor %}</p>
         </div>
     </div>
 
@@ -45,11 +50,12 @@
 
 {% block footer %}
     <div class="container-fluid d-flex justify-content-between">
-        <p class="fs-2 lh-1 text-dark text-start">
-            <span class="fs-6 lh-1">Review all translations</span><br>
-            {% for translation in translations %}
-            &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
-            {% endfor %}</p>
+        <p class="ps-5 fs-2 lh-1 text-dark text-start">
+            <span class="fs-6 text-muted">Your answer</span><br>
+            {% if response_accuracy == True %}
+            <span class="text-success fw-bold">{{ user_answer }}
+            {% else %}<span class="text-danger fw-bold">{{ user_answer }}
+            {% endif %}</span></p>
     {% if testing_view == 'tommy:learn' %}
         <p><a href="{% url testing_view module_id %}" autofocus
             class="btn btn-lg btn-primary mt-3">Next test question</a></p>
