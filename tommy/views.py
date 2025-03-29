@@ -68,18 +68,23 @@ class ResetView(LoginRequiredMixin, View):
         # Refresh phrase strength based on last time seen
         for phrase in learned_phrases:
             today = datetime.now()
-            day = phrase.updated_at.day
-            month = phrase.updated_at.month
-            year = phrase.updated_at.year
-            day_of_last_reset = datetime(day=day, month=month, year=year)
-            delta =  today - day_of_last_reset
+            day_of_last_reset = datetime(
+                day=phrase.updated_at.day,
+                month=phrase.updated_at.month,
+                year=phrase.updated_at.year,
+                hour=phrase.updated_at.hour,
+                minute=phrase.updated_at.minute,
+                second=phrase.updated_at.second,
+                microsecond=phrase.updated_at.microsecond)
+            delta = today - day_of_last_reset
             days_since_reset = delta.days
-            print("Days since reset:", days_since_reset, " - Today:", today, " - Day of last reset", day_of_last_reset)
-            print(phrase.phrase, "before recalc strength :", phrase.strength) # For testing
-            if days_since_reset > 0:
+            print("\nDays since reset:", days_since_reset, "\n  Now                :", today,
+                  "\n  Time of last reset :", day_of_last_reset)
+            print("   \"" + str(phrase.phrase) + "\" before recalc strength : " + str(phrase.strength))
+            if days_since_reset > 0 and phrase.strength > 25:
                 phrase.strength -= days_since_reset
                 phrase.save()
-            print(phrase.phrase, "after recalc strength :", phrase.strength) # For testing
+            print("   \"" + str(phrase.phrase) + "\" after recalc strength  : " + str(phrase.strength))
         
         success_url = 'tommy:home'
         return redirect(success_url)

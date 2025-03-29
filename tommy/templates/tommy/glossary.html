@@ -28,7 +28,7 @@
         <input type="text" placeholder="Search French phrases" name="search_phrases"
         class="form-control"
         {% if search_phrases %} value="{{ search_phrases }}" {% endif %}>
-        <button type="submit" class="btn btn-dark">
+        <button type="submit" class="btn btn-outline-dark">
             <i class="fa fa-search"></i></button>
         <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
             <i class="fa fa-undo"></i></a>
@@ -37,7 +37,7 @@
         <input type="text" placeholder="Search English translations" name="search_translations"
         class="form-control"
         {% if search_translations %} value="{{ search_translations }}" {% endif %}>
-        <button type="submit" class="btn btn-dark">
+        <button type="submit" class="btn btn-outline-dark">
             <i class="fa fa-search"></i></button>
         <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
             <i class="fa fa-undo"></i></a>
