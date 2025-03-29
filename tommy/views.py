@@ -11,6 +11,26 @@ from unidecode import unidecode
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
+# DEV: Function for grading user answer comapred to actual phrase
+def grade_answer(answer, phrase):
+    phrase_len = len(phrase)
+    answer_len = len(answer)
+    if abs(phrase_len - answer_len) > 1:
+        return False
+    mistakes = 0
+    for x, y in zip(answer, phrase):
+        if x != y:
+            mistakes += 1
+    if phrase_len < 5:
+        if mistakes > 0:
+            return False
+    if phrase_len > 10:
+        if mistakes > 2:
+            return False
+    else:
+        if mistakes > 1:
+            return False
+    return True
 
 class Home(LoginRequiredMixin, View):
     template_name = 'tommy/home.html'
@@ -272,19 +292,18 @@ class LearnView(LoginRequiredMixin, View):
         if not form.is_valid():
             # REVISE: Add error message if form is not valid
             return render(request, self.template_name, context)
-        
-        # Set phrase to learned for the current user
-        testing_phrase.learned = True
-        testing_phrase.save()
 
-        # Clean up data for user's answer and don't grade accent before testing
+        # Prepare user's answer and don't grade accent before testing
         user_answer = form.cleaned_data['answer'].strip()
 
-        # Calculate and set user phrase strength data
+        # Set phrase to learned. Calculate and set user phrase strength data
+        testing_phrase.learned = True
         testing_phrase.views = 1
         respone_accuracy = False
         for translation in translations:
-            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
+            cleaned_answer = unidecode(user_answer.lower())
+            cleaned_test_phrase = unidecode(translation.translation.lower())
+            if grade_answer(cleaned_answer, cleaned_test_phrase):
                 testing_phrase.correct = 1
                 testing_phrase.strength = 100
                 # Add XP points to user profile
@@ -360,14 +379,16 @@ class PracticeView(LoginRequiredMixin, View):
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        # Clean up data for user's answer before testing and don't grade accent
+        # Prepare user's answer before testing and don't grade accent
         user_answer = form.cleaned_data['answer'].strip()
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         respone_accuracy = False
         for translation in translations:
-            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
+            cleaned_answer = unidecode(user_answer.lower())
+            cleaned_test_phrase = unidecode(translation.translation.lower())
+            if grade_answer(cleaned_answer, cleaned_test_phrase):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
@@ -442,14 +463,16 @@ class ReviewView(LoginRequiredMixin, View):
         if not form.is_valid():
             return render(request, self.template_name, context)
 
-        # Clean up data for user's answer before testing and don't grade accent
+        # Prepare user's answer before testing and don't grade accent
         user_answer = unidecode(form.cleaned_data['answer'].strip())
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         respone_accuracy = False
         for translation in translations:
-            if unidecode(user_answer.lower()) == unidecode(translation.translation.lower()):
+            cleaned_answer = unidecode(user_answer.lower())
+            cleaned_test_phrase = unidecode(translation.translation.lower())
+            if grade_answer(cleaned_answer, cleaned_test_phrase):
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
