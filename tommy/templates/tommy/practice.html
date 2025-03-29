@@ -31,16 +31,19 @@
     {% if not testing_phrase %}
     <p>Learn phrases before doing practice</p>
     {% else %}
-        <p class="fs-1 ps-5 ">{{ testing_phrase.phrase }}</p>
+        <p class="fs-3 ps-5 lh-sm">
+            <span class="fs-6 text-muted"></span><br>
+            {{ testing_phrase.phrase }}</p>
     {% endif %}
 </div>
 {% endblock content %}
 
 
 {% block footer %}
-    <div class="container p-5">
+    <div class="container px-5 lh-sm">
         {% load crispy_forms_tags %}
         <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+            <span class="fs-6 text-muted"></span><br>
             {% if form.errors %}
                 <p>There was an error. Please try again.</p>
             {% endif %}

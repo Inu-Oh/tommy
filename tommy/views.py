@@ -78,13 +78,14 @@ class ResetView(LoginRequiredMixin, View):
                 microsecond=phrase.updated_at.microsecond)
             delta = today - day_of_last_reset
             days_since_reset = delta.days
-            print("\nDays since reset:", days_since_reset, "\n  Now                :", today,
+            print("\nDays since reset for phrase \"" + str(phrase.phrase) +
+                  "\"", days_since_reset, "\n  Now                :", today,
                   "\n  Time of last reset :", day_of_last_reset)
-            print("   \"" + str(phrase.phrase) + "\" before recalc strength : " + str(phrase.strength))
+            print("    strength before recalc : " + str(phrase.strength))
             if days_since_reset > 0 and phrase.strength > 25:
                 phrase.strength -= days_since_reset
                 phrase.save()
-            print("   \"" + str(phrase.phrase) + "\" after recalc strength  : " + str(phrase.strength))
+            print("    strength after recalc  : " + str(phrase.strength))
         
         success_url = 'tommy:home'
         return redirect(success_url)
@@ -226,11 +227,13 @@ class LearnView(LoginRequiredMixin, View):
                     testing_phrase = unlearned.phrase
                     break
             translations = Translation.objects.filter(phrase=testing_phrase)
+            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
 
             context = {
                 'profile': profile,
                 'form': form,
                 'module': module,
+                'phrase': phrase,
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'translations': translations,
 
@@ -256,11 +259,13 @@ class LearnView(LoginRequiredMixin, View):
                 testing_phrase = unlearned
                 break
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
 
         context = {
             'profile': profile,
             'form': form,
             'module': module,
+            'phrase': phrase,
             'testing_phrase': testing_phrase, # Phrase strength object
             'translations': translations,
         }

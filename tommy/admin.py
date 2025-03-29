@@ -32,4 +32,3 @@ class TranslationAdmin(admin.ModelAdmin):
 class UserPhraseStrengthAdmin(admin.ModelAdmin):
     list_display = ('user', 'learned', 'phrase', 'strength')
     list_filter = ('user', 'learned')
-    search_fields = ('phrase', )

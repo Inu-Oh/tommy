@@ -15,42 +15,44 @@
 
 {% block header %}
 <div class="container-fluid d-flex justify-content-between">
-    <p class="text-center p-3 fs-3">
+    <p class="p-3 fs-3">
         {{ result }} 
+    </p>
+    <p class="text-success p-3 fs-3 fw-bold">
         {% if response_accuracy == True %}
-        <span class="text-success fw-bold">
-            &nbsp;&nbsp;&nbsp;&nbsp;+5 XP</span>{% endif %}
+        +5 XP
+        {% endif %}
     </p>
 </div>
 {% endblock header %}
 
 
 {% block content %}
+<div class="row p-4 container-fluid d-flex justify content between">
     {% if not testing_phrase %}
     Error with feedback on testing phrase
     {% else %}
-    <div class="row container-fluid d-flex justify content between">
-        <div class="col-4 text-end">
-            <p class="fs-2 lh-1">
+    
+        <div class="ps-5 col-5 text-start">
+            <p class="fs-3 lh-sm">
                 <span class="fs-6 text-muted">Test phrase</span><br>
                 {{ testing_phrase.phrase }}</p>
         </div>
-        <div class="col-8 text-start">
-            <p class="fs-2 lh-1">
+        <div class="ps-5 col-7 text-start">
+            <p class="fs-3 lh-sm">
                 <span class="fs-6 text-muted">Translations</span><br>
                 {% for translation in translations %}
-                &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
+                {{ translation.translation }}&nbsp;<br>
                 {% endfor %}</p>
         </div>
-    </div>
-
     {% endif %}
+</div>
 {% endblock content %}
 
 
 {% block footer %}
-    <div class="container-fluid d-flex justify-content-between">
-        <p class="ps-5 fs-2 lh-1 text-dark text-start">
+    <div class="px-5 container-fluid d-flex justify-content-between">
+        <p class="fs-3 lh-sm text-dark text-start">
             <span class="fs-6 text-muted">Your answer</span><br>
             {% if response_accuracy == True %}
             <span class="text-success fw-bold">{{ user_answer }}
