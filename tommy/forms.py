@@ -28,5 +28,10 @@ class TestForm(forms.Form):
         min_length=1,
         strip=True,
         label='',
-        widget=forms.TextInput(attrs={'autofocus': True, 'autocomplete': 'off'})
-    )
+        widget=forms.TextInput(
+            attrs={
+                'autofocus': True,
+                'autocomplete': 'off',
+                'placeholder': ' ...',
+                'style': 'height: 5vh; font-size: x-large;'
+        }))
