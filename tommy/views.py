@@ -17,20 +17,21 @@ def grade_answer(answer, phrase):
     answer_len = len(answer)
     if abs(phrase_len - answer_len) > 1:
         return False
-    mistakes = 0
+    typos = 0
     for x, y in zip(answer, phrase):
         if x != y:
-            mistakes += 1
+            typos += 1
     if phrase_len < 5:
-        if mistakes > 0:
+        if typos > 0:
             return False
     if phrase_len > 10:
-        if mistakes > 2:
+        if typos > 2:
             return False
     else:
-        if mistakes > 1:
+        if typos > 1:
             return False
     return True
+
 
 class Home(LoginRequiredMixin, View):
     template_name = 'tommy/home.html'
