@@ -86,9 +86,9 @@ class ResetView(LoginRequiredMixin, View):
         learned_phrases = user_phrase_strength.filter(
             learned=True, user=request.user)
 
-        # Refresh phrase strength based on last time seen
+        # Recalculate phrase strength based on last time seen
         for phrase in learned_phrases:
-            today = datetime.now()
+            now = datetime.now()
             day_of_last_reset = datetime(
                 day=phrase.updated_at.day,
                 month=phrase.updated_at.month,
@@ -97,17 +97,24 @@ class ResetView(LoginRequiredMixin, View):
                 minute=phrase.updated_at.minute,
                 second=phrase.updated_at.second,
                 microsecond=phrase.updated_at.microsecond)
-            delta = today - day_of_last_reset
+            delta = now - day_of_last_reset
             days_since_reset = delta.days
-            print("\nDays since reset for phrase \"" + str(phrase.phrase) +
-                  "\"", days_since_reset, "\n  Now                :", today,
-                  "\n  Time of last reset :", day_of_last_reset)
-            print("    strength before recalc : " + str(phrase.strength))
+            
+            # Combine function data for review in server log
+            test_log = f"\nDays since reset for phrase \"{str(phrase.phrase)}\""
+            test_log += f": {days_since_reset}\n  Now                : {now}"
+            test_log += f"\n  Time of last reset : {day_of_last_reset}\n"
+            test_log += f"    strength before recalc : {str(phrase.strength)}"
+            print(test_log)
+
+            # Weaken strength if phrase wasn't tested for longer than a day
             if days_since_reset > 0 and phrase.strength > 25:
                 phrase.strength -= days_since_reset
                 phrase.save()
-            print("    strength after recalc  : " + str(phrase.strength))
-        
+            
+            # Complete funciton data for presentation in server log
+            print(f"    strength after recalc  : {str(phrase.strength)}")
+            
         success_url = 'tommy:home'
         return redirect(success_url)
 
