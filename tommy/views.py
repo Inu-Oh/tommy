@@ -11,7 +11,7 @@ from unidecode import unidecode
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
-# DEV: Function for grading user answer comapred to actual phrase
+# Function for grading user answer comapred to actual phrase
 def grade_answer(answer, phrase):
     phrase_len = len(phrase)
     answer_len = len(answer)
@@ -37,22 +37,23 @@ class Home(LoginRequiredMixin, View):
     template_name = 'tommy/home.html'
 
     def get(self, request):
+        # Redirect to create profile page if the user doesn't have one
         try:
             profile = Profile.objects.get(user = request.user)
         except:
             create_profile_url = reverse_lazy('tommy:create_profile')
             return redirect(create_profile_url)
-        # Delete session data from exercises if any
-        try:
+        
+        # Delete session data from exercises if it exists
+        try: # data from practice, review and accent views
             del request.session['test_count']
-            del request.session['testing_phrase']
-            del request.session['user_answer']
-            del request.session['testing_view']
-            del request.session['respone_accuracy']
         except:
             pass
-        try:
+        try: # data from learn view
             del request.session['module_id']
+        except:
+            pass
+        try: # data from practice, review, accent and learn views
             del request.session['testing_phrase']
             del request.session['user_answer']
             del request.session['testing_view']
@@ -60,7 +61,7 @@ class Home(LoginRequiredMixin, View):
         except:
             pass
         
-        # Get user phrase strength data for progress bar and strengh recalculation
+        # Get user phrase strength data for progress
         user_phrase_strength = UserPhraseStrength.objects.all()
         unlearned_phrase_count = user_phrase_strength.filter(
             learned=False, user=request.user).count()
@@ -78,12 +79,13 @@ class Home(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-# Recalculates user phrase after each login based on time elapsed
+"""Recalculates user phrase after each login based on time elapsed
+ Login redirects here.
+ This page then redirects to Home view after recalculating user phrase strength."""
 class ResetView(LoginRequiredMixin, View):
 
     def get(self, request):
-        user_phrase_strength = UserPhraseStrength.objects.all()
-        learned_phrases = user_phrase_strength.filter(
+        learned_phrases = UserPhraseStrength.objects.filter(
             learned=True, user=request.user)
 
         # Recalculate phrase strength based on last time seen
