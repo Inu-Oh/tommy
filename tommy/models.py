@@ -15,7 +15,7 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} Profile"
+        return f"{self.user.username}'s Profile"
 
 
 class Module(models.Model):
@@ -71,10 +71,7 @@ class Translation(models.Model):
         related_name='phrase_translation')
 
     def __str__(self):
-        return 'Phrase: "%s" - Translation: "%s"'%(
-            self.phrase,
-            self.translation
-        )
+        return f'Phrase: "{self.phrase}" - Translation: "{self.translation}"'
 
 
 class UserPhraseStrength(models.Model):
@@ -91,9 +88,6 @@ class UserPhraseStrength(models.Model):
         unique_together = ('user', 'phrase')
     
     def __str__(self):
-        return 'User: %s; Phrase: "%s"; Learned: "%s" Strength: %d'%(
-            self.user.username,
-            self.phrase.phrase,
-            self.learned,
-            self.strength
-        )
+        rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}";'
+        rep += f'Learned: "{self.learned}" Strength: {self.strength}'
+        return rep
