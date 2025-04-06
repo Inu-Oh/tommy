@@ -637,15 +637,37 @@ class CreatorView(LoginRequiredMixin, CreateView):
         if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        profile = Profile.objects.get(user=request.user)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+
+        context = {
+            'profile': profile,
+            'modules': modules,
+            'phrases': phrases,
+            'translations': translations,
+        }
         
-        return render(request, self.template_name)
+        return render(request, self.template_name, context)
             
     def get(self, request):
         if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        profile = Profile.objects.get(user=request.user)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+
+        context = {
+            'profile': profile,
+            'modules': modules,
+            'phrases': phrases,
+            'translations': translations,
+        }
         
-        return render(request, self.template_name)
+        return render(request, self.template_name, context)
 
 # For admins to edit modules, phrases and translations
 class EditorView(LoginRequiredMixin, UpdateView):
@@ -655,12 +677,34 @@ class EditorView(LoginRequiredMixin, UpdateView):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
 
-        return render(request, self.template_name)
+        context = {
+            'profile': profile,
+            'modules': modules,
+            'phrases': phrases,
+            'translations': translations,
+        }
+        
+        return render(request, self.template_name, context)
             
     def get(self, request):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
 
-        return render(request, self.template_name)
+        context = {
+            'profile': profile,
+            'modules': modules,
+            'phrases': phrases,
+            'translations': translations,
+        }
+        
+        return render(request, self.template_name, context)

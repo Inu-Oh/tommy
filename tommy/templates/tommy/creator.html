@@ -3,17 +3,12 @@
 
 
 {% block header %}
-    {% if profile %}    
-    <div class="container-fluid d-flex justify-content-between">
-        <p class="fs-4 fw-bolder">{{ profile.name }}</p>
-        <div style="width:39%" class="pb-2">
-            Staff page</div>
-        </div></div>
-        <p class="text-end fs-4">
-            <span class="badge bg-success fw-bold px-3">
-                XP {{ profile.xp|intcomma }}</span></p>
-    </div>
-    {% endif %}
+{% if user.is_staff %} 
+<div class="container-fluid d-flex justify-content-between">
+    <p class="fs-5 fw-bolder">Content Creator Page</p>
+    <p class="text-end fs-5">Staff profile: {{ profile.name }}</p>
+</div>
+{% endif %}
 {% endblock header %}
 
 
