@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -629,30 +629,38 @@ class FeedbackView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
     
 
-# For staff to add modules, phrases and translations
+# For admins to add modules, phrases and translations
 class CreatorView(LoginRequiredMixin, CreateView):
-    template_name = 'creator.html'
+    template_name = 'tommy/creator.html'
     # TODO apply PermissionRequiredMixin
     def get(self, request):
-        if not self.user.is_staff:
+        if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        
+        return render(request, self.template_name)
             
     def get(self, request):
-        if not self.user.is_staff:
+        if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        
+        return render(request, self.template_name)
 
-# For staff to edit modules, phrases and translations
+# For admins to edit modules, phrases and translations
 class EditorView(LoginRequiredMixin, UpdateView):
-    template_name = 'editor.html'
+    template_name = 'tommy/editor.html'
     # TODO apply PermissionRequiredMixin
     def get(self, request):
-        if not self.user.is_staff:
+        if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+
+        return render(request, self.template_name)
             
     def get(self, request):
-        if not self.user.is_staff:
+        if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+
+        return render(request, self.template_name)
