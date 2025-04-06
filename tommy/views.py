@@ -1,8 +1,8 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, View, CreateView
+from django.views.generic import TemplateView, UpdateView, View, CreateView, ListView
 
 from datetime import datetime
 from random import choice
@@ -33,7 +33,7 @@ def grade_answer(answer, phrase):
     return True
 
 
-class Home(LoginRequiredMixin, View):
+class Home(LoginRequiredMixin, TemplateView):
     template_name = 'tommy/home.html'
 
     def get(self, request):
@@ -82,7 +82,7 @@ class Home(LoginRequiredMixin, View):
 """Recalculates user phrase after each login based on time elapsed
  Login redirects here.
  This page then redirects to Home view after recalculating user phrase strength."""
-class ResetView(LoginRequiredMixin, View):
+class ResetView(LoginRequiredMixin, UpdateView):
 
     def get(self, request):
         learned_phrases = UserPhraseStrength.objects.filter(
@@ -627,3 +627,32 @@ class FeedbackView(LoginRequiredMixin, View):
         }
         # Retrieve and pass on test count for the current exercise session
         return render(request, self.template_name, context)
+    
+
+# For staff to add modules, phrases and translations
+class EditorView(LoginRequiredMixin, CreateView):
+    template_name = 'editor.html'
+
+    def get(self, request):
+        if not self.user.is_staff:
+            impostor_url = 'tommy:home'
+            return redirect(impostor_url)
+            
+    def get(self, request):
+        if not self.user.is_staff:
+            impostor_url = 'tommy:home'
+            return redirect(impostor_url)
+
+# For staff to edit modules, phrases and translations
+class EditorView(LoginRequiredMixin, CreateView):
+    template_name = 'editor.html'
+
+    def get(self, request):
+        if not self.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+            
+    def get(self, request):
+        if not self.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)

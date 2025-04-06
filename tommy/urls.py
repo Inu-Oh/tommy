@@ -32,4 +32,7 @@ urlpatterns = [
 
     # Feedback page for practice, review and accent practice views
     path('feedback', views.FeedbackView.as_view(), name='feedback'),
+
+    # For admins to add and edit models, phrases and translations
+    path('editor', views.EditorView.as_view(), name='editor')
 ]

@@ -88,6 +88,6 @@ class UserPhraseStrength(models.Model):
         unique_together = ('user', 'phrase')
     
     def __str__(self):
-        rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}";'
-        rep += f'Learned: "{self.learned}" Strength: {self.strength}'
+        rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}"; '
+        rep += f'Learned: "{self.learned}"; Strength: {self.strength}'
         return rep
