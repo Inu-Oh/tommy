@@ -6,11 +6,10 @@
 <nav class="nav p-2 my-3 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
     <div class="container-fluid">
         {% url 'tommy:home' as x %}
-        {% if user.is_staff %}
-        <a class="navbar-brand link-style" href="{{ x }}">Tommy Admin</a>
+        <a class="navbar-brand link-style" href="{{ x }}">Tommy</a>
         <ul class="navbar-nav container-fluid d-flex justify-content-around">
 {% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
-        
+        {% if user.is_staff %}
             <li>
                 <a class="nav-link link-style" href="{% url 'tommy:creator' %}" role="button">
                     Add Content</a>
@@ -18,12 +17,8 @@
             <li>
                 <a class="nav-link link-style" href="{% url 'tommy:editor' %}" role="button">
                     Edit Content</a>
-            </li>
-        </ul>     
+            </li>        
         {% else %}
-        <a class="navbar-brand link-style" href="{{ x }}">Tommy</a>
-        <ul class="navbar-nav container-fluid d-flex justify-content-around">
-{% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
             <li>
                 <a class="nav-link link-style" href="{{ x }}" role="button">
                     Home</a>
@@ -32,8 +27,8 @@
                 <a class="nav-link link-style" href="{% url 'tommy:glossary' %}" role="button">
                     Glossary</a>
             </li>
-        </ul>
         {% endif %}
+        </ul>
         {% if user.is_authenticated %}
         <ul class="navbar-nav">
             <li class="nav-item dropdown">

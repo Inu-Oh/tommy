@@ -630,13 +630,15 @@ class FeedbackView(LoginRequiredMixin, View):
     
 
 # For admins to add modules, phrases and translations
+# TODO apply PermissionRequiredMixin
 class CreatorView(LoginRequiredMixin, CreateView):
     template_name = 'tommy/creator.html'
-    # TODO apply PermissionRequiredMixin
     def get(self, request):
         if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        
+        
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
@@ -651,10 +653,11 @@ class CreatorView(LoginRequiredMixin, CreateView):
         
         return render(request, self.template_name, context)
             
-    def get(self, request):
+    def post(self, request):
         if not request.user.is_staff:
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
+        
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
@@ -670,13 +673,15 @@ class CreatorView(LoginRequiredMixin, CreateView):
         return render(request, self.template_name, context)
 
 # For admins to edit modules, phrases and translations
+# TODO apply PermissionRequiredMixin
 class EditorView(LoginRequiredMixin, UpdateView):
     template_name = 'tommy/editor.html'
-    # TODO apply PermissionRequiredMixin
+    
     def get(self, request):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
@@ -691,10 +696,11 @@ class EditorView(LoginRequiredMixin, UpdateView):
         
         return render(request, self.template_name, context)
             
-    def get(self, request):
+    def post(self, request):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
