@@ -630,9 +630,9 @@ class FeedbackView(LoginRequiredMixin, View):
     
 
 # For staff to add modules, phrases and translations
-class EditorView(LoginRequiredMixin, CreateView):
-    template_name = 'editor.html'
-
+class CreatorView(LoginRequiredMixin, CreateView):
+    template_name = 'creator.html'
+    # TODO apply PermissionRequiredMixin
     def get(self, request):
         if not self.user.is_staff:
             impostor_url = 'tommy:home'
@@ -644,9 +644,9 @@ class EditorView(LoginRequiredMixin, CreateView):
             return redirect(impostor_url)
 
 # For staff to edit modules, phrases and translations
-class EditorView(LoginRequiredMixin, CreateView):
+class EditorView(LoginRequiredMixin, UpdateView):
     template_name = 'editor.html'
-
+    # TODO apply PermissionRequiredMixin
     def get(self, request):
         if not self.user.is_staff:
             non_staff_url = 'tommy:home'

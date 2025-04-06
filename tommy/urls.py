@@ -34,5 +34,6 @@ urlpatterns = [
     path('feedback', views.FeedbackView.as_view(), name='feedback'),
 
     # For admins to add and edit models, phrases and translations
-    path('editor', views.EditorView.as_view(), name='editor')
+    path('creator', views.CreatorView.as_view(), name='creator'),
+    path('editor', views.EditorView.as_view(), name='editor'),
 ]
