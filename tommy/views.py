@@ -9,7 +9,7 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm
+from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm, PhraseForm, TranslationForm
 
 # Function for grading user answer comapred to actual phrase
 def grade_answer(answer, phrase):
@@ -638,17 +638,23 @@ class CreatorView(LoginRequiredMixin, CreateView):
             impostor_url = 'tommy:home'
             return redirect(impostor_url)
         
-        
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
+
+        module_form = ModuleForm()
+        phrase_form = PhraseForm()
+        translation_form = TranslationForm()
 
         context = {
             'profile': profile,
             'modules': modules,
             'phrases': phrases,
             'translations': translations,
+            'module_form': module_form,
+            'phrase_form': phrase_form,
+            'translation_form': translation_form,
         }
         
         return render(request, self.template_name, context)
@@ -663,17 +669,25 @@ class CreatorView(LoginRequiredMixin, CreateView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
 
+        module_form = ModuleForm(request.POST)
+        phrase_form = PhraseForm(request.POST)
+        translation_form = TranslationForm(request.POST)
+
         context = {
             'profile': profile,
             'modules': modules,
             'phrases': phrases,
             'translations': translations,
+            'module_form': module_form,
+            'phrase_form': phrase_form,
+            'translation_form': translation_form,
         }
         
         return render(request, self.template_name, context)
 
 # For admins to edit modules, phrases and translations
 # TODO apply PermissionRequiredMixin
+# TODO figure out how to access pks for each optional object updated
 class EditorView(LoginRequiredMixin, UpdateView):
     template_name = 'tommy/editor.html'
     
