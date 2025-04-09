@@ -12,36 +12,42 @@
 {% endblock header %}
 
 
-{% block content %} 
+{% block content %}
 <div class="p-3 fs-4">
     <h5>Creator</h5>
 </div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
-    <p><a href="{% url 'tommy:add_module' %}" class="btn btn-lg btn-primary mt-3">
+    <p><a href="{% url 'tommy:add_module' %}"
+        class="btn btn-lg btn-outline-dark">
         Create a new module</a></p>
 </div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
-    <form>
-        <p><a href="{% url 'tommy:add_phrase' %}" class="btn btn-lg btn-primary mt-3">
+    <form action="" method="get" class="input-group">
+        <p><a href="{% url 'tommy:add_phrase' %}"
+            class="btn btn-lg btn-outline-dark">
             Add new phrases to the module: </a></p>
-        <datalist>
+        {% csrf_token %}
+        <select id="modules">
             {% if modules %}{% for module in modules %}
-            <option value="{{ module.name }}">{{ module.name }}</option>
+            <option value="{{ module.id }}">{{ module.name }}</option>
             {% endfor %}{% endif %}
-        </datalist>
+        </select>
     </form>
 </div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
-    <form>
-        <p><a href="{% url 'tommy:add_translation' %}" class="btn btn-lg btn-primary mt-3">
+    <form action="" method="get" class="input-group">
+        <p><a href="{% url 'tommy:add_translation' %}"
+            class="btn btn-lg btn-outline-dark">
             Add new translations to the phrase:</a></p>
-        <datalist>
+        {% csrf_token %}
+        <select id="phrases">
             {% if phrases %}{% for phrase in phrases %}
-            <option value="{{ phrase.phrase }}">{{ phrase.phrase }}</option>
+            <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
             {% endfor %}{% endif %}
-        </datalist>
+        </select>
     </form>
 </div>
+
 {% endblock content %}
 
 
@@ -49,4 +55,19 @@
 <div class="container p-5">
     <p> </p>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Reassing id passed to URL based on dropdown selections
+        let module_selector = document.getElementById('modules');
+        module_selector.addEventListener('change', function() {
+            let module_id = module_selector.value;
+        });
+
+        let phrase_selector = document.getElementById('phrases');
+        phrase_selector.addEventListener('change', function() {
+            let phrase_id = phrase_selector.value;
+        });
+    });
+</script>
 {% endblock footer %}
