@@ -9,7 +9,8 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm, PhraseForm, TranslationForm
+from .forms import ProfileForm, TestForm, PhraseStrengthForm
+
 
 # Function for grading user answer comapred to actual phrase
 def grade_answer(answer, phrase):
@@ -631,8 +632,9 @@ class FeedbackView(LoginRequiredMixin, View):
 
 # For admins to add modules, phrases and translations
 # TODO apply PermissionRequiredMixin
-class CreatorView(LoginRequiredMixin, CreateView):
+class CreateMenuView(LoginRequiredMixin, ListView):
     template_name = 'tommy/creator.html'
+    
     def get(self, request):
         if not request.user.is_staff:
             impostor_url = 'tommy:home'
@@ -641,54 +643,44 @@ class CreatorView(LoginRequiredMixin, CreateView):
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
-        translations = Translation.objects.all()
-
-        module_form = ModuleForm()
-        phrase_form = PhraseForm()
-        translation_form = TranslationForm()
 
         context = {
             'profile': profile,
             'modules': modules,
             'phrases': phrases,
-            'translations': translations,
-            'module_form': module_form,
-            'phrase_form': phrase_form,
-            'translation_form': translation_form,
         }
         
         return render(request, self.template_name, context)
-            
-    def post(self, request):
-        if not request.user.is_staff:
-            impostor_url = 'tommy:home'
-            return redirect(impostor_url)
-        
-        profile = Profile.objects.get(user=request.user)
-        modules = Module.objects.all()
-        phrases = Phrase.objects.all()
-        translations = Translation.objects.all()
 
-        module_form = ModuleForm(request.POST)
-        phrase_form = PhraseForm(request.POST)
-        translation_form = TranslationForm(request.POST)
 
-        context = {
-            'profile': profile,
-            'modules': modules,
-            'phrases': phrases,
-            'translations': translations,
-            'module_form': module_form,
-            'phrase_form': phrase_form,
-            'translation_form': translation_form,
-        }
-        
-        return render(request, self.template_name, context)
+class CreateModuleView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_module.html'
+    
+    def get(self, request):
+
+        return render(request, self.template_name)
+
+
+class CreatePhraseView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_phrase.html'
+    
+    def get(self, request):
+
+        return render(request, self.template_name)
+
+
+class CreateTranslationView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_translation.html'
+    
+    def get(self, request):
+
+        return render(request, self.template_name)
+
 
 # For admins to edit modules, phrases and translations
 # TODO apply PermissionRequiredMixin
 # TODO figure out how to access pks for each optional object updated
-class EditorView(LoginRequiredMixin, UpdateView):
+class EditMenuView(LoginRequiredMixin, ListView):
     template_name = 'tommy/editor.html'
     
     def get(self, request):
@@ -696,25 +688,6 @@ class EditorView(LoginRequiredMixin, UpdateView):
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         
-        profile = Profile.objects.get(user=request.user)
-        modules = Module.objects.all()
-        phrases = Phrase.objects.all()
-        translations = Translation.objects.all()
-
-        context = {
-            'profile': profile,
-            'modules': modules,
-            'phrases': phrases,
-            'translations': translations,
-        }
-        
-        return render(request, self.template_name, context)
-            
-    def post(self, request):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
-
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()

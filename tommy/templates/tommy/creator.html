@@ -17,7 +17,30 @@
     <h5>Creator</h5>
 </div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
-    Wait for it
+    <p><a href="{% url 'tommy:add_module' %}" class="btn btn-lg btn-primary mt-3">
+        Create a new module</a></p>
+</div>
+<div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
+    <form>
+        <p><a href="{% url 'tommy:add_phrase' %}" class="btn btn-lg btn-primary mt-3">
+            Add new phrases to the module: </a></p>
+        <datalist>
+            {% if modules %}{% for module in modules %}
+            <option value="{{ module.name }}">{{ module.name }}</option>
+            {% endfor %}{% endif %}
+        </datalist>
+    </form>
+</div>
+<div class="container-fluid p-3 d-flex flex-wrap justify-content-evenly align-items-center">
+    <form>
+        <p><a href="{% url 'tommy:add_translation' %}" class="btn btn-lg btn-primary mt-3">
+            Add new translations to the phrase:</a></p>
+        <datalist>
+            {% if phrases %}{% for phrase in phrases %}
+            <option value="{{ phrase.phrase }}">{{ phrase.phrase }}</option>
+            {% endfor %}{% endif %}
+        </datalist>
+    </form>
 </div>
 {% endblock content %}
 

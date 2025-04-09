@@ -33,7 +33,14 @@ urlpatterns = [
     # Feedback page for practice, review and accent practice views
     path('feedback', views.FeedbackView.as_view(), name='feedback'),
 
-    # For admins to add and edit models, phrases and translations
-    path('creator', views.CreatorView.as_view(), name='creator'),
-    path('editor', views.EditorView.as_view(), name='editor'),
+    # For admins to add new models, phrases and translations
+    path('creator', views.CreateMenuView.as_view(), name='creator'),
+    path('add_module', views.CreateModuleView.as_view(), name='add_module'),
+    path('add_phrase', # change to 'module/<int:pk>/add_phrase',
+         views.CreatePhraseView.as_view(), name='add_phrase'),
+    path('add_translation', # change to 'phrase/<int:pk>/add_translation',
+         views.CreateTranslationView.as_view(), name='add_translation'),
+
+    # For admins to edit models, phrases and translations
+    path('editor', views.EditMenuView.as_view(), name='editor'),
 ]
