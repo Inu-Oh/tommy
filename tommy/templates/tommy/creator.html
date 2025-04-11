@@ -23,9 +23,9 @@
     <h5>Add phrases</h5>
     <form id="phrase_form" action="" method="get" class="input-group">
         <select id="modules" class="form-control" required>
-            <option value="" class="form-control">Select a module</option>
+            <option value="" disabled>Select a module</option>
             {% if modules %}{% for module in modules %}
-            <option value="{{ module.id }}" class="form-control">{{ module.name }}</option>
+            <option value="{{ module.id }}">{{ module.name }}</option>
             {% endfor %}{% endif %}
         </select>
         <button type="submit" class="btn btn-lg btn-outline-dark">Click</button>
@@ -36,7 +36,7 @@
     <h5>Add translations</h5>
     <form id="translation_form" action="" method="get" class="input-group">
         <select id="phrases" class="form-control">
-            <option value="" class="text-muted text-primary">Select a phrase</option>
+            <option value="" disabled>Select a phrase</option>
             {% if phrases %}{% for phrase in phrases %}
             <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
             {% endfor %}{% endif %}
@@ -57,13 +57,13 @@
         // Reassing id passed to URL based on dropdown selections
         let module_selector = document.getElementById('modules');
         module_selector.addEventListener('change', function() {
-            let url = 'module/' + module_selector.value + '/add_phrase';
+            let url = 'module/' + module_selector.value + '/add_phrase/';
             document.getElementById('phrase_form').action = url;
         });
 
         let phrase_selector = document.getElementById('phrases');
         phrase_selector.addEventListener('change', function() {
-            let url = 'phrase/' + phrase_selector.value + '/add_translation';
+            let url = 'phrase/' + phrase_selector.value + '/add_translation/';
             document.getElementById('translation_form').action = url;
         });
     });

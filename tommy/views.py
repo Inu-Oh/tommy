@@ -664,7 +664,7 @@ class CreateModuleView(LoginRequiredMixin, CreateView):
 class CreatePhraseView(LoginRequiredMixin, CreateView):
     template_name = 'tommy/add_phrase.html'
     
-    def get(self, request):
+    def get(self, request, pk):
 
         return render(request, self.template_name)
 
