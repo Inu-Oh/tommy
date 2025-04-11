@@ -641,8 +641,8 @@ class CreateMenuView(LoginRequiredMixin, ListView):
             return redirect(impostor_url)
         
         profile = Profile.objects.get(user=request.user)
-        modules = Module.objects.all()
-        phrases = Phrase.objects.all()
+        modules = Module.objects.all().order_by('name')
+        phrases = Phrase.objects.all().order_by('phrase')
 
         context = {
             'profile': profile,
