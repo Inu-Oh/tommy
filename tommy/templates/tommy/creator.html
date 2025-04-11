@@ -28,7 +28,8 @@
             <option value="{{ module.id }}">{{ module.name }}</option>
             {% endfor %}{% endif %}
         </select>
-        <button type="submit" class="btn btn-lg btn-outline-dark">Click</button>
+        <button type="submit" class="btn btn-lg btn-outline-dark"
+            id="module_submit">Click</button>
     </form>
 </div>
 
@@ -41,7 +42,8 @@
             <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
             {% endfor %}{% endif %}
         </select>
-        <button type="submit" class="btn btn-lg btn-outline-dark">Click</button>
+        <button type="submit" class="btn btn-lg btn-outline-dark"
+            id="phrase_submit">Click</button>
     </form>
 </div>
 {% endblock content %}
@@ -56,14 +58,14 @@
 
         // Reassing id passed to URL based on dropdown selections
         let module_selector = document.getElementById('modules');
-        module_selector.addEventListener('change', function() {
-            let url = 'module/' + module_selector.value + '/add_phrase/';
+        document.getElementById('module_submit').addEventListener('click', function() {
+            let url = 'module/' + module_selector.value + '/add_phrase';
             document.getElementById('phrase_form').action = url;
         });
 
         let phrase_selector = document.getElementById('phrases');
-        phrase_selector.addEventListener('change', function() {
-            let url = 'phrase/' + phrase_selector.value + '/add_translation/';
+        document.getElementById('phrase_submit').addEventListener('click', function() {
+            let url = 'phrase/' + phrase_selector.value + '/add_translation';
             document.getElementById('translation_form').action = url;
         });
     });

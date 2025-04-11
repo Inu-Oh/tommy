@@ -103,12 +103,12 @@ class ResetView(LoginRequiredMixin, UpdateView):
             delta = now - day_of_last_reset
             days_since_reset = delta.days
             
-            # Combine function data for review in server log
+            """# Function data for review in server log
             test_log = f"\nDays since reset for phrase \"{str(phrase.phrase)}\""
             test_log += f": {days_since_reset}\n  Now                : {now}"
             test_log += f"\n  Time of last reset : {day_of_last_reset}\n"
             test_log += f"    strength before recalc : {str(phrase.strength)}"
-            print(test_log)
+            print(test_log)"""
 
             # Weaken strength if phrase wasn't tested for longer than a day
             if days_since_reset > 0 and phrase.strength > 25:
@@ -672,7 +672,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
 class CreateTranslationView(LoginRequiredMixin, CreateView):
     template_name = 'tommy/add_translation.html'
     
-    def get(self, request):
+    def get(self, request, pk):
 
         return render(request, self.template_name)
 
