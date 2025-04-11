@@ -11,14 +11,10 @@
 {% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
         {% if user.is_staff %}
             <li>
-                <a class="nav-link link-style" href="{% url 'tommy:creator' %}" role="button">
+                <a class="nav-link link-style" href="{% url 'tommy:manage_content' %}" role="button">
                     Add Content</a>
             </li>
-            <li>
-                <a class="nav-link link-style" href="{% url 'tommy:editor' %}" role="button">
-                    Edit Content</a>
-            </li>        
-        {% else %}
+        {% endif %}
             <li>
                 <a class="nav-link link-style" href="{{ x }}" role="button">
                     Home</a>
@@ -27,7 +23,6 @@
                 <a class="nav-link link-style" href="{% url 'tommy:glossary' %}" role="button">
                     Glossary</a>
             </li>
-        {% endif %}
         </ul>
         {% if user.is_authenticated %}
         <ul class="navbar-nav">

@@ -630,10 +630,11 @@ class FeedbackView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
     
 
-# For admins to add modules, phrases and translations
+# Menu for admins to add and edit modules, phrases and translations
 # TODO apply PermissionRequiredMixin
+# TODO figure out how to access pks for each optional object updated
 class CreateMenuView(LoginRequiredMixin, ListView):
-    template_name = 'tommy/creator.html'
+    template_name = 'tommy/manage_content.html'
     
     def get(self, request):
         if not request.user.is_staff:
@@ -643,55 +644,7 @@ class CreateMenuView(LoginRequiredMixin, ListView):
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all().order_by('name')
         phrases = Phrase.objects.all().order_by('phrase')
-
-        context = {
-            'profile': profile,
-            'modules': modules,
-            'phrases': phrases,
-        }
-        
-        return render(request, self.template_name, context)
-
-
-class CreateModuleView(LoginRequiredMixin, CreateView):
-    template_name = 'tommy/add_module.html'
-    
-    def get(self, request):
-
-        return render(request, self.template_name)
-
-
-class CreatePhraseView(LoginRequiredMixin, CreateView):
-    template_name = 'tommy/add_phrase.html'
-    
-    def get(self, request, pk):
-
-        return render(request, self.template_name)
-
-
-class CreateTranslationView(LoginRequiredMixin, CreateView):
-    template_name = 'tommy/add_translation.html'
-    
-    def get(self, request, pk):
-
-        return render(request, self.template_name)
-
-
-# For admins to edit modules, phrases and translations
-# TODO apply PermissionRequiredMixin
-# TODO figure out how to access pks for each optional object updated
-class EditMenuView(LoginRequiredMixin, ListView):
-    template_name = 'tommy/editor.html'
-    
-    def get(self, request):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
-        
-        profile = Profile.objects.get(user=request.user)
-        modules = Module.objects.all()
-        phrases = Phrase.objects.all()
-        translations = Translation.objects.all()
+        translations = Translation.objects.all().order_by('translation')
 
         context = {
             'profile': profile,
@@ -701,3 +654,36 @@ class EditMenuView(LoginRequiredMixin, ListView):
         }
         
         return render(request, self.template_name, context)
+
+
+class CreateModuleView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_module.html'
+    
+    def get(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
+
+
+class CreatePhraseView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_phrase.html'
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
+
+
+class CreateTranslationView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_translation.html'
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
