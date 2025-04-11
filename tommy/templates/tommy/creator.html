@@ -1,5 +1,4 @@
 {% extends "base_menu.html" %}
-{% load humanize %}
 
 
 {% block header %}
@@ -13,15 +12,13 @@
 
 
 {% block content %}
-<div class="p-3 fs-4">
-    
-</div>
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-between">
-    <h5>Add modules</h5>
+    <h5 class="pb-2">Add modules</h5>
     <p class="w-100"><a href="{% url 'tommy:add_module' %}"
         class="btn btn-lg btn-outline-dark w-100">
         Add new modules</a></p>
 </div>
+
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-betwen">
     <h5>Add phrases</h5>
     <form id="phrase_form" action="" method="get" class="input-group">
@@ -34,6 +31,7 @@
         <button type="submit" class="btn btn-lg btn-outline-dark">Click</button>
     </form>
 </div>
+
 <div class="container-fluid p-3 d-flex flex-wrap justify-content-between">
     <h5>Add translations</h5>
     <form id="translation_form" action="" method="get" class="input-group">
@@ -46,7 +44,6 @@
         <button type="submit" class="btn btn-lg btn-outline-dark">Click</button>
     </form>
 </div>
-
 {% endblock content %}
 
 
@@ -60,13 +57,13 @@
         // Reassing id passed to URL based on dropdown selections
         let module_selector = document.getElementById('modules');
         module_selector.addEventListener('change', function() {
-            let url = 'module/' + module_selector.value + '/add_phrases';
+            let url = 'module/' + module_selector.value + '/add_phrase';
             document.getElementById('phrase_form').action = url;
         });
 
         let phrase_selector = document.getElementById('phrases');
         phrase_selector.addEventListener('change', function() {
-            let url = 'phrase/' + phrase_selector.value + '/add_translations';
+            let url = 'phrase/' + phrase_selector.value + '/add_translation';
             document.getElementById('translation_form').action = url;
         });
     });
