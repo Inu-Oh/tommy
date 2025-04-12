@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Profile, UserPhraseStrength
+from .models import Profile, UserPhraseStrength, Module
 
 
 class ProfileForm(forms.ModelForm):
@@ -35,3 +35,10 @@ class TestForm(forms.Form):
                 'placeholder': ' ...',
                 'style': 'height: 5vh; font-size: x-large;'
         }))
+
+
+class ModuleForm(forms.ModelForm):
+
+    class Meta:
+        model = Module
+        fields = ['__all__']

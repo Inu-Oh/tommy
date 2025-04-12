@@ -9,7 +9,7 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm
+from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm
 
 
 # Function for grading user answer comapred to actual phrase
@@ -124,6 +124,7 @@ class ResetView(LoginRequiredMixin, UpdateView):
 
 # Adds a user name for the GUI and creates user testing objects for all course phrases
 class ProfileCreateView(LoginRequiredMixin, CreateView):
+    model = Profile
     template_name = 'tommy/create_profile.html'
 
     def get(self, request):
@@ -638,8 +639,8 @@ class CreateMenuView(LoginRequiredMixin, ListView):
     
     def get(self, request):
         if not request.user.is_staff:
-            impostor_url = 'tommy:home'
-            return redirect(impostor_url)
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all().order_by('name')
@@ -659,14 +660,30 @@ class CreateMenuView(LoginRequiredMixin, ListView):
 class CreateModuleView(LoginRequiredMixin, CreateView):
     model = Module
     template_name = 'tommy/add_module.html'
-    fields = '__all__'
     
     def get(self, request):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         
-        return render(request, self.template_name)
+        form = ModuleForm()
+        context = {'form': form}
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
+        form = ModuleForm(request.POST)
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, self.template_name, context)
+        
+        # Save new module and redirect to add phrases to this module
+        module = form.save()
+        success_url = reverse_lazy('tommy:add_phrase', kwargs={'pk': module.id})
+        return redirect(success_url)
 
 
 class CreatePhraseView(LoginRequiredMixin, CreateView):
