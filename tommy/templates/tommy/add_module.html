@@ -1,5 +1,34 @@
 {% extends "base_menu.html" %}
 
+
+{% block nonav %}
+<div class="nonav px-3 my-3 navbar rounded-3 shadow-sm">
+    <div class="container-fluid">
+        <p class="fs-4 ps-3 fw-bolder"></p> 
+    </div>
+</div>
+{% endblock nonav %}
+
+
+{% block header %}
+{% endblock header %}
+
+
 {% block content %}
-<p>tasty</py>
+    <div class="container-fluid p-3">
+        {% load crispy_forms_tags %}
+        <form action="" method="post" id="upload_form" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Submit" class="btn btn-lg btn-outline-success me-3">
+            <input type="submit" value="Cancel" class="btn btn-lg btn-outline-danger"
+                onclick="window.location.href='{% url 'tommy:manage_content' %}';return false;">
+        </form>
+    </div>
+
 {% endblock content %}
+
+
+{% block footer %}
+    
+{% endblock footer %}

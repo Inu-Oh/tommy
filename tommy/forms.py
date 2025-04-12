@@ -41,4 +41,4 @@ class ModuleForm(forms.ModelForm):
 
     class Meta:
         model = Module
-        fields = ['__all__']
+        fields = '__all__'
