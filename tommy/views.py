@@ -115,8 +115,8 @@ class ResetView(LoginRequiredMixin, UpdateView):
                 phrase.strength -= days_since_reset
                 phrase.save()
             
-            # Complete funciton data for presentation in server log
-            print(f"    strength after recalc  : {str(phrase.strength)}")
+            """# Function data for review in server log - part 2
+            print(f"    strength after recalc  : {str(phrase.strength)}")"""
             
         success_url = 'tommy:home'
         return redirect(success_url)
@@ -657,13 +657,15 @@ class CreateMenuView(LoginRequiredMixin, ListView):
 
 
 class CreateModuleView(LoginRequiredMixin, CreateView):
+    model = Module
     template_name = 'tommy/add_module.html'
+    fields = '__all__'
     
     def get(self, request):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
-
+        
         return render(request, self.template_name)
 
 
@@ -679,6 +681,39 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
 
 
 class CreateTranslationView(LoginRequiredMixin, CreateView):
+    template_name = 'tommy/add_translation.html'
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
+
+
+class UpdateModuleView(LoginRequiredMixin, UpdateView):
+    template_name = 'tommy/add_module.html'
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
+
+
+class UpdatePhraseView(LoginRequiredMixin, UpdateView):
+    template_name = 'tommy/add_phrase.html'
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+
+        return render(request, self.template_name)
+
+
+class UpdateTranslationView(LoginRequiredMixin, UpdateView):
     template_name = 'tommy/add_translation.html'
     
     def get(self, request, pk):

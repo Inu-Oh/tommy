@@ -42,4 +42,8 @@ urlpatterns = [
          views.CreateTranslationView.as_view(), name='add_translation'),
 
     # For admins to edit models, phrases and translations
+    path('edit_module/<int:pk>', views.UpdateModuleView.as_view(), name='edit_module'),
+    path('edit_phrase/<int:pk>', views.UpdatePhraseView.as_view(), name='edit_phrase'),
+    path('edit_translation/<int:pk>',
+         views.UpdateTranslationView.as_view(),name='edit_translation'),
 ]

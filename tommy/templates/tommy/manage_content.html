@@ -22,20 +22,30 @@
         </div>
         <div class="col-6">
             <h5>Edit modules</h5>
-        </div>
-    </div>
-    <div class="row p-3">
-        <div class="col-6">
-            <h5>Add phrases</h5>
-            <form id="phrase_form" action="" method="get" class="input-group">
-                <select id="modules" class="form-control" required>
-                    <option value="" disabled>Select a module</option>
+            <form id="edit_module_form" action="" method="get" class="input-group">
+                <select id="edit_module" class="form-control" required>
+                    <option value="" disabled>Select a module to edit</option>
                     {% if modules %}{% for module in modules %}
                     <option value="{{ module.id }}">{{ module.name }}</option>
                     {% endfor %}{% endif %}
                 </select>
                 <button type="submit" class="btn btn-lg btn-outline-dark"
-                    id="module_submit">Click</button>
+                    id="edit_module_submit">Select</button>
+            </form>
+        </div>
+    </div>
+    <div class="row p-3">
+        <div class="col-6">
+            <h5>Add phrases</h5>
+            <form id="add_phrase_form" action="" method="get" class="input-group">
+                <select id="add_phrase" class="form-control" required>
+                    <option value="" disabled>Select a module to add phrases</option>
+                    {% if modules %}{% for module in modules %}
+                    <option value="{{ module.id }}">{{ module.name }}</option>
+                    {% endfor %}{% endif %}
+                </select>
+                <button type="submit" class="btn btn-lg btn-outline-dark"
+                    id="add_phrase_submit">Select</button>
             </form>
         </div>
         <div class="col-6">
@@ -45,15 +55,15 @@
     <div class="row p-3">
         <div class="col-6">
             <h5>Add translations</h5>
-            <form id="translation_form" action="" method="get" class="input-group">
-                <select id="phrases" class="form-control">
-                    <option value="" disabled>Select a phrase</option>
+            <form id="add_translation_form" action="" method="get" class="input-group">
+                <select id="add_translation" class="form-control">
+                    <option value="" disabled>Select a phrase to add translations</option>
                     {% if phrases %}{% for phrase in phrases %}
                     <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
                     {% endfor %}{% endif %}
                 </select>
                 <button type="submit" class="btn btn-lg btn-outline-dark"
-                    id="phrase_submit">Click</button>
+                    id="add_translation_submit">Select</button>
             </form>
         </div>
         <div class="col-6">
@@ -71,17 +81,23 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        // Reassing id passed to URL based on dropdown selections
-        let module_selector = document.getElementById('modules');
-        document.getElementById('module_submit').addEventListener('click', function() {
-            let url = 'module/' + module_selector.value + '/add_phrase';
-            document.getElementById('phrase_form').action = url;
+        // Format action URL with id based on dropdown selection when button is clicked
+        let edit_module_selector = document.getElementById('edit_module');
+        document.getElementById('edit_module_submit').addEventListener('click', function() {
+            let url = 'edit_module/' + edit_module_selector.value;
+            document.getElementById('edit_module_form').action = url;
         });
 
-        let phrase_selector = document.getElementById('phrases');
-        document.getElementById('phrase_submit').addEventListener('click', function() {
-            let url = 'phrase/' + phrase_selector.value + '/add_translation';
-            document.getElementById('translation_form').action = url;
+        let add_phrase_selector = document.getElementById('add_phrase');
+        document.getElementById('add_phrase_submit').addEventListener('click', function() {
+            let url = 'module/' + add_phrase_selector.value + '/add_phrase';
+            document.getElementById('add_phrase_form').action = url;
+        });
+
+        let add_translation_selector = document.getElementById('add_translation');
+        document.getElementById('add_translation_submit').addEventListener('click', function() {
+            let url = 'phrase/' + add_translation_selector.value + '/add_translation';
+            document.getElementById('add_translation_form').action = url;
         });
     });
 </script>
