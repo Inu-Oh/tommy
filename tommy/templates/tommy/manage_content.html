@@ -21,7 +21,7 @@
                 Add new modules</a></p>
         </div>
         <div class="col-6">
-            <h5>Edit modules</h5>
+            <h5>Select module to edit</h5>
             <form id="edit_module_form" action="" method="get" class="input-group">
                 <select id="edit_module" class="form-control" required>
                     <option value="" disabled>Select a module to edit</option>
@@ -36,7 +36,7 @@
     </div>
     <div class="row p-3">
         <div class="col-6">
-            <h5>Add phrases</h5>
+            <h5>Add phrases to module</h5>
             <form id="add_phrase_form" action="" method="get" class="input-group">
                 <select id="add_phrase" class="form-control" required>
                     <option value="" disabled>Select a module to add phrases</option>
@@ -49,12 +49,22 @@
             </form>
         </div>
         <div class="col-6">
-            <h5>Edit phrases</h5>
+            <h5>Select phrase to edit</h5>
+            <form id="edit_phrase_form" action="" method="get" class="input-group">
+                <select id="edit_phrase" class="form-control" required>
+                    <option value="" disabled>Select a phrase to edit</option>
+                    {% if phrases %}{% for phrase in phrases %}
+                    <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
+                    {% endfor %}{% endif %}
+                </select>
+                <button type="submit" class="btn btn-lg btn-outline-dark"
+                    id="edit_phrase_submit">Select</button>
+            </form>
         </div>
     </div>
     <div class="row p-3">
         <div class="col-6">
-            <h5>Add translations</h5>
+            <h5>Add translations for phrase</h5>
             <form id="add_translation_form" action="" method="get" class="input-group">
                 <select id="add_translation" class="form-control">
                     <option value="" disabled>Select a phrase to add translations</option>
@@ -67,7 +77,17 @@
             </form>
         </div>
         <div class="col-6">
-            <h5>Add translations</h5>
+            <h5>Select translation to edit</h5>
+            <form id="edit_translation_form" action="" method="get" class="input-group">
+                <select id="edit_translation" class="form-control">
+                    <option value="" disabled>Select a phrase to add translations</option>
+                    {% if translations %}{% for translation in translations %}
+                    <option value="{{ translation.id }}">{{ translation.translation }}</option>
+                    {% endfor %}{% endif %}
+                </select>
+                <button type="submit" class="btn btn-lg btn-outline-dark"
+                    id="edit_translation_submit">Select</button>
+            </form>
         </div>
     </div>
 </div>
@@ -94,10 +114,22 @@
             document.getElementById('add_phrase_form').action = url;
         });
 
+        let edit_phrase_selector = document.getElementById('edit_phrase');
+        document.getElementById('edit_phrase_submit').addEventListener('click', function() {
+            let url = 'edit_phrase/' + edit_phrase_selector.value;
+            document.getElementById('edit_phrase_form').action = url;
+        });
+
         let add_translation_selector = document.getElementById('add_translation');
         document.getElementById('add_translation_submit').addEventListener('click', function() {
             let url = 'phrase/' + add_translation_selector.value + '/add_translation';
             document.getElementById('add_translation_form').action = url;
+        });
+        
+        let edit_translation_selector = document.getElementById('edit_translation');
+        document.getElementById('edit_translation_submit').addEventListener('click', function() {
+            let url = 'edit_translation/' + edit_translation_selector.value;
+            document.getElementById('edit_translation_form').action = url;
         });
     });
 </script>
