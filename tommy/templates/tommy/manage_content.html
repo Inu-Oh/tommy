@@ -69,7 +69,8 @@
                 <select id="add_translation" class="form-control">
                     <option value="" disabled>Select a phrase to add translations</option>
                     {% if phrases %}{% for phrase in phrases %}
-                    <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
+                    <option value="[{{ phrase.module.id }}, {{ phrase.id }}]">
+                        {{ phrase.phrase }}</option>
                     {% endfor %}{% endif %}
                 </select>
                 <button type="submit" class="btn btn-lg btn-outline-dark"
@@ -122,7 +123,9 @@
 
         let add_translation_selector = document.getElementById('add_translation');
         document.getElementById('add_translation_submit').addEventListener('click', function() {
-            let url = 'phrase/' + add_translation_selector.value + '/add_translation';
+            const obj = JSON.parse(add_translation_selector.value);
+            let [module_id, phrase_id] = [obj[0], obj[1]];
+            let url = 'module/' + module_id + '/phrase/' + phrase_id + '/add_translation';
             document.getElementById('add_translation_form').action = url;
         });
         
