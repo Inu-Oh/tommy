@@ -11,15 +11,18 @@
 
 
 {% block header %}
+    <h4><span class="text-muted">Phrase</span> "{{ current_phrase.phrase }}"
+        <span class="text-muted"> in module,</span> {{ module.name}}</h4>
 {% endblock header %}
 
 
 {% block content %}
-    <div class="container-fluid p-3">
-        <h4><span class="text-muted">Phrase:</span> "{{ phrase.phrase }}"</h4>
+<div class="container-fluid p-3 row">
+    <div class="col-6">
+        
         {% if translations %}
         <h5  class="text-muted">
-            Current translations for this phrase
+            Translations to this phrase
         </h5>
         <ul>
             {% for translation in translations %}
@@ -27,6 +30,7 @@
             {% endfor %}
         </ul>
         {% endif %}
+        <h4 class="py-3">Add a new translation</h4>
         {% load crispy_forms_tags %}
         <form action="" method="post" id="upload_form" enctype="multipart/form-data"
             class="p-2">
@@ -37,10 +41,21 @@
                 onclick="window.location.href='{% url 'tommy:manage_content' %}';return false;">
         </form>
     </div>
-
+    <div class="col-6">
+        {% if phrase_set %}
+        <h4 class="text-muted pb-3">Enough translations to this phrase?</h4>
+        <h5 class="fs-5">Add translations to another phrase</h5>
+        <p class="text-muted">Chooose a phrase</p>
+        {% for phrase in phrase_set %}
+        <a href="{% url 'tommy:add_translation' module.id phrase.id %}"
+            class="btn btn-outline-dark m-1">{{ phrase.phrase }}</a>
+        {% endfor %}    
+        {% endif %}
+    </div>
+</div>
 {% endblock content %}
 
 
 {% block footer %}
-    
+
 {% endblock footer %}

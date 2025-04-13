@@ -738,14 +738,14 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
 class CreateTranslationView(LoginRequiredMixin, CreateView):
     template_name = 'tommy/add_translation.html'
     
-    def get(self, request, pk):
+    def get(self, request, pk1, pk2):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         
-        current_phrase = Phrase.objects.get(id=pk)
-        module = Module.objects.get(id=current_phrase.module_id)
+        module = Module.objects.get(id=pk1)
         phrase_set = Phrase.objects.filter(module=module)
+        current_phrase = Phrase.objects.get(id=pk2)
         translations = Translation.objects.filter(phrase=current_phrase)
         form = CreateTranslationForm()
         context = {
@@ -755,9 +755,9 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
             'phrase_set': phrase_set,
             'translations': translations
         }
-        return render(request, self.template_name)
+        return render(request, self.template_name, context)
     
-    def post(self, request, pk):
+    def post(self, request, pk1, pk2):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)

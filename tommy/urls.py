@@ -38,7 +38,7 @@ urlpatterns = [
     path('add_module', views.CreateModuleView.as_view(), name='add_module'),
     path('module/<int:pk>/add_phrase',
          views.CreatePhraseView.as_view(), name='add_phrase'),
-    path('phrase/<int:pk>/add_translation',
+    path('module/<int:pk1>/phrase/<int:pk2>/add_translation',
          views.CreateTranslationView.as_view(), name='add_translation'),
 
     # For admins to edit models, phrases and translations
