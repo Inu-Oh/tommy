@@ -10,7 +10,7 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm, PhraseAddForm
+from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm, CreatePhraseForm, CreateTranslationForm
 
 
 # Function for grading user answer comapred to actual phrase
@@ -697,7 +697,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
 
         module = Module.objects.get(id=pk)
         phrases = Phrase.objects.filter(module=module)
-        form = PhraseAddForm()
+        form = CreatePhraseForm()
         context = {'form': form, 'module': module, 'phrases': phrases}
         return render(request, self.template_name, context)
 
@@ -706,7 +706,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         
-        form = PhraseAddForm(request.POST)
+        form = CreatePhraseForm(request.POST)
         module = Module.objects.get(id=pk)
         if not form.is_valid():
             context = {'form': form, 'module': module}
@@ -731,7 +731,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
             phrase_strength.correct = 0
             phrase_strength.save()
             
-        success_url = reverse_lazy('tommy:add_translation', kwargs={'pk': phrase.id})
+        success_url = reverse_lazy('tommy:add_phrase', kwargs={'pk': module.id})
         return redirect(success_url)
 
 
@@ -742,8 +742,25 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
-
+        
+        current_phrase = Phrase.objects.get(id=pk)
+        module = Module.objects.get(id=current_phrase.module_id)
+        phrase_set = Phrase.objects.filter(module=module)
+        translations = Translation.objects.filter(phrase=current_phrase)
+        form = CreateTranslationForm()
+        context = {
+            'form': form,
+            'module': module,
+            'current_phrase': current_phrase,
+            'phrase_set': phrase_set,
+            'translations': translations
+        }
         return render(request, self.template_name)
+    
+    def post(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
 
 
 class UpdateModuleView(LoginRequiredMixin, UpdateView):

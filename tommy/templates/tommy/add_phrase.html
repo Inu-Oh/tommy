@@ -11,34 +11,66 @@
 
 
 {% block header %}
+<h4 class="p-3">
+    <span class="text-muted">Module name:</span> {{ module.name }}
+</h4>
 {% endblock header %}
 
 
 {% block content %}
-    <div class="container-fluid p-3">
-        <h4><span class="text-muted">Module name:</span> {{ module.name }}</h4>
-        {% if phrases %}
-        <h5  class="text-muted">Phrases currently in this module</h5>
-        <ul>
-            {% for phrase in phrases %}
-            <li>{{ phrase.phrase }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% load crispy_forms_tags %}
-        <form action="" method="post" id="upload_form" enctype="multipart/form-data"
-            class="p-2">
-            {% csrf_token %}
-            {{ form|crispy }}
-            <input type="submit" value="Submit" class="btn btn-lg btn-outline-success me-3">
-            <input type="submit" value="Cancel" class="btn btn-lg btn-outline-danger"
-                onclick="window.location.href='{% url 'tommy:manage_content' %}';return false;">
-        </form>
+    <div class="container-fluid p-3 row">
+        <div class="col-6">
+            
+            {% if phrases %}
+            <h5 class="text-muted">Phrases in this module</h5>
+            <ul>
+                {% for phrase in phrases %}
+                <li>{{ phrase.phrase }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <h4 class="py-3">Add a new phrase</h4>
+            {% load crispy_forms_tags %}
+            <form action="" method="post" id="upload_form" enctype="multipart/form-data"
+                class="p-2">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <input type="submit" value="Submit" class="btn btn-lg btn-outline-success me-3">
+                <input type="submit" value="Cancel" class="btn btn-lg btn-outline-danger"
+                    onclick="window.location.href='{% url 'tommy:manage_content' %}';return false;">
+            </form>
+        </div>
+        <div class="col-6">
+            {% if phrases %}
+            <h4 class="text-muted pb-3">Enough phrases to this module?</h4>
+            <h5 class="fs-5">Add translations to phrases in {{ module.name}} </h5>
+            <form id="add_translation_form" action="" method="get" class="input-group">
+                <select id="add_translation" class="form-control">
+                    <option value="" disabled>Select a phrase to add translations</option>
+                    {% for phrase in phrases %}
+                    <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-lg btn-outline-dark"
+                    id="add_translation_submit">Select</button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 
 {% endblock content %}
 
 
 {% block footer %}
-    
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Format action URL with id based on dropdown selection when button is clicked
+        let add_translation_selector = document.getElementById('add_translation');
+        document.getElementById('add_translation_submit').addEventListener('click', function() {
+            let url = 'phrase/' + add_translation_selector.value + '/add_translation';
+            document.getElementById('add_translation_form').action = url;
+        });
+    });
+</script>
 {% endblock footer %}
