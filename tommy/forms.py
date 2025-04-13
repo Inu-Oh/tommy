@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Profile, UserPhraseStrength, Module
+from .models import Profile, UserPhraseStrength, Module, Phrase
 
 
 class ProfileForm(forms.ModelForm):
@@ -42,3 +42,10 @@ class ModuleForm(forms.ModelForm):
     class Meta:
         model = Module
         fields = '__all__'
+
+
+class PhraseAddForm(forms.ModelForm):
+
+    class Meta:
+        model = Phrase
+        fields = ['language', 'phrase']

@@ -80,9 +80,9 @@
             <h5>Select translation to edit</h5>
             <form id="edit_translation_form" action="" method="get" class="input-group">
                 <select id="edit_translation" class="form-control">
-                    <option value="" disabled>Select a phrase to add translations</option>
+                    <option value="" disabled>Select translation to edit</option>
                     {% if translations %}{% for translation in translations %}
-                    <option value="{{ translation.id }}">{{ translation.translation }}</option>
+                    <option value="{{ translation.id }}">{{ translation }}</option>
                     {% endfor %}{% endif %}
                 </select>
                 <button type="submit" class="btn btn-lg btn-outline-dark"

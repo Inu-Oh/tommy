@@ -71,7 +71,7 @@ class Translation(models.Model):
         related_name='phrase_translation')
 
     def __str__(self):
-        return f'Phrase: "{self.phrase}" - Translation: "{self.translation}"'
+        return f'{self.translation} ({self.phrase})'
 
 
 class UserPhraseStrength(models.Model):

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import redirect, render
@@ -9,7 +10,7 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm
+from .forms import ProfileForm, TestForm, PhraseStrengthForm, ModuleForm, PhraseAddForm
 
 
 # Function for grading user answer comapred to actual phrase
@@ -694,7 +695,44 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
 
-        return render(request, self.template_name)
+        module = Module.objects.get(id=pk)
+        phrases = Phrase.objects.filter(module=module)
+        form = PhraseAddForm()
+        context = {'form': form, 'module': module, 'phrases': phrases}
+        return render(request, self.template_name, context)
+
+    def post(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
+        form = PhraseAddForm(request.POST)
+        module = Module.objects.get(id=pk)
+        if not form.is_valid():
+            context = {'form': form, 'module': module}
+            return render(request, self.template_name, context)
+        
+        # Save new phrase after setting its module
+        phrase = form.save(commit=False)
+        phrase.module = module
+        phrase.save()
+
+        # Create a phrase strength object for the new phrase for every user 
+        User = get_user_model()
+        users = User.objects.all()
+        for user in users:
+            phrase_strength_form = PhraseStrengthForm()
+            phrase_strength = phrase_strength_form.save(commit=False)
+            phrase_strength.phrase = phrase
+            phrase_strength.user = user
+            phrase_strength.learned = False
+            phrase_strength.strength = 0
+            phrase_strength.views = 0
+            phrase_strength.correct = 0
+            phrase_strength.save()
+            
+        success_url = reverse_lazy('tommy:add_translation', kwargs={'pk': phrase.id})
+        return redirect(success_url)
 
 
 class CreateTranslationView(LoginRequiredMixin, CreateView):
@@ -709,7 +747,7 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
 
 
 class UpdateModuleView(LoginRequiredMixin, UpdateView):
-    template_name = 'tommy/add_module.html'
+    template_name = 'tommy/edit_module.html'
     
     def get(self, request, pk):
         if not request.user.is_staff:
@@ -720,7 +758,7 @@ class UpdateModuleView(LoginRequiredMixin, UpdateView):
 
 
 class UpdatePhraseView(LoginRequiredMixin, UpdateView):
-    template_name = 'tommy/add_phrase.html'
+    template_name = 'tommy/edit_phrase.html'
     
     def get(self, request, pk):
         if not request.user.is_staff:
@@ -731,7 +769,7 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
 
 
 class UpdateTranslationView(LoginRequiredMixin, UpdateView):
-    template_name = 'tommy/add_translation.html'
+    template_name = 'tommy/edit_translation.html'
     
     def get(self, request, pk):
         if not request.user.is_staff:
