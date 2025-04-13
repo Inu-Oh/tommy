@@ -731,7 +731,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
             phrase_strength.correct = 0
             phrase_strength.save()
             
-        success_url = reverse_lazy('tommy:add_phrase', kwargs={'pk': module.id})
+        success_url = reverse_lazy('tommy:add_phrase', kwargs={'pk': pk})
         return redirect(success_url)
 
 
@@ -761,7 +761,31 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        
+        form = CreateTranslationForm(request.POST)
+        phrase = Phrase.objects.get(id=pk2)
+        if not form.is_valid():
+            module = Module.objects.get(id=pk1)
+            phrase_set = Phrase.objects.filter(module=module)
+            translations = Translation.objects.filter(phrase=current_phrase)
+            
+            context = {
+                'form': form,
+                'module': module,
+                'current_phrase': phrase,
+                'phrase_set': phrase_set,
+                'translations': translations
+            }
+            return render(request, self.template_name, context)
 
+        translation = form.save(commit=False)
+        translation.phrase = phrase
+        translation.save()
+
+        success_url = reverse_lazy(
+            'tommy:add_translation', kwargs={'pk1': pk1, 'pk2': pk2}
+        )
+        return redirect(success_url)
 
 class UpdateModuleView(LoginRequiredMixin, UpdateView):
     template_name = 'tommy/edit_module.html'

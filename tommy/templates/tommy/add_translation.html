@@ -12,8 +12,8 @@
 
 {% block header %}
 <h1 class="p-3 fs-2">
-    <span class="text-muted">Phrase</span> "{{ current_phrase.phrase }}"
-    <span class="text-muted"> in module,</span> {{ module.name}}
+    <span class="text-muted">Phrase</span> {{ current_phrase.phrase }}
+    <span class="text-muted"> in module</span> {{ module.name}}
 </h1>
 {% endblock header %}
 
@@ -24,15 +24,19 @@
         
         {% if translations %}
         <h5  class="text-muted">
-            Translations to this phrase
+            Translations to {{ current_phrase.phrase }}
         </h5>
         <ul>
             {% for translation in translations %}
             <li>{{ translation.translation }}</li>
             {% endfor %}
         </ul>
+        {% else %}
+        <h5  class="text-muted">
+            No translations yet for {{ current_phrase.phrase }}
+        </h5>
         {% endif %}
-        <h4 class="py-3">Add a new translation</h4>
+        <h4 class="py-3">Add a new translation to {{ current_phrase.phrase}} </h4>
         {% load crispy_forms_tags %}
         <form action="" method="post" id="upload_form" enctype="multipart/form-data"
             class="p-2">
@@ -46,12 +50,12 @@
     <div class="col-6">
         {% if phrase_set %}
         <h4 class="text-muted pb-3">Enough translations to this phrase?</h4>
-        <h5 class="fs-5">Add translations to another phrase</h5>
+        <h5 class="fs-5">Add translations to another phrase in {{ module.name}} </h5>
         <p class="text-muted">Chooose a phrase</p>
-        {% for phrase in phrase_set %}
+        {% for phrase in phrase_set %}{% if phrase != current_phrase %}
         <a href="{% url 'tommy:add_translation' module.id phrase.id %}"
             class="btn btn-outline-dark m-1">{{ phrase.phrase }}</a>
-        {% endfor %}    
+            {% endif %}{% endfor %}    
         {% endif %}
     </div>
 </div>
