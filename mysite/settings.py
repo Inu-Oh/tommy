@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # My apps
     'tommy.apps.TommyConfig',
     'home.apps.HomeConfig',
+    'staff.apps.StaffConfig',
 ]
 
 # Crispy form setttings

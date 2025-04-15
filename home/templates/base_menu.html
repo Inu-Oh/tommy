@@ -11,7 +11,7 @@
 {% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
         {% if user.is_staff %}
             <li>
-                <a class="nav-link link-style" href="{% url 'tommy:manage_content' %}" role="button">
+                <a class="nav-link link-style" href="{% url 'staff:manage_content' %}" role="button">
                     Add Content</a>
             </li>
         {% endif %}

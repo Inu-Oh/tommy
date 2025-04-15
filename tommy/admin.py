@@ -24,7 +24,8 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Translation)
 class TranslationAdmin(admin.ModelAdmin):
-    list_display = ('translation', 'phrase')
+    list_display = ('translation', 'phrase', 'language')
+    list_filter = ('language',)
     search_fields = ('translation',)
 
 

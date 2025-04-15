@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Profile, UserPhraseStrength, Module, Phrase, Translation
+from .models import Profile, UserPhraseStrength
 
 
 class ProfileForm(forms.ModelForm):
@@ -35,24 +35,3 @@ class TestForm(forms.Form):
                 'placeholder': ' ...',
                 'style': 'height: 5vh; font-size: x-large;'
         }))
-
-
-class ModuleForm(forms.ModelForm):
-
-    class Meta:
-        model = Module
-        fields = '__all__'
-
-
-class CreatePhraseForm(forms.ModelForm):
-
-    class Meta:
-        model = Phrase
-        fields = ['language', 'phrase']
-
-
-class CreateTranslationForm(forms.ModelForm):
-
-    class Meta:
-        model = Translation
-        fields = ['language', 'translation']
