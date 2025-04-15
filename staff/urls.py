@@ -4,7 +4,7 @@ from . import views
 app_name = 'staff'
 urlpatterns = [
     # Main page for content admins to navigate adding and editing content
-    path('manage_content', views.CreateMenuView.as_view(), name='manage_content'),
+    path('manage_content', views.StaffMenuView.as_view(), name='manage_content'),
 
     # Add new models, phrases and translations
     path('add_module', views.CreateModuleView.as_view(), name='add_module'),

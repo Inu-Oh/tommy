@@ -10,10 +10,11 @@ from tommy.forms import PhraseStrengthForm
 from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm
     
 
-# Menu for admins to add and edit modules, phrases and translations
+# Menu for admins to navigate adding and editing content
+# Reserve deleting content for superusers in admin section
 # TODO apply PermissionRequiredMixin
 # TODO figure out how to access pks for each optional object updated
-class CreateMenuView(LoginRequiredMixin, ListView): # Change to StaffMenuView
+class StaffMenuView(LoginRequiredMixin, ListView):
     template_name = 'staff/manage_content.html'
     
     def get(self, request):
@@ -36,6 +37,7 @@ class CreateMenuView(LoginRequiredMixin, ListView): # Change to StaffMenuView
         return render(request, self.template_name, context)
 
 
+# Views for adding new content: modules, phrases and translations
 class CreateModuleView(LoginRequiredMixin, CreateView):
     model = Module
     template_name = 'staff/add_module.html'
@@ -165,6 +167,8 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
         )
         return redirect(success_url)
 
+
+# Views for editing modules, phrases and translations
 class UpdateModuleView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_module.html'
     
