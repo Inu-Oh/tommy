@@ -22,3 +22,17 @@ class CreateTranslationForm(forms.ModelForm):
     class Meta:
         model = Translation
         fields = ['language', 'translation']
+
+
+class UpdatePhraseForm(forms.ModelForm):
+
+    class Meta:
+        model = Phrase
+        fields = ['module', 'language', 'phrase']
+
+
+class UpdateTranslationForm(forms.ModelForm):
+
+    class Meta:
+        model = Translation
+        fields = ['phrase', 'language', 'translation']

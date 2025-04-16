@@ -7,7 +7,7 @@ from django.views.generic import UpdateView, CreateView, ListView
 from tommy.models import Module, Phrase, Translation, Profile
 from tommy.forms import PhraseStrengthForm
 
-from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm
+from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePhraseForm, UpdateTranslationForm
     
 
 # Menu for admins to navigate adding and editing content
