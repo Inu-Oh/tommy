@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView, CreateView, ListView
 
@@ -8,14 +8,7 @@ from tommy.models import Module, Phrase, Translation, Profile
 from tommy.forms import PhraseStrengthForm
 
 from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm
-
-
-# Prevent non-staff users from accessing staff pages and posting content
-def redirect_non_staff_users(user):
-    if not user.is_staff:
-        non_staff_url = 'tommy:home'
-        return redirect(non_staff_url)
-
+    
 
 # Menu for admins to navigate adding and editing content
 # Reserve deleting content for superusers in admin section
@@ -25,7 +18,9 @@ class StaffMenuView(LoginRequiredMixin, ListView):
     template_name = 'staff/manage_content.html'
     
     def get(self, request):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all().order_by('name')
@@ -48,16 +43,21 @@ class CreateModuleView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_module.html'
     
     def get(self, request):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         form = ModuleForm()
         context = {'form': form}
         return render(request, self.template_name, context)
 
     def post(self, request):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         form = ModuleForm(request.POST)
+
         if not form.is_valid():
             context = {'form': form}
             return render(request, self.template_name, context)
@@ -72,7 +72,9 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_phrase.html'
     
     def get(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
 
         module = Module.objects.get(id=pk)
         phrases = Phrase.objects.filter(module=module)
@@ -81,10 +83,13 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         form = CreatePhraseForm(request.POST)
         module = Module.objects.get(id=pk)
+
         if not form.is_valid():
             context = {'form': form, 'module': module}
             return render(request, self.template_name, context)
@@ -116,7 +121,9 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_translation.html'
     
     def get(self, request, pk1, pk2):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         module = Module.objects.get(id=pk1)
         phrase_set = Phrase.objects.filter(module=module)
@@ -133,10 +140,13 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
         return render(request, self.template_name, context)
     
     def post(self, request, pk1, pk2):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         form = CreateTranslationForm(request.POST)
         phrase = Phrase.objects.get(id=pk2)
+
         if not form.is_valid():
             module = Module.objects.get(id=pk1)
             phrase_set = Phrase.objects.filter(module=module)
@@ -167,23 +177,40 @@ class UpdateModuleView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_module.html'
     
     def get(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
         
         module = Module.objects.get(id=pk)
         form = ModuleForm(instance=module)
-        context = {'module': module, 'form': module}
-        return render(request, self.template_name)
+        context = {'module': module, 'form': form}
+        return render(request, self.template_name, context)
     
     def post(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
+        module = get_object_or_404(Module, id=pk)
+        form = ModuleForm(request.POST, instance=module)
 
+        if not form.is_valid():
+            context = {'module': module, 'form': form}
+            return render(request, self.template_name, context)
+
+        module = form.save()
+        success_url = reverse_lazy('staff:manage_content')
+        return redirect(success_url)
 
 
 class UpdatePhraseView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_phrase.html'
     
     def get(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
 
         return render(request, self.template_name)
 
@@ -192,6 +219,8 @@ class UpdateTranslationView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_translation.html'
     
     def get(self, request, pk):
-        redirect_non_staff_users(request.user)
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
 
         return render(request, self.template_name)
