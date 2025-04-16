@@ -8,7 +8,14 @@ from tommy.models import Module, Phrase, Translation, Profile
 from tommy.forms import PhraseStrengthForm
 
 from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm
-    
+
+
+# Prevent non-staff users from accessing staff pages and posting content
+def redirect_non_staff_users(user):
+    if not user.is_staff:
+        non_staff_url = 'tommy:home'
+        return redirect(non_staff_url)
+
 
 # Menu for admins to navigate adding and editing content
 # Reserve deleting content for superusers in admin section
@@ -18,9 +25,7 @@ class StaffMenuView(LoginRequiredMixin, ListView):
     template_name = 'staff/manage_content.html'
     
     def get(self, request):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all().order_by('name')
@@ -43,18 +48,14 @@ class CreateModuleView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_module.html'
     
     def get(self, request):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         form = ModuleForm()
         context = {'form': form}
         return render(request, self.template_name, context)
 
     def post(self, request):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         form = ModuleForm(request.POST)
         if not form.is_valid():
@@ -71,9 +72,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_phrase.html'
     
     def get(self, request, pk):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
 
         module = Module.objects.get(id=pk)
         phrases = Phrase.objects.filter(module=module)
@@ -82,9 +81,7 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         form = CreatePhraseForm(request.POST)
         module = Module.objects.get(id=pk)
@@ -119,9 +116,7 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
     template_name = 'staff/add_translation.html'
     
     def get(self, request, pk1, pk2):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         module = Module.objects.get(id=pk1)
         phrase_set = Phrase.objects.filter(module=module)
@@ -138,9 +133,7 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
         return render(request, self.template_name, context)
     
     def post(self, request, pk1, pk2):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
         
         form = CreateTranslationForm(request.POST)
         phrase = Phrase.objects.get(id=pk2)
@@ -170,23 +163,27 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
 
 # Views for editing modules, phrases and translations
 class UpdateModuleView(LoginRequiredMixin, UpdateView):
+    model = Module
     template_name = 'staff/edit_module.html'
     
     def get(self, request, pk):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
-
+        redirect_non_staff_users(request.user)
+        
+        module = Module.objects.get(id=pk)
+        form = ModuleForm(instance=module)
+        context = {'module': module, 'form': module}
         return render(request, self.template_name)
+    
+    def post(self, request, pk):
+        redirect_non_staff_users(request.user)
+
 
 
 class UpdatePhraseView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_phrase.html'
     
     def get(self, request, pk):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
 
         return render(request, self.template_name)
 
@@ -195,8 +192,6 @@ class UpdateTranslationView(LoginRequiredMixin, UpdateView):
     template_name = 'staff/edit_translation.html'
     
     def get(self, request, pk):
-        if not request.user.is_staff:
-            non_staff_url = 'tommy:home'
-            return redirect(non_staff_url)
+        redirect_non_staff_users(request.user)
 
         return render(request, self.template_name)
