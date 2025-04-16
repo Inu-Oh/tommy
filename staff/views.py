@@ -198,7 +198,7 @@ class UpdateModuleView(LoginRequiredMixin, UpdateView):
             context = {'module': module, 'form': form}
             return render(request, self.template_name, context)
 
-        module = form.save()
+        form.save()
         success_url = reverse_lazy('staff:manage_content')
         return redirect(success_url)
 
@@ -211,8 +211,28 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         
+        phrase = Phrase.objects.get(id=pk)
+        form = UpdatePhraseForm(phrase=phrase)
+        module = Module.objects.get(module=phrase.module)
+        context = {'form': form, 'module': module, 'phrase': phrase}
+        return render(request, self.template_name, context)
+    
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
+        phrase = get_object_or_404(Phrase, id=pk)
+        form = UpdatePhraseForm(request.POST, instance=phrase)
 
-        return render(request, self.template_name)
+        if not form.is_valid():
+            module = Module.objects.get(module=phrase.module)
+            context = {'form': form, 'module': module, 'phrase': phrase}
+            return render(request, self.template_name, context)
+
+        form.save()
+        success_url = reverse_lazy('staff:manage_content')
+        return redirect(success_url)
 
 
 class UpdateTranslationView(LoginRequiredMixin, UpdateView):
