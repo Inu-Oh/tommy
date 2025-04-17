@@ -226,7 +226,7 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
         form = UpdatePhraseForm(request.POST, instance=phrase)
 
         if not form.is_valid():
-            module = Module.objects.get(module=phrase.module)
+            module = Module.objects.get(name=phrase.module)
             context = {'form': form, 'module': module, 'phrase': phrase}
             return render(request, self.template_name, context)
 
