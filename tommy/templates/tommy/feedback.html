@@ -40,7 +40,10 @@
         </div>
         <div class="ps-5 col-7 text-start">
             <p class="fs-3 lh-sm">
-                <span class="fs-6 text-muted">Translations</span><br>
+                <span class="fs-6 text-muted">
+                    {% if translations|length == 1 %}
+                    Translation{% else %}
+                    Translations{% endif %}</span><br>
                 {% for translation in translations %}
                 {{ translation.translation }}&nbsp;<br>
                 {% endfor %}</p>
