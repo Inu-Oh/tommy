@@ -4,7 +4,6 @@ from .models import Profile, UserPhraseStrength
 
 
 class ProfileForm(forms.ModelForm):
-
     class Meta:
         model = Profile
         fields = ['name']
@@ -15,7 +14,6 @@ class ProfileForm(forms.ModelForm):
 
 
 class PhraseStrengthForm(forms.ModelForm):
-    
     class Meta:
         model = UserPhraseStrength
         fields = []
