@@ -21,10 +21,10 @@
                 Add new modules</a></p>
         </div>
         <div class="col-6">
-            <h5>Select module to edit</h5>
+            <h5>Edit modules</h5>
             <form id="edit_module_form" action="" method="get" class="input-group">
                 <select id="edit_module" class="form-control" required>
-                    <option value="" disabled>Select a module to edit</option>
+                    <option disabled selected value>Select a module to edit</option>
                     {% if modules %}{% for module in modules %}
                     <option value="{{ module.id }}">{{ module.name }}</option>
                     {% endfor %}{% endif %}
@@ -35,11 +35,11 @@
         </div>
     </div>
     <div class="row p-3">
-        <div class="col-6">
-            <h5>Add phrases to module</h5>
+        <div class="col-6 pb-3">
+            <h5>Add phrases <span class="text-muted">to modules</span></h5>
             <form id="add_phrase_form" action="" method="get" class="input-group">
                 <select id="add_phrase" class="form-control" required>
-                    <option value="" disabled>Select a module to add phrases</option>
+                    <option disabled selected value>Select a module to add phrases</option>
                     {% if modules %}{% for module in modules %}
                     <option value="{{ module.id }}">{{ module.name }}</option>
                     {% endfor %}{% endif %}
@@ -49,10 +49,10 @@
             </form>
         </div>
         <div class="col-6">
-            <h5>Select phrase to edit</h5>
+            <h5>Edit phrases</h5>
             <form id="edit_phrase_form" action="" method="get" class="input-group">
                 <select id="edit_phrase" class="form-control" required>
-                    <option value="" disabled>Select a phrase to edit</option>
+                    <option disabled selected value>Select a phrase to edit</option>
                     {% if phrases %}{% for phrase in phrases %}
                     <option value="{{ phrase.id }}">{{ phrase.phrase }}</option>
                     {% endfor %}{% endif %}
@@ -64,10 +64,10 @@
     </div>
     <div class="row p-3">
         <div class="col-6">
-            <h5>Add translations for phrase</h5>
+            <h5>Add translations <span class="text-muted">to phrases</span></h5>
             <form id="add_translation_form" action="" method="get" class="input-group">
                 <select id="add_translation" class="form-control" required>
-                    <option value="" disabled>Select a phrase to add translations</option>
+                    <option disabled selected value>Select a phrase to add translations</option>
                     {% if phrases %}{% for phrase in phrases %}
                     <option value="[{{ phrase.module.id }}, {{ phrase.id }}]">
                         {{ phrase.phrase }}</option>
@@ -78,10 +78,10 @@
             </form>
         </div>
         <div class="col-6">
-            <h5>Select translation to edit</h5>
+            <h5>Edit translations</h5>
             <form id="edit_translation_form" action="" method="get" class="input-group">
                 <select id="edit_translation" class="form-control" required>
-                    <option value="" disabled>Select translation to edit</option>
+                    <option vdisabled selected value>Select a translation to edit</option>
                     {% if translations %}{% for translation in translations %}
                     <option value="{{ translation.id }}">{{ translation }}</option>
                     {% endfor %}{% endif %}
