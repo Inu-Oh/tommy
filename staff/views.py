@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import UpdateView, CreateView, ListView, View
+from django.views.generic import UpdateView, CreateView, ListView
 
 from tommy.models import Module, Phrase, Translation, Profile
 from tommy.forms import PhraseStrengthForm
@@ -11,9 +11,8 @@ from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePh
     
 
 # Menu for admins to navigate adding and editing content
-# Reserve deleting content for superusers in admin section
+# Reserve deleting content for superusers in django admin section
 # TODO apply PermissionRequiredMixin
-# TODO figure out how to access pks for each optional object updated
 class StaffMenuView(LoginRequiredMixin, ListView):
     template_name = 'staff/manage_content.html'
     
