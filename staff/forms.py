@@ -55,5 +55,5 @@ class UpdateTranslationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UpdateTranslationForm, self).__init__(*args, **kwargs)
         self.fields['translation'].label = "Translation "
-        self.fields['phrase'].label = "Reassign translation to another phrase "
+        self.fields['phrase'].label = "Option to reassign translation to another phrase "
         self.fields['language'].label = "Language of translation "
