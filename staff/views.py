@@ -39,7 +39,6 @@ class StaffMenuView(LoginRequiredMixin, ListView):
 
 # Views for adding new content: modules, phrases and translations
 class CreateModuleView(LoginRequiredMixin, CreateView):
-    model = Module
     template_name = 'staff/add_module.html'
     
     def get(self, request):
@@ -173,7 +172,6 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
 
 # Views for editing modules, phrases and translations
 class UpdateModuleView(LoginRequiredMixin, UpdateView):
-    model = Module
     template_name = 'staff/edit_module.html'
     
     def get(self, request, pk):
@@ -236,12 +234,43 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
 
 
 class UpdateTranslationView(LoginRequiredMixin, UpdateView):
-    model = Translation
     template_name = 'staff/edit_translation.html'
     
     def get(self, request, pk):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+    
+        translation = Translation.objects.get(id=pk)
+        form = UpdateTranslationForm(instance=translation)
+        phrase = Phrase.objects.get(phrase=translation.phrase)
+        module = Module.objects.get(name=phrase.module)
+        context = {
+            'form': form,
+            'module': module,
+            'phrase': phrase,
+            'translation': translation
+        }
+        return render(request, self.template_name, context)
 
-        return render(request, self.template_name)
+    def post(self, request, pk):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        
+        translation = get_object_or_404(Translation, id=pk)
+        form = UpdateTranslationForm(request.POST, instance=translation)
+        if not form.is_valid():
+            phrase = Phrase.objects.get(phrase=translation.phrase)
+            module = Module.objects.get(name=phrase.module)
+            context = {
+                'form': form,
+                'module': module,
+                'phrase': phrase,
+                'translation': translation
+            }
+            return render(request, self.template_name, context)
+
+        form.save()
+        success_url = reverse_lazy('staff:manage_content')
+        return redirect(success_url)
