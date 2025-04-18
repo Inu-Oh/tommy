@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import UpdateView, CreateView, ListView
+from django.views.generic import UpdateView, CreateView, ListView, View
 
 from tommy.models import Module, Phrase, Translation, Profile
 from tommy.forms import PhraseStrengthForm
@@ -212,12 +212,12 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
             return redirect(non_staff_url)
         
         phrase = Phrase.objects.get(id=pk)
-        form = UpdatePhraseForm(phrase=phrase)
-        module = Module.objects.get(module=phrase.module)
+        form = UpdatePhraseForm(instance=phrase)
+        module = Module.objects.get(name=phrase.module)
         context = {'form': form, 'module': module, 'phrase': phrase}
         return render(request, self.template_name, context)
     
-    def get(self, request, pk):
+    def post(self, request, pk):
         if not request.user.is_staff:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
@@ -236,6 +236,7 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
 
 
 class UpdateTranslationView(LoginRequiredMixin, UpdateView):
+    model = Translation
     template_name = 'staff/edit_translation.html'
     
     def get(self, request, pk):
