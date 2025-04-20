@@ -50,7 +50,7 @@
         </form>
     </div>
     <div class="col-6">
-        {% if phrase_set %}
+        {% if phrase_set|length > 1 %}
         <h4 class="text-muted pb-3">Enough translations to this phrase?</h4>
         <h5 class="fs-5">Add translations to another phrase in {{ module.name}} </h5>
         <p class="text-muted">Chooose a phrase</p>

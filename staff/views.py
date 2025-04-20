@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView, CreateView, ListView
@@ -12,7 +12,6 @@ from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePh
 
 # Menu for admins to navigate adding and editing content
 # Reserve deleting content for superusers in django admin section
-# TODO apply PermissionRequiredMixin
 class StaffMenuView(LoginRequiredMixin, ListView):
     template_name = 'staff/manage_content.html'
     
@@ -37,7 +36,8 @@ class StaffMenuView(LoginRequiredMixin, ListView):
 
 
 # Views for adding new content: modules, phrases and translations
-class CreateModuleView(LoginRequiredMixin, CreateView):
+class CreateModuleView(PermissionRequiredMixin, CreateView):
+    permission_required = 'tommy.add_module'
     template_name = 'staff/add_module.html'
     
     def get(self, request):
@@ -66,7 +66,8 @@ class CreateModuleView(LoginRequiredMixin, CreateView):
         return redirect(success_url)
 
 
-class CreatePhraseView(LoginRequiredMixin, CreateView):
+class CreatePhraseView(PermissionRequiredMixin, CreateView):
+    permission_required = 'tommy.add_phrase'
     template_name = 'staff/add_phrase.html'
     
     def get(self, request, pk):
@@ -115,7 +116,8 @@ class CreatePhraseView(LoginRequiredMixin, CreateView):
         return redirect(success_url)
 
 
-class CreateTranslationView(LoginRequiredMixin, CreateView):
+class CreateTranslationView(PermissionRequiredMixin, CreateView):
+    permission_required = 'tommy.add_translation'
     template_name = 'staff/add_translation.html'
     
     def get(self, request, pk1, pk2):
@@ -170,7 +172,8 @@ class CreateTranslationView(LoginRequiredMixin, CreateView):
 
 
 # Views for editing modules, phrases and translations
-class UpdateModuleView(LoginRequiredMixin, UpdateView):
+class UpdateModuleView(PermissionRequiredMixin, UpdateView):
+    permission_required = 'tommy.change_module'
     template_name = 'staff/edit_module.html'
     
     def get(self, request, pk):
@@ -200,7 +203,8 @@ class UpdateModuleView(LoginRequiredMixin, UpdateView):
         return redirect(success_url)
 
 
-class UpdatePhraseView(LoginRequiredMixin, UpdateView):
+class UpdatePhraseView(PermissionRequiredMixin, UpdateView):
+    permission_required = 'tommy.change_phrase'
     template_name = 'staff/edit_phrase.html'
     
     def get(self, request, pk):
@@ -232,7 +236,8 @@ class UpdatePhraseView(LoginRequiredMixin, UpdateView):
         return redirect(success_url)
 
 
-class UpdateTranslationView(LoginRequiredMixin, UpdateView):
+class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
+    permission_required = 'tommy.change_translation'
     template_name = 'staff/edit_translation.html'
     
     def get(self, request, pk):

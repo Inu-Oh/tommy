@@ -6,22 +6,18 @@
 <nav class="nav p-2 my-3 navbar navbar-expand-sm navbar-light bg-light rounded-3 shadow-sm">
     <div class="container-fluid">
         {% url 'tommy:home' as x %}
-        <a class="navbar-brand link-style" href="{{ x }}">Tommy</a>
+        <a class="navbar-brand link-style" href="{{ x }}">Home Menu</a>
         <ul class="navbar-nav container-fluid d-flex justify-content-around">
 {% comment %} {% if request.get_full_path == x %}class="active"{% endif %} {% endcomment %}
         {% if user.is_staff %}
             <li>
                 <a class="nav-link link-style" href="{% url 'staff:manage_content' %}" role="button">
-                    Add Content</a>
+                    Manage Content</a>
             </li>
         {% endif %}
             <li>
-                <a class="nav-link link-style" href="{{ x }}" role="button">
-                    Home</a>
-            </li>
-            <li>
                 <a class="nav-link link-style" href="{% url 'tommy:glossary' %}" role="button">
-                    Glossary</a>
+                    Browse Glossary</a>
             </li>
         </ul>
         {% if user.is_authenticated %}
