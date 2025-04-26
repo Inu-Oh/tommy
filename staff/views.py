@@ -310,9 +310,6 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
         test_form = CsvTestForm(request.POST)
         if not test_form.is_valid():
             context = {
-                'modules': modules,
-                'phrases': phrases,
-                'translations': translations,
                 'test_form': test_form,
             }
             return render(request, self.template_name, context)
