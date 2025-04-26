@@ -57,3 +57,11 @@ class UpdateTranslationForm(forms.ModelForm):
         self.fields['translation'].label = "Translation "
         self.fields['phrase'].label = "Option to reassign translation to another phrase "
         self.fields['language'].label = "Language of translation "
+
+
+class CsvTestForm(forms.Form):
+    widgets = {'any_field': forms.HiddenInput(),}
+
+
+class CsvSubmitForm(forms.Form):
+    widgets = {'any_field': forms.HiddenInput(),}

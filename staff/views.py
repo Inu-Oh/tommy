@@ -2,12 +2,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import UpdateView, CreateView, ListView
+from django.views.generic import UpdateView, CreateView, ListView, View
 
-from tommy.models import Module, Phrase, Translation, Profile
+from tommy.models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from tommy.forms import PhraseStrengthForm
 
-from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePhraseForm, UpdateTranslationForm
+from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePhraseForm, UpdateTranslationForm, CsvTestForm, CsvSubmitForm
     
 
 # Menu for admins to navigate adding and editing content
@@ -277,4 +277,117 @@ class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
 
         form.save()
         success_url = reverse_lazy('staff:manage_content')
+        return redirect(success_url)
+
+
+# View for mass database update
+class CsvToDbTestView(PermissionRequiredMixin, View):
+    permission_required = [
+        'tommy.add_module',
+        'tommy.add_phrase',
+        'tommy.add_translation',
+        'tommy.change_module',
+        'tommy.change_phrase',
+        'tommy.change_translation',
+    ]
+    template_name = 'staff/csv_db_test.html'
+
+    def get(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        test_form = CsvTestForm()
+
+        context = {
+            'test_form': test_form,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        test_form = CsvTestForm(request.POST)
+        if not test_form.is_valid():
+            context = {
+                'modules': modules,
+                'phrases': phrases,
+                'translations': translations,
+                'test_form': test_form,
+            }
+            return render(request, self.template_name, context)
+        
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+        user_strength_objs = UserPhraseStrength.objects.all()
+
+        # Run database test here 
+        # Read the csv file 
+        # Compare csv data with database content
+        # check for errors in the csv input
+        # 
+        # if not successful redirect to error page 
+        #     forwarding the error information to the error view
+        # 
+        # if successful redirect to submit page
+        success_url = reverse_lazy('staff:csv_db_update')
+        return redirect(success_url)
+
+
+class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
+    permission_required = [
+        'tommy.add_module',
+        'tommy.add_phrase',
+        'tommy.add_translation',
+        'tommy.change_module',
+        'tommy.change_phrase',
+        'tommy.change_translation',
+    ]
+    template_name = 'staff/csv_db_update.html'
+
+    def get(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+        submit_form = CsvSubmitForm() 
+        context = {
+            'modules': modules,
+            'phrases': phrases,
+            'translations': translations,
+            'submit_form': submit_form,
+        }
+        return render(request, self.template_name, context)
+        
+    def post(self, request):
+        if not request.user.is_staff:
+            non_staff_url = 'tommy:home'
+            return redirect(non_staff_url)
+        modules = Module.objects.all()
+        phrases = Phrase.objects.all()
+        translations = Translation.objects.all()
+        user_strength_objs = UserPhraseStrength.objects.all()
+        submit_form = CsvSubmitForm()
+        if not submit_form.is_valid():
+            context = {
+                'modules': modules,
+                'phrases': phrases,
+                'translations': translations,
+                'submit_form': submit_form,
+            }
+            return render(request, self.template_name, context)
+        
+        # Run database test here 
+        # Read the csv file 
+        # Compare csv data with database content
+        # Create / update / delete based on data comparison
+        # 
+        # if not successful redirect to error page 
+        #     forwarding the error information to the error view
+        # 
+        # if successful redirect to submit page
+        success_url = reverse_lazy('tommy:glossary')
         return redirect(success_url)
