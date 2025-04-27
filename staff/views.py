@@ -1,3 +1,6 @@
+from csv import reader, writer
+from json import loads
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
@@ -280,7 +283,7 @@ class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
         return redirect(success_url)
 
 
-# View for mass database update
+# Views for mass database update of modules, phrases and translations
 class CsvToDbTestView(PermissionRequiredMixin, View):
     permission_required = [
         'tommy.add_module',
@@ -314,13 +317,28 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
         
+        # SQL data to be compared (strength objects should only be created or deleted)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         user_strength_objs = UserPhraseStrength.objects.all()
 
+        # Create from CSV file a list of dictionaries to be used to update SQL data
+        data_list = []
+        with open('data.csv') as csvfile:
+            datareader = reader(csvfile)
+            for row in datareader:
+                dict_obj = {
+                    'phrase_id': row[0],
+                    'module_name': row[1],
+                    'phrase': row[2],
+                    'phrase_lang': row[3],
+                    'translations': loads(row[4]) # Convert string to JSON
+                }
+                data_list.append(dict_obj)
+
+
         # Run database test here 
-        # Read the csv file 
         # Compare csv data with database content
         # check for errors in the csv input
         # 
