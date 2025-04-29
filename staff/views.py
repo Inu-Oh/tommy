@@ -333,7 +333,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                     'module_name': row[1],
                     'phrase': row[2],
                     'phrase_lang': row[3],
-                    'translations': loads(row[4]) # Convert string to JSON
+                    'translations': loads(row[4]) # Convert string to JSON then to list
                 }
                 data_list.append(dict_obj)
 
