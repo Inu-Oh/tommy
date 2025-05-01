@@ -317,10 +317,11 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
         
-        # SQL data to be compared (strength objects should only be created or deleted)
+        # SQL data to be compared wotj CSV 
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
+        # (strength objects should only be created or deleted)
         user_strength_objs = UserPhraseStrength.objects.all()
 
         # Create from CSV file a list of dictionaries to be used to update SQL data
