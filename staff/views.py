@@ -284,6 +284,7 @@ class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
 
 
 # Views for mass database update of modules, phrases and translations
+# TODO change acess to superusers only 
 class CsvToDbTestView(PermissionRequiredMixin, View):
     permission_required = [
         'tommy.add_module',
@@ -296,49 +297,62 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
     template_name = 'staff/csv_db_test.html'
 
     def get(self, request):
-        if not request.user.is_staff:
+        if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
         test_form = CsvTestForm()
 
         context = {
+            'profile': profile,
             'test_form': test_form,
         }
         return render(request, self.template_name, context)
 
     def post(self, request):
-        if not request.user.is_staff:
+        if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
         test_form = CsvTestForm(request.POST)
         if not test_form.is_valid():
             context = {
+                'profile': profile,
                 'test_form': test_form,
             }
             return render(request, self.template_name, context)
-        
+
+        # Create from CSV file a list of dictionaries to be used to update SQL data
+        data_list = []
+        try:
+            with open('data.csv') as csvfile:
+                data_reader = reader(csvfile)
+                next(data_reader)
+                for row in data_reader:
+                    print(row)
+                    dict_obj = {
+                        'phrase_id': row[0],
+                        'module_name': row[1],
+                        'phrase': row[2],
+                        'phrase_lang': row[3],
+                        'translations': loads(row[4]) # Convert string to JSON then to list
+                    }
+                    data_list.append(dict_obj)
+        except:
+            message = "There was an error reading the file, check your data."
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+
         # SQL data to be compared wotj CSV 
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         # (strength objects should only be created or deleted)
         user_strength_objs = UserPhraseStrength.objects.all()
-
-        # Create from CSV file a list of dictionaries to be used to update SQL data
-        data_list = []
-        with open('data.csv') as csvfile:
-            datareader = reader(csvfile)
-            for row in datareader:
-                dict_obj = {
-                    'phrase_id': row[0],
-                    'module_name': row[1],
-                    'phrase': row[2],
-                    'phrase_lang': row[3],
-                    'translations': loads(row[4]) # Convert string to JSON then to list
-                }
-                data_list.append(dict_obj)
-
-
         # Run database test here 
         # Compare csv data with database content
         # check for errors in the csv input
@@ -347,10 +361,12 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
         #     forwarding the error information to the error view
         # 
         # if successful redirect to submit page
-        success_url = reverse_lazy('staff:csv_db_update')
+        """Chage to update"""
+        success_url = reverse_lazy('staff:csv_db_test') 
         return redirect(success_url)
 
 
+# TODO change acess to superusers only 
 class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
     permission_required = [
         'tommy.add_module',
@@ -363,7 +379,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
     template_name = 'staff/csv_db_update.html'
 
     def get(self, request):
-        if not request.user.is_staff:
+        if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         modules = Module.objects.all()
@@ -379,7 +395,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         return render(request, self.template_name, context)
         
     def post(self, request):
-        if not request.user.is_staff:
+        if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         modules = Module.objects.all()
