@@ -33,7 +33,9 @@
                 </p>
             </div>
             <div class="col-6">
-                <h5>Run test to check for CSV errors</h5>
+                <p class="fs-5">Phrases to be added {{ new }}<br>
+                    Phrases to be changed: {{ changed }}<br>
+                    Phrases in CSV left unchanged: {{ unchanged }} </p>
                 {% load crispy_forms_tags %}
                 <form action="" method="post" enctype="multipart/form-data">
                     {% csrf_token %}

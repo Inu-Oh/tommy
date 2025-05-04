@@ -445,9 +445,11 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                             phrase_translations = translations.filter(phrase=phrase)
                             a = set(phrase_translations)
                             b = set(item["translations"])
-                            if len(a) == len(b):
+                            if len(a) == len(b) == len(a & b):
                                 unchanged += 1
         changed = count - new - unchanged
+
+        # TODO get number of phrases in DB that remain unchanged
 
         context = {
             'profile': profile,
