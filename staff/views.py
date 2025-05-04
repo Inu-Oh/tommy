@@ -284,7 +284,6 @@ class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
 
 
 # Views for mass database update of modules, phrases and translations
-# TODO change acess to superusers only 
 class CsvToDbTestView(PermissionRequiredMixin, View):
     permission_required = [
         'tommy.add_module',
@@ -322,7 +321,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Create from CSV file a list of dictionaries to be used to update SQL data
+        # Try to create from CSV file a list of dictionaries to verify SQL data
         data_list = []
         try:
             with open('data.csv') as csvfile:
@@ -339,6 +338,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                         'translations': loads(row[4])
                     }
                     data_list.append(dict_obj)
+        # If an error occurs give feedback
         except Exception as e:
             message = f"There was an error reading the file at row {count}. "
             message += "Correct this in the CSV before proceeding. "
@@ -353,14 +353,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # SQL data to be compared wotj CSV 
-        modules = Module.objects.all()
-        phrases = Phrase.objects.all()
-        translations = Translation.objects.all()
-        # (strength objects should only be created or deleted)
-        user_strength_objs = UserPhraseStrength.objects.all()
-
-        # Compare csv data with database content
+        # Verify either English or French for language options
         count, lang_errors = 1, []
         for item in data_list:
             count += 1
@@ -380,20 +373,15 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                 'message': message,
             }
             return render(request, self.template_name, context)
-        
 
-        # check for errors in the csv input
-        # 
-        # if not successful redirect to error page 
-        #     forwarding the error information to the error view
-        # 
-        # if successful redirect to submit page
-        """Chage to update"""
-        success_url = reverse_lazy('staff:csv_db_test') 
+        # TODO think of other errors to check
+        # TODO add approval from test to save in session that will be used in update view
+
+        # If successful redirect to submit page
+        success_url = reverse_lazy('staff:csv_db_update') 
         return redirect(success_url)
 
 
-# TODO change acess to superusers only 
 class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
     permission_required = [
         'tommy.add_module',
@@ -409,22 +397,72 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         submit_form = CsvSubmitForm() 
+
+        # Try to create from CSV file a list of dictionaries to verify SQL data
+        data_list = []
+        try:
+            with open('data.csv') as csvfile:
+                data_reader = reader(csvfile)
+                next(data_reader)
+                count = 1
+                for row in data_reader:
+                    count += 1
+                    dict_obj = {
+                        'phrase_id': row[0],
+                        'module_name': row[1],
+                        'phrase': row[2],
+                        'phrase_lang': row[3],
+                        'translations': loads(row[4])
+                    }
+                    data_list.append(dict_obj)
+        # If an error occurs give feedback
+        except Exception as e:
+            message = f"There was an error reading the file. "
+            message += "Review the CSV and return to test form. "
+            context = {
+                'profile': profile,
+                'message': message,
+                'details': e
+            }
+            return render(request, self.template_name, context)
+
+        # Compare csv data with database content
+        new, count, unchanged = 0, 0, 0
+        for item in data_list:
+            count += 1
+            if not item["phrase_id"]:
+                new += 1
+            else:
+                phrase = phrases.get(id=item["phrase_id"])
+                if phrase["language"] == item["phrase_lang"]:
+                    if phrase["phrase"] == item["phrase"]: 
+                        if phrase["module"] == item["module"]:
+                            phrase_translations = translations.filter(phrase=phrase)
+                            a = set(phrase_translations)
+                            b = set(item["translations"])
+                            if len(a) == len(b):
+                                unchanged += 1
+        changed = count - new - unchanged
+
         context = {
-            'modules': modules,
-            'phrases': phrases,
-            'translations': translations,
+            'profile': profile,
             'submit_form': submit_form,
+            'new': new,
+            'changed': changed,
+            'unchanged': unchanged,
         }
         return render(request, self.template_name, context)
-        
+
     def post(self, request):
         if not request.user.is_superuser:
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
+        profile = Profile.objects.get(user=request.user)
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
@@ -432,6 +470,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         submit_form = CsvSubmitForm()
         if not submit_form.is_valid():
             context = {
+                'profile': profile,
                 'modules': modules,
                 'phrases': phrases,
                 'translations': translations,
