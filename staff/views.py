@@ -328,22 +328,28 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             with open('data.csv') as csvfile:
                 data_reader = reader(csvfile)
                 next(data_reader)
+                count = 1
                 for row in data_reader:
-                    print(row)
+                    count += 1
                     dict_obj = {
                         'phrase_id': row[0],
                         'module_name': row[1],
                         'phrase': row[2],
                         'phrase_lang': row[3],
-                        'translations': loads(row[4]) # Convert string to JSON then to list
+                        'translations': loads(row[4])
                     }
                     data_list.append(dict_obj)
-        except:
-            message = "There was an error reading the file, check your data."
+        except Exception as e:
+            message = f"There was an error reading the file at row {count}. "
+            message += "Correct this in the CSV before proceeding. "
+            message += str(row)
+            if hasattr(e, 'message'):
+                e += e.message
             context = {
                 'profile': profile,
                 'test_form': test_form,
                 'message': message,
+                'details': e
             }
             return render(request, self.template_name, context)
 
@@ -353,8 +359,29 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
         translations = Translation.objects.all()
         # (strength objects should only be created or deleted)
         user_strength_objs = UserPhraseStrength.objects.all()
-        # Run database test here 
+
         # Compare csv data with database content
+        count, lang_errors = 1, []
+        for item in data_list:
+            count += 1
+            if item["phrase_lang"] not in ["French", "English"]:
+                lang_errors.append(count)
+        if lang_errors:
+            message = """Phrase langauge was entered wrong in some rows. 
+                Use either French or English, capatialized, 
+                to indicate the phrase language. 
+                Correct this in the CSV before proceeding. 
+                Affected rows: """
+            for err in lang_errors:
+                message += str(err) + ", "
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+        
+
         # check for errors in the csv input
         # 
         # if not successful redirect to error page 
