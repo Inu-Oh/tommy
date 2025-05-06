@@ -1,5 +1,6 @@
 from csv import reader, writer
 from json import loads
+from re import match
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -323,13 +324,14 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
 
         # Try to create from CSV file a list of dictionaries to verify SQL data
         data_list = []
+        message = "" # for building error messages throughout the various checks below.
         try:
             with open('data.csv') as csvfile:
                 data_reader = reader(csvfile)
                 next(data_reader)
-                count = 1
+                row_count = 1
                 for row in data_reader:
-                    count += 1
+                    row_count += 1
                     dict_obj = {
                         'phrase_id': row[0],
                         'module_name': row[1],
@@ -340,7 +342,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                     data_list.append(dict_obj)
         # If an error occurs give feedback
         except Exception as e:
-            message = f"There was an error reading the file at row {count}. "
+            message += f"There was an error reading the file at row {row_count}. "
             message += "Correct this in the CSV before proceeding. "
             message += str(row)
             if hasattr(e, 'message'):
@@ -353,20 +355,71 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Verify either English or French for language options
-        count, lang_errors = 1, []
+        # Check that phrase id is entered correctly
+        phrases = Phrase.objects.all()
+        row = 1
         for item in data_list:
-            count += 1
-            if item["phrase_lang"] not in ["French", "English"]:
-                lang_errors.append(count)
-        if lang_errors:
-            message = """Phrase langauge was entered wrong in some rows. 
-                Use either French or English, capatialized, 
-                to indicate the phrase language. 
-                Correct this in the CSV before proceeding. 
-                Affected rows: """
-            for err in lang_errors:
-                message += str(err) + ", "
+            row += 1
+            if phrase_id := item["phrase_id"]:
+                if not isinstance(phrase_id, int):
+                    if not not_ints:
+                        not_ints = "Phrase IDs at these rows should be an intager number: "
+                    not_ints += f"{row}, "
+                if not phrases.get(id=phrase_id):
+                    if not wrong_ids:
+                        wrong_ids = "Phrase IDs at the following rows don't exist in the database."
+                        wrong_ids += "Delete if the it's a new phrase or "
+                        worng_ids += "correct if the phrase is already in the database: "
+                    wrong_ids += f"ID {phrase_id} at row {row}, "
+        if not_ints or wrong_ids:
+            message += "Errors with data entry for phrase ID column. " 
+            if not_ints:
+                message += not_ints + "\b\b. "
+            if wrong_ids:
+                message += wrong_ids+ "\b\b. "
+            message += "Correct all phrase IDs before running the test again. "
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+        
+        # Verify that module name is entered for each phrase
+        row = 1
+        for item in data_list:
+            row += 1
+            if not item["module_name"]:
+                message += f"{row}, "
+        if message:
+            message += "Module names were not provided for phrases at rows: " + message
+            message += "\b\b. Provide module names for each phrase."
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+        
+        # Check that phrases ware entered and only contain alphabetic characters
+        row = 1
+        for item in data_list:
+            row += 1
+            if not item["phrase"]:
+                if not missing_phrases:
+                    missing_phrases = "Phrase cells are blank at the following rows: "
+                missing_phrases += f"{row}, "
+            elif not match('^[\w-]+$', item["phrase"]):
+                if not non_alphas:
+                    non_alphas = "Phrase at these rows include non-alpha characters: "
+                non_alphas += f"{row}, "
+        if missing_phrases or non_alphas:
+            message += "Errors with data entry for phrase column. "
+            if missing_phrases:
+                message += missing_phrases + "\b\b. "
+            if non_alphas:
+                message += non_alphas + "\b\b. "
+            message += "Add all missing phrases and replace non alphabetic characters."
             context = {
                 'profile': profile,
                 'test_form': test_form,
@@ -374,7 +427,62 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # TODO think of other errors to check
+        # Verify either English or French for language options
+        row, lang_errors = 1, []
+        for item in data_list:
+            row += 1
+            if item["phrase_lang"] not in ["French", "English"]:
+                lang_errors.append(row)
+        if lang_errors:
+            message = """Phrase langauge was entered wrong in some rows. 
+                Use either French or English, capatialized, to indicate the phrase language.
+                Correct this in the CSV before proceeding. Affected rows: """
+            for err in lang_errors:
+                message += str(err) + ", "
+            message += "\b\b."
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+
+        # Verify that all phrases have translation and include only alphabetic characters
+        row = 1
+        for item in data_list:
+            row += 1
+            if translations := item["translations"]:
+                if type(translations) is not list:
+                    if not non_lists:
+                        non_lists += "Translations in the following rows are not formatted correctly. "
+                        non_lists += "Enter all translations in double quotation marks in square brackets. "
+                        non_lists += "Example: [\"Translation one\", \"Two and\", \"Three\"]. Correct rows: "
+                    non_lists += f"{row}, "
+                for translation in translations:
+                    if not match('^[\w-]+$', translation):
+                        if not non_alphas:
+                            "Translations in the following rows include non-alphabetic characters: "
+                        non_alphas += f"{row}, "
+            else: # if list is empty
+                if not missing_translations:
+                    missing_translations = "Translations are missing for phrases in rows: "
+                missing_translations += f"{row}, "
+        if missing_translations or non_alphas or non_lists:
+            message += "Errors with data entry for translation column. "
+            if missing_translations:
+                message += missing_translations
+            if non_alphas:
+                message += non_alphas
+            if non_lists:
+                message += non_lists
+            message += "Correct all errors before proceeding with the test."
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+
         # TODO add approval from test to save in session that will be used in update view
 
         # If successful redirect to submit page
@@ -409,9 +517,9 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             with open('data.csv') as csvfile:
                 data_reader = reader(csvfile)
                 next(data_reader)
-                count = 1
+                row_count = 1
                 for row in data_reader:
-                    count += 1
+                    row_count += 1
                     dict_obj = {
                         'phrase_id': row[0],
                         'module_name': row[1],
@@ -423,7 +531,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         # If an error occurs give feedback
         except Exception as e:
             message = f"There was an error reading the file. "
-            message += "Review the CSV and return to test form. "
+            message += "Review the CSV and return to test form before running update. "
             context = {
                 'profile': profile,
                 'message': message,
@@ -432,9 +540,9 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             return render(request, self.template_name, context)
 
         # Compare csv data with database content
-        new, count, unchanged = 0, 0, 0
+        new, total, unchanged = 0, 0, 0
         for item in data_list:
-            count += 1
+            total += 1
             if not item["phrase_id"]:
                 new += 1
             else:
@@ -447,7 +555,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                             b = set(item["translations"])
                             if len(a) == len(b) == len(a & b):
                                 unchanged += 1
-        changed = count - new - unchanged
+        changed = total - new - unchanged
 
         # TODO get number of phrases in DB that remain unchanged
 
