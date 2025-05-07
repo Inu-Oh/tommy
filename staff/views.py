@@ -357,24 +357,24 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
 
         # Check that phrase id is entered correctly
         phrases = Phrase.objects.all()
-        row = 1
+        row, non_ints, wrong_ids = 1, "", ""
         for item in data_list:
             row += 1
             if phrase_id := item["phrase_id"]:
                 if not isinstance(phrase_id, int):
-                    if not not_ints:
-                        not_ints = "Phrase IDs at these rows should be an intager number: "
-                    not_ints += f"{row}, "
+                    if not non_ints:
+                        non_ints += "Phrase IDs at these rows should be an intager number: "
+                    non_ints += f"{row}, "
                 if not phrases.get(id=phrase_id):
                     if not wrong_ids:
-                        wrong_ids = "Phrase IDs at the following rows don't exist in the database."
+                        wrong_ids += "Phrase IDs at the following rows don't exist in the database."
                         wrong_ids += "Delete if the it's a new phrase or "
                         worng_ids += "correct if the phrase is already in the database: "
                     wrong_ids += f"ID {phrase_id} at row {row}, "
-        if not_ints or wrong_ids:
+        if non_ints or wrong_ids:
             message += "Errors with data entry for phrase ID column. " 
-            if not_ints:
-                message += not_ints + "\b\b. "
+            if non_ints:
+                message += non_ints + "\b\b. "
             if wrong_ids:
                 message += wrong_ids+ "\b\b. "
             message += "Correct all phrase IDs before running the test again. "
@@ -402,17 +402,17 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             return render(request, self.template_name, context)
         
         # Check that phrases ware entered and only contain alphabetic characters
-        row = 1
+        row, missing_phrases, non_alphas = 1, "", ""
         for item in data_list:
             row += 1
             if not item["phrase"]:
                 if not missing_phrases:
-                    missing_phrases = "Phrase cells are blank at the following rows: "
+                    missing_phrases += "Phrase cells are blank at the following rows: "
                 missing_phrases += f"{row}, "
-            elif not match('^[\w-]+$', item["phrase"]):
+            elif match(r'[a-zA-Z ]$', item["phrase"]):
                 if not non_alphas:
-                    non_alphas = "Phrase at these rows include non-alpha characters: "
-                non_alphas += f"{row}, "
+                    non_alphas += "The following phrases include non-alpha characters: "
+                non_alphas += f'"{item["phrase"]}" at row {row}, '
         if missing_phrases or non_alphas:
             message += "Errors with data entry for phrase column. "
             if missing_phrases:
@@ -448,7 +448,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             return render(request, self.template_name, context)
 
         # Verify that all phrases have translation and include only alphabetic characters
-        row = 1
+        row, non_lists, non_alphas, missing_translations = 1, "", "", ""
         for item in data_list:
             row += 1
             if translations := item["translations"]:
@@ -459,13 +459,13 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                         non_lists += "Example: [\"Translation one\", \"Two and\", \"Three\"]. Correct rows: "
                     non_lists += f"{row}, "
                 for translation in translations:
-                    if not match('^[\w-]+$', translation):
+                    if match(r'[a-zA-Z ]$', translation):
                         if not non_alphas:
-                            "Translations in the following rows include non-alphabetic characters: "
+                            non_alphas += "Translations in the following rows include non-alphabetic characters: "
                         non_alphas += f"{row}, "
             else: # if list is empty
                 if not missing_translations:
-                    missing_translations = "Translations are missing for phrases in rows: "
+                    missing_translations += "Translations are missing for phrases in rows: "
                 missing_translations += f"{row}, "
         if missing_translations or non_alphas or non_lists:
             message += "Errors with data entry for translation column. "
@@ -567,7 +567,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         else:
             changed_phrases = ""
         for phrase in phrases:
-            if phrase["id"] not in csv_phrase_ids:
+            if phrase.id not in csv_phrase_ids:
                 unchanged += 1
 
         context = {

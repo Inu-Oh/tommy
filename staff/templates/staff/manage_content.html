@@ -96,9 +96,22 @@
 
 
 {% block footer %}
-<div class="container p-5">
-    <p> </p>
-</div>
+    {% if user.is_superuser %}
+        <div class="container-fluid">
+            <div class="row p-3">
+                <div class="col-6">
+                    <p class="fs-5"><span class="text-danger fw-bolder">
+                        Warning</span> Mass editing is only suitable for IT staff with 
+                        database skills</p>
+                </div>
+                <div class="col-6 py-3">
+                    <a href="{% url 'staff:csv_db_test' %}"
+                        class="btn btn-lg btn-outline-dark w-100">
+                        Mass edit database content from CSV</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
