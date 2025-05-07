@@ -539,31 +539,44 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             }
             return render(request, self.template_name, context)
 
-        # Compare csv data with database content
-        new, total, unchanged = 0, 0, 0
+        # Compare CSV data with database content and get stats
+        current_phrase_count = phrases.count()
+        new, total, changed, csv_phrase_ids = 0, 0, set(), []
         for item in data_list:
             total += 1
             if not item["phrase_id"]:
                 new += 1
             else:
+                csv_phrase_ids.append(item["phrase_id"])
                 phrase = phrases.get(id=item["phrase_id"])
-                if phrase["language"] == item["phrase_lang"]:
-                    if phrase["phrase"] == item["phrase"]: 
-                        if phrase["module"] == item["module"]:
-                            phrase_translations = translations.filter(phrase=phrase)
-                            a = set(phrase_translations)
-                            b = set(item["translations"])
-                            if len(a) == len(b) == len(a & b):
-                                unchanged += 1
-        changed = total - new - unchanged
-
-        # TODO get number of phrases in DB that remain unchanged
+                if phrase["language"] != item["phrase_lang"]:
+                    changed.add(item["phrase_id"])
+                elif phrase["phrase"] != item["phrase"]:
+                    changed.add(item["phrase_id"])
+                elif phrase["module"] != item["module"]:
+                    changed.add(item["phrase_id"])
+                else:
+                    phrase_translations = translations.filter(phrase=phrase)
+                    a = set(phrase_translations)
+                    b = set(item["translations"])
+                    if len(a) != len(b) != len(a & b):
+                        changed.add(item["phrase"])
+        unchanged = total - new - len(changed)
+        if changed:
+            changed_phrases = ", ".join([f"{i}" for i in list(changed)]) + "\b\b."
+        else:
+            changed_phrases = ""
+        for phrase in phrases:
+            if phrase["id"] not in csv_phrase_ids:
+                unchanged += 1
 
         context = {
             'profile': profile,
             'submit_form': submit_form,
+            'current_phrase_count': current_phrase_count,
             'new': new,
-            'changed': changed,
+            'changed': len(changed),
+            'changed_phrases': changed_phrases,
             'unchanged': unchanged,
         }
         return render(request, self.template_name, context)

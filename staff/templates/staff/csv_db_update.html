@@ -26,16 +26,17 @@
             <div class="col-6">
                 <h5>Mass content update from CSV file</h5>
                 <p class="w-100 text-danger fw-bolder">
-                    Warning: This tool edits mass content.<br>
-                    These steps may corrupt the database.<br>
-                    Take all necessary precautions to<br>
-                    review your CSV data.
+                    {% if changed > 0 %}
+                    Changes will be made to data for the phrases: {{ changed_phrases }}
+                    {% endif %}
                 </p>
             </div>
             <div class="col-6">
                 <p class="fs-5">Phrases to be added {{ new }}<br>
-                    Phrases to be changed: {{ changed }}<br>
-                    Phrases in CSV left unchanged: {{ unchanged }} </p>
+                    Phrases currently in database {{ current_phrase_count }}<br>
+                    Phrases that will not be changed: {{ unchanged }} </p>
+                    Phrases that will be changed: {{ changed }}<br>
+                    
                 {% load crispy_forms_tags %}
                 <form action="" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
