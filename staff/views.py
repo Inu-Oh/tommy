@@ -506,7 +506,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             non_staff_url = 'tommy:home'
             return redirect(non_staff_url)
         profile = Profile.objects.get(user=request.user)
-        modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         submit_form = CsvSubmitForm() 

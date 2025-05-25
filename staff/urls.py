@@ -20,9 +20,7 @@ urlpatterns = [
          views.UpdateTranslationView.as_view(),name='edit_translation'),
 
     # Mass add / update modules, phrases and translations from CSV to DB
-    path('csv_db_test',
-         views.CsvToDbTestView.as_view(), name='csv_db_test'),
-    path('csv_db_update',
-         views.CsvToDbUpdateView.as_view(), name='csv_db_update'),
+    path('csv_db_test', views.CsvToDbTestView.as_view(), name='csv_db_test'),
+    path('csv_db_update', views.CsvToDbUpdateView.as_view(), name='csv_db_update'),
 
 ]

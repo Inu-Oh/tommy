@@ -65,10 +65,8 @@ class Home(LoginRequiredMixin, TemplateView):
         
         # Get user phrase strength data for progress
         user_phrase_strength = UserPhraseStrength.objects.all()
-        unlearned_phrase_count = user_phrase_strength.filter(
-            learned=False, user=request.user).count()
-        learned_phrases = user_phrase_strength.filter(
-            learned=True, user=request.user)
+        unlearned_phrase_count = user_phrase_strength.filter(learned=False, user=request.user).count()
+        learned_phrases = user_phrase_strength.filter(learned=True, user=request.user)
         learned_phrase_count = learned_phrases.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
@@ -87,8 +85,7 @@ class Home(LoginRequiredMixin, TemplateView):
 class ResetView(LoginRequiredMixin, UpdateView):
 
     def get(self, request):
-        learned_phrases = UserPhraseStrength.objects.filter(
-            learned=True, user=request.user)
+        learned_phrases = UserPhraseStrength.objects.filter(learned=True, user=request.user)
 
         # Recalculate phrase strength based on last time seen
         for phrase in learned_phrases:
@@ -98,9 +95,7 @@ class ResetView(LoginRequiredMixin, UpdateView):
                 month=phrase.updated_at.month,
                 year=phrase.updated_at.year,
                 hour=phrase.updated_at.hour,
-                minute=phrase.updated_at.minute,
-                second=phrase.updated_at.second,
-                microsecond=phrase.updated_at.microsecond)
+                minute=phrase.updated_at.minute)
             delta = now - day_of_last_reset
             days_since_reset = delta.days
             
@@ -169,10 +164,8 @@ class GlossaryView(LoginRequiredMixin, ListView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
-        unlearned_phrase_count = phrase_strength_set.filter(
-            learned=False, user=request.user).count()
-        learned_phrase_count = phrase_strength_set.filter(
-            learned=True, user=request.user).count()
+        unlearned_phrase_count = phrase_strength_set.filter(learned=False, user=request.user).count()
+        learned_phrase_count = phrase_strength_set.filter(learned=True, user=request.user).count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
         # Searches
@@ -202,11 +195,9 @@ class ModulesView(LoginRequiredMixin, ListView):
         profile = Profile.objects.get(user = request.user)
         phrases = Phrase.objects.all()
         user_phrase_data = UserPhraseStrength.objects.filter(user = request.user)
-        unlearned_phrase_set = user_phrase_data.filter(
-            learned=False, user=request.user)
+        unlearned_phrase_set = user_phrase_data.filter(learned=False, user=request.user)
         unlearned_phrase_count = unlearned_phrase_set.count()
-        learned_phrase_set= user_phrase_data.filter(
-            learned=True, user=request.user)
+        learned_phrase_set= user_phrase_data.filter(learned=True, user=request.user)
         learned_phrase_count = learned_phrase_set.count()
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
