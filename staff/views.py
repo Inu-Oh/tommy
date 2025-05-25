@@ -384,7 +384,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                 'message': message,
             }
             return render(request, self.template_name, context)
-        
+
         # Verify that module name is entered for each phrase
         row = 1
         for item in data_list:
@@ -420,6 +420,27 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             if non_alphas:
                 message += non_alphas + "\b\b. "
             message += "Add all missing phrases and replace non alphabetic characters."
+            context = {
+                'profile': profile,
+                'test_form': test_form,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+
+        # Check that new phrases are unique
+        phrase_list, duplicates, row = [phrase.phrase for phrase in phrases], [], 1
+        for item in data_list:
+            if not item["id"]:
+                if phrase := item["phrase"] in phrase_list:
+                    duplicates.append({'phrase': phrase, 'row': row})
+                else:
+                    phrase_list.append(phrase)
+            row += 1
+        if duplicates:
+            message += "The CSV file includes phrases that are duplicates: "
+            for phrase, row in duplicates:
+                message += f'"{phrase}" at row {row}, '
+            message += "\b\b. Make sure there are no duplicates before testing again."
             context = {
                 'profile': profile,
                 'test_form': test_form,
@@ -589,23 +610,57 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         user_strength_objs = UserPhraseStrength.objects.all()
-        submit_form = CsvSubmitForm()
+        submit_form = CsvSubmitForm(request.POST)
         if not submit_form.is_valid():
+            message = "The update failed due to an invalid form. Contact IT for support."
             context = {
                 'profile': profile,
-                'modules': modules,
-                'phrases': phrases,
-                'translations': translations,
-                'submit_form': submit_form,
+                'message': message,
             }
             return render(request, self.template_name, context)
         
 
-        # Read the csv file 
+        # Read the CSV file and create list of dicts to track data
+        data_list, val_error = [], ""
+        try:
+            with open('data.csv') as csvfile:
+                data_reader = reader(csvfile)
+                next(data_reader)
+                row_count = 1
+                for row in data_reader:
+                    dict_obj = {
+                        'row': row_count,
+                        'phrase_id': row[0],
+                        'module_name': row[1],
+                        'phrase': row[2],
+                        'phrase_lang': row[3],
+                        'translations': loads(row[4])
+                    }
+                    if not dict_obj['module_name'] or not dict_obj['phrase'] or not dict_obj['phrase_lang'] or not dict_obj['translations']:
+                        val_error += f"There is blank data at row {dict_obj['row']}. "
+                        raise ValueError
+                    data_list.append(dict_obj)
+                    row_count += 1
+        # If an error occurs give feedback
+        except Exception as e:
+            message = "There was an error reading the file. "
+            message += val_error
+            message += "Review the CSV and return to test form before running update. "
+            context = {
+                'profile': profile,
+                'message': message,
+                'details': e
+            }
+            return render(request, self.template_name, context)
 
         # Compare csv data with database content then update
+        module_names = [module.name for module in modules]
+        phrase_list = [phrase.phrase for phrase in phrases]
 
         # if id is blank create new phrase
+        for dict_obj in data_list:
+            dict_obj['status'] = 'new' if dict_obj['phrase_id'] == "" else 'old'
+            
             #   SQL: get module if existing or create it
                 #   add phrase, module and language to db
                 #   then loop translations and save them
