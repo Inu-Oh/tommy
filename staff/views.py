@@ -600,14 +600,27 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             }
             return render(request, self.template_name, context)
         
-        # Run database test here 
+
         # Read the csv file 
         # Compare csv data with database content
-        # Create / update / delete based on data comparison
+        # if id is blank create new phrase
+            #   SQL: get module if existing or create it
+                #   add phrase, module and language to db
+                #   then loop translations and save them
+            #   CSV update: get id after new phrase is saved and update it to the CSV file
+        # if id not blank get phrase with id to update module, phrase, language and translations
+            #   compare info for module, phrase and language 
+                #   if different update them otherwise skip
+            #   create sets from translations in database and CSV
+                #   compare them; if different 
+                    #   delete those that are not in CSV or delete all
+                    #   add those that are missing from database but in CSV
         # 
-        # if not successful redirect to error page 
+        # if an error occurs redirect to error page 
         #     forwarding the error information to the error view
+                # provide row of CSV and phrase as well as other element info
         # 
-        # if successful redirect to submit page
+        # if successful redirect to success url with report on changes
+        # counts for new, changed and constant phrases, modules, languages and translations
         success_url = reverse_lazy('tommy:glossary')
         return redirect(success_url)
