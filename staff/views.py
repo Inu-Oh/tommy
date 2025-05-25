@@ -602,7 +602,9 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         
 
         # Read the csv file 
-        # Compare csv data with database content
+
+        # Compare csv data with database content then update
+
         # if id is blank create new phrase
             #   SQL: get module if existing or create it
                 #   add phrase, module and language to db
