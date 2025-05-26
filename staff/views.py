@@ -658,6 +658,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         # but only message is to go back to test view before proceeding
 
         # Compare csv data with database content then update
+        added, edited, ignored = 0, 0, 0
         module_names = [module.name for module in modules]
         phrase_list = [phrase.phrase for phrase in phrases]
 
@@ -690,18 +691,20 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     'message': message,
                 }
                 return render(request, self.template_name, context)
-            elif dict_obj["phrase_id"] != "":
-                phrase = UpdatePhraseForm(id=dict_obj["id"])
+            elif phrase_id := dict_obj["phrase_id"] != "":
+                phrase = phrases.get(id=phrase_id)
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["pharse"]
                 phrase.module = dict_obj["module"]
                 phrase.save()
+                edited += 1
             else:
                 phrase = CreatePhraseForm()
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["phrase"]
                 phrase.module = dict_obj["module"]
                 phrase.save()
+                added += 1
             
             # Loop through translations and save each one for the phrase
             trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
