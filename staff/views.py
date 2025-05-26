@@ -1,4 +1,4 @@
-from csv import reader, writer
+from csv import reader, DictWriter
 from json import loads
 from re import match
 
@@ -385,14 +385,16 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Verify that module name is entered for each phrase
+        # Verify that module name is entered for each phrase and not longer than 24 chars
         row = 1
         for item in data_list:
             row += 1
             if not item["module_name"]:
-                message += f"{row}, "
+                message += f"blank at row {row}, "
+            elif len(item["module_name"]) > 24:
+                message += f"name too long at row {row}, "
         if message:
-            message += "Module names were not provided for phrases at rows: " + message
+            message += "Module names not provided or too long for phrases at rows: " + message
             message += "\b\b. Provide module names for each phrase."
             context = {
                 'profile': profile,
@@ -619,7 +621,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             }
             return render(request, self.template_name, context)
         
-
         # Read the CSV file and create list of dicts to track data
         data_list, val_error = [], ""
         try:
@@ -631,9 +632,9 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     dict_obj = {
                         'row': row_count,
                         'phrase_id': row[0],
-                        'module_name': row[1],
+                        'module': row[1],
                         'phrase': row[2],
-                        'phrase_lang': row[3],
+                        'phr_lang': row[3],
                         'translations': loads(row[4])
                     }
                     if not dict_obj['module_name'] or not dict_obj['phrase'] or not dict_obj['phrase_lang'] or not dict_obj['translations']:
@@ -653,17 +654,63 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             }
             return render(request, self.template_name, context)
 
+        # TODO insert abbreviated version of tests from CSV test / except for tests below
+        # but only message is to go back to test view before proceeding
+
         # Compare csv data with database content then update
         module_names = [module.name for module in modules]
         phrase_list = [phrase.phrase for phrase in phrases]
 
-        # if id is blank create new phrase
+        # If id is blank set phrase as new, else set it as old
+        row = 1
         for dict_obj in data_list:
-            dict_obj['status'] = 'new' if dict_obj['phrase_id'] == "" else 'old'
+
+            # If the phrase's module doesn't exists create it or return error
+            if module_name := dict_obj["module"] not in module_names:
+                if len(module_name) <= 24:
+                    module = ModuleForm()
+                    module.name = module_name
+                    module.save()
+                    module_names.append(module_name)
+                else:
+                    message = f"The update failed. Module name at row {row} is too long."
+                    message += " Return to CSV test form to retest and review."
+                    context = {
+                        'profile': profile,
+                        'message': message,
+                    }
+                    return render(request, self.template_name, context)
             
-            #   SQL: get module if existing or create it
-                #   add phrase, module and language to db
-                #   then loop translations and save them
+            # Create new phrase if it's not a duplicate or update it if phrase id was listed
+            if phrase := dict_obj["phrase"] in phrase_list and dict_obj["phrase_id"] == "":
+                message = f'The update failed. Phrase "{phrase}" at row {row} is duplicate.'
+                message += " Return to CSV test form to retest and review."
+                context = {
+                    'profile': profile,
+                    'message': message,
+                }
+                return render(request, self.template_name, context)
+            elif dict_obj["phrase_id"] != "":
+                phrase = UpdatePhraseForm(id=dict_obj["id"])
+                phrase.language = dict_obj["phr_lang"]
+                phrase.phrase = dict_obj["pharse"]
+                phrase.module = dict_obj["module"]
+                phrase.save()
+            else:
+                phrase = CreatePhraseForm()
+                phrase.language = dict_obj["phr_lang"]
+                phrase.phrase = dict_obj["phrase"]
+                phrase.module = dict_obj["module"]
+                phrase.save()
+            
+            # Loop through translations and save each one for the phrase
+            trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
+
+            # Create phrase strength objects for each user for each phrase
+
+            row += 1
+
+               
             #   CSV update: get id after new phrase is saved and update it to the CSV file
         # if id not blank get phrase with id to update module, phrase, language and translations
             #   compare info for module, phrase and language 
