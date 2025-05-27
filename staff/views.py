@@ -470,7 +470,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Verify that all phrases have translation and include only alphabetic characters
+        # Verify that all row have well formatted translations that include only alphabetic characters
         row, non_lists, non_alphas, missing_translations = 1, "", "", ""
         for item in data_list:
             row += 1
@@ -654,57 +654,118 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             }
             return render(request, self.template_name, context)
 
-        # TODO insert abbreviated version of tests from CSV test / except for tests below
-        # but only message is to go back to test view before proceeding
 
-        # Compare csv data with database content then update
-        added, edited, ignored = 0, 0, 0
-        module_names = [module.name for module in modules]
-        phrase_list = [phrase.phrase for phrase in phrases]
+        """The next six loops run same varfications as CsvToDbTestView, but abbreviated."""
+        # Check that phrase id is entered correctly
+        row = 1
+        for item in data_list:
+            row += 1
+            if phrase_id := item["phrase_id"]:
+                if not isinstance(phrase_id, int) or not phrases.get(id=phrase_id):
+                    message = "Errors with data entry in the phrase ID column. "
+                    message += "Review the data before continuing." 
+                    context = { 'profile': profile, 'message': message }
+                    return render(request, self.template_name, context)
 
-        # If id is blank set phrase as new, else set it as old
+        # Verify that module name is entered for each phrase
+        row = 1
+        for item in data_list:
+            row += 1
+            if not item["module_name"]:
+                message = "Module names are missing. Provide module names for each phrase before continuing."
+                context = { 'profile': profile, 'message': message }
+                return render(request, self.template_name, context)
+        
+        # Check that phrases ware entered and only contain alphabetic characters
+        row = 1
+        for item in data_list:
+            row += 1
+            if not item["phrase"] or match(r'[a-zA-Z ]$', item["phrase"]):
+                message = "Some phrases are too long or include non-alphabetic characters. "
+                message += "Add missing phrases and replace non alphabetic characters before continuing."
+                context = { 'profile': profile, 'message': message }
+                return render(request, self.template_name, context)
+
+        # Check that new phrases are unique
+        phrase_list, row = [phrase.phrase for phrase in phrases], 1
+        for item in data_list:
+            row += 1
+            if not item["id"]:
+                if phrase := item["phrase"] in phrase_list:
+                    message = "The CSV file includes duplicate phrases. Remove them before continuing."
+                    context = { 'profile': profile, 'message': message }
+                    return render(request, self.template_name, context)                    
+                else:
+                    phrase_list.append(phrase)
+
+        # Verify either English or French for language options
+        row = 1
+        for item in data_list:
+            row += 1
+            if item["phrase_lang"] not in ["French", "English"]:
+                message = "Some rows list an invalid phrase language. Review all rows and ensure that "
+                message += "phrases have either French or English language before continuing."
+                context = { 'profile': profile, 'message': message }
+            return render(request, self.template_name, context)
+
+        # Verify that all phrases have translations and those include only alphabetic characters
+        row, non_lists, non_alphas, missing_translations = 1, False, False, False
+        for item in data_list:
+            row += 1
+            if translations := item["translations"]:
+                if type(translations) is not list:
+                    non_lists = True
+                    break
+                for translation in translations:
+                    if match(r'[a-zA-Z ]$', translation):
+                        non_alphas = True
+                        break
+            else: # if list is empty
+                missing_translations = True
+                break
+        if missing_translations or non_alphas or non_lists:
+            message = "Errors with data entry for translation column. Add translations for phrases with the "
+            message += "format [\"Translation one\", \"Two and\", \"Three\"]. Correct all rows before continuing."
+            context = {
+                'profile': profile,
+                'message': message,
+            }
+            return render(request, self.template_name, context)
+
+
+        """The below code  populates the database."""
+        # Data to track changes
+        module_names, added_modules = [module.name for module in modules], 0
+        added_phrases, updated_phrases = 0, 0
+
+        # If id is blank set phrase as new. Otherwise, set it as old.
         row = 1
         for dict_obj in data_list:
 
-            # If the phrase's module doesn't exists create it or return error
+            # If the phrase's module doesn't exists create it
             if module_name := dict_obj["module"] not in module_names:
-                if len(module_name) <= 24:
-                    module = ModuleForm()
-                    module.name = module_name
-                    module.save()
-                    module_names.append(module_name)
-                else:
-                    message = f"The update failed. Module name at row {row} is too long."
-                    message += " Return to CSV test form to retest and review."
-                    context = {
-                        'profile': profile,
-                        'message': message,
-                    }
-                    return render(request, self.template_name, context)
+                module = ModuleForm()
+                module.name = module_name
+                module.save()
+                module_names.append(module_name)
+                added_modules += 1
             
-            # Create new phrase if it's not a duplicate or update it if phrase id was listed
-            if phrase := dict_obj["phrase"] in phrase_list and dict_obj["phrase_id"] == "":
-                message = f'The update failed. Phrase "{phrase}" at row {row} is duplicate.'
-                message += " Return to CSV test form to retest and review."
-                context = {
-                    'profile': profile,
-                    'message': message,
-                }
-                return render(request, self.template_name, context)
-            elif phrase_id := dict_obj["phrase_id"] != "":
+            # TODO How to ignore changes
+            # Create new phrase or update it if phrase id was listed
+            if phrase_id := dict_obj["phrase_id"] != "":
                 phrase = phrases.get(id=phrase_id)
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["pharse"]
                 phrase.module = dict_obj["module"]
                 phrase.save()
-                edited += 1
+                updated_phrases += 1
             else:
                 phrase = CreatePhraseForm()
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["phrase"]
                 phrase.module = dict_obj["module"]
                 phrase.save()
-                added += 1
+                added_phrases += 1
             
             # Loop through translations and save each one for the phrase
             trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
