@@ -736,11 +736,14 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         """The below code populates and updates the database."""
         # Data to track changes
         module_names, added_modules = [module.name for module in modules], 0
-        added_phrases, updated_phrases = 0, 0
+        added_phrases, updated_phrases,  = 0, 0
+        deleted_translations, added_translations = 0, 0
 
+        # TODO Put this in a try except block - check best practices
         # If id is blank set phrase as new. Otherwise, set it as old.
         row = 1
         for dict_obj in data_list:
+            row += 1
             # If the phrase's module doesn't exists create it
             if module_name := dict_obj["module"] not in module_names:
                 module = ModuleForm()
@@ -764,6 +767,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 old_translations = translations.filter(phrase=phrase.phrase)
                 for translation in old_translations:
                     translation.delete()
+                    deleted_translations += 1
             else:
                 phrase = CreatePhraseForm()
                 phrase.language = dict_obj["phr_lang"]
@@ -779,21 +783,12 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 new_translation.translation = translation
                 new_translation.phrase = phrase.phrase
                 new_translation.save()
+                added_translations += 1
 
             # Create phrase strength objects for each user for each new phrase
 
-            row += 1
-
                
             #   CSV update: get id after new phrase is saved and update it to the CSV file
-        # if id not blank get phrase with id to update module, phrase, language and translations
-            #   compare info for module, phrase and language 
-                #   if different update them otherwise skip
-            #   create sets from translations in database and CSV
-                #   compare them; if different 
-                    #   delete those that are not in CSV or delete all
-                    #   add those that are missing from database but in CSV
-        # 
         # if an error occurs redirect to error page 
         #     forwarding the error information to the error view
                 # provide row of CSV and phrase as well as other element info
