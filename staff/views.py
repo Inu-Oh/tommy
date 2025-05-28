@@ -102,6 +102,7 @@ class CreatePhraseView(PermissionRequiredMixin, CreateView):
         phrase.module = module
         phrase.save()
 
+        # TODO can I remove phrase_strength_form.save(commit=False) ?
         # Create a phrase strength object for the new phrase for every user 
         User = get_user_model()
         users = User.objects.all()
@@ -736,7 +737,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         """The below code populates and updates the database."""
         # Data to track changes
         module_names, added_modules = [module.name for module in modules], 0
-        added_phrases, updated_phrases,  = 0, 0
+        added_phrases, updated_phrases, added_strength_objs  = 0, 0, 0
         deleted_translations, added_translations = 0, 0
 
         # TODO Put this in a try except block - check best practices
@@ -775,18 +776,28 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 phrase.module = module
                 phrase.save()
                 added_phrases += 1
+                # Create phrase strength objects for each user for new phrases only
+                User = get_user_model()
+                users = User.objects.all()
+                for user in users:
+                    phrase_strength = PhraseStrengthForm()
+                    phrase_strength.phrase = phrase
+                    phrase_strength.user = user
+                    phrase_strength.learned = False
+                    phrase_strength.strength = 0
+                    phrase_strength.views = 0
+                    phrase_strength.correct = 0
+                    phrase_strength.save()
+                    added_strength_objs += 1
             
             # Loop through translations and save each one for the phrase
             for translation in dict_obj["tranlations"]:
                 new_translation = CreateTranslationForm()
                 new_translation.language = trans_lang
                 new_translation.translation = translation
-                new_translation.phrase = phrase.phrase
+                new_translation.phrase = phrase
                 new_translation.save()
                 added_translations += 1
-
-            # Create phrase strength objects for each user for each new phrase
-
                
             #   CSV update: get id after new phrase is saved and update it to the CSV file
         # if an error occurs redirect to error page 
@@ -794,6 +805,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 # provide row of CSV and phrase as well as other element info
         # 
         # if successful redirect to success url with report on changes
-        # counts for new, changed and constant phrases, modules, languages and translations
+        
         success_url = reverse_lazy('tommy:glossary')
         return redirect(success_url)
