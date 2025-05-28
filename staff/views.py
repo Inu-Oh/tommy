@@ -733,7 +733,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             return render(request, self.template_name, context)
 
 
-        """The below code  populates the database."""
+        """The below code populates and updates the database."""
         # Data to track changes
         module_names, added_modules = [module.name for module in modules], 0
         added_phrases, updated_phrases = 0, 0
@@ -741,7 +741,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         # If id is blank set phrase as new. Otherwise, set it as old.
         row = 1
         for dict_obj in data_list:
-
             # If the phrase's module doesn't exists create it
             if module_name := dict_obj["module"] not in module_names:
                 module = ModuleForm()
@@ -749,28 +748,39 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 module.save()
                 module_names.append(module_name)
                 added_modules += 1
+            else:
+                module = modules.get(name=dict_obj["module"])
             
-            # TODO How to ignore changes
             # Create new phrase or update it if phrase id was listed
+            trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
             if phrase_id := dict_obj["phrase_id"] != "":
                 phrase = phrases.get(id=phrase_id)
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["pharse"]
-                phrase.module = dict_obj["module"]
+                phrase.module = module
                 phrase.save()
                 updated_phrases += 1
+                # Delete old translations rather than comparing for changes
+                old_translations = translations.filter(phrase=phrase.phrase)
+                for translation in old_translations:
+                    translation.delete()
             else:
                 phrase = CreatePhraseForm()
                 phrase.language = dict_obj["phr_lang"]
                 phrase.phrase = dict_obj["phrase"]
-                phrase.module = dict_obj["module"]
+                phrase.module = module
                 phrase.save()
                 added_phrases += 1
             
             # Loop through translations and save each one for the phrase
-            trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
+            for translation in dict_obj["tranlations"]:
+                new_translation = CreateTranslationForm()
+                new_translation.language = trans_lang
+                new_translation.translation = translation
+                new_translation.phrase = phrase.phrase
+                new_translation.save()
 
-            # Create phrase strength objects for each user for each phrase
+            # Create phrase strength objects for each user for each new phrase
 
             row += 1
 
