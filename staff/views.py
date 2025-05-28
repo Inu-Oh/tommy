@@ -612,7 +612,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         modules = Module.objects.all()
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
-        user_strength_objs = UserPhraseStrength.objects.all()
         submit_form = CsvSubmitForm(request.POST)
         if not submit_form.is_valid():
             message = "The update failed due to an invalid form. Contact IT for support."
@@ -734,7 +733,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             return render(request, self.template_name, context)
 
 
-        """The below code populates and updates the database."""
+        """The next loop populates and updates the database."""
         # Data to track changes
         module_names, added_modules = [module.name for module in modules], 0
         added_phrases, updated_phrases, added_strength_objs  = 0, 0, 0
@@ -799,9 +798,11 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 new_translation.save()
                 added_translations += 1
                
-            #   CSV update: get id after new phrase is saved and update it to the CSV file
+        """The final loop writes a new copy of the database to CSV"""
+        with open("new_db.csv", "w") as export:
+            pass # Use DictWriter to write the data 
+
         # if an error occurs redirect to error page 
-        #     forwarding the error information to the error view
                 # provide row of CSV and phrase as well as other element info
         # 
         # if successful redirect to success url with report on changes
