@@ -433,7 +433,7 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
         # Check that new phrases are unique
         phrase_list, duplicates, row = [phrase.phrase for phrase in phrases], [], 1
         for item in data_list:
-            if not item["id"]:
+            if not item["phrase_id"]:
                 if phrase := item["phrase"] in phrase_list:
                     duplicates.append({'phrase': phrase, 'row': row})
                 else:
@@ -799,12 +799,45 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 added_translations += 1
                
         """The final loop writes a new copy of the database to CSV"""
+        export_data = []
+        updated_phrases = Phrase.objects.all()
+        updated_tranlations = Translation.objects.all()
+        for phrase in updated_phrases:
+            row = {}
+            row["phrase_id"] = phrase.id
+            row["module_name"] = phrase.module
+            row["phrase"] = phrase.phrase
+            row["phrase_lang"] = phrase.language
+            phrase_translations = updated_tranlations.filter(phrase=phrase)
+            translation_set = []
+            for translation in phrase_translations:
+                translation_set.append(translation)
+            row["translations"] = translation_set
+            export_data.append(row)
         with open("new_db.csv", "w") as export:
-            pass # Use DictWriter to write the data 
+            writer = DictWriter(
+                export, 
+                fieldnames=[
+                    "phrase_id",
+                    "module_name",
+                    "phrase",
+                    "phrase_lang",
+                    "translations"
+                ]
+            )
+            for phrase in export_data:
+                writer.writerow(
+                    {
+                        "phrase_id": phrase["phrase_id"],
+                        "module_name": phrase["module_name"],
+                        "phrase": phrase["phrase"],
+                        "phrase_lang": phrase["phrase_lang"],
+                        "translations": phrase["translations"]
+                    }
+                )
 
-        # if an error occurs redirect to error page 
-                # provide row of CSV and phrase as well as other element info
-        # 
+        # TODO if an error occurs redirect to error page 
+            # provide row of CSV and phrase as well as other element info
         # if successful redirect to success url with report on changes
         
         success_url = reverse_lazy('tommy:glossary')
