@@ -142,15 +142,14 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         # For all phrases, set user strength to 0 and learned to false
         phrases = Phrase.objects.all()
         for phrase in phrases:
-            phrase_strength_form = PhraseStrengthForm()
-            phrase_strength = phrase_strength_form.save(commit=False)
-            phrase_strength.phrase = phrase
-            phrase_strength.user = self.request.user
-            phrase_strength.learned = False
-            phrase_strength.strength = 0
-            phrase_strength.views = 0
-            phrase_strength.correct = 0
-            phrase_strength.save()
+            UserPhraseStrength.objects.create(
+                phrase = phrase,
+                user = self.request.user,
+                learned = False,
+                strength = 0,
+                views = 0,
+                correct = 0
+            )
 
         success_url = reverse_lazy('tommy:home')
         return redirect(success_url)
