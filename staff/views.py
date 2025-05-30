@@ -107,15 +107,14 @@ class CreatePhraseView(PermissionRequiredMixin, CreateView):
         User = get_user_model()
         users = User.objects.all()
         for user in users:
-            phrase_strength_form = PhraseStrengthForm()
-            phrase_strength = phrase_strength_form.save(commit=False)
-            phrase_strength.phrase = phrase
-            phrase_strength.user = user
-            phrase_strength.learned = False
-            phrase_strength.strength = 0
-            phrase_strength.views = 0
-            phrase_strength.correct = 0
-            phrase_strength.save()
+            UserPhraseStrength.objects.create(
+                phrase = phrase,
+                user = user,
+                learned = False,
+                strength = 0,
+                views = 0,
+                correct = 0
+            )
             
         success_url = reverse_lazy('staff:add_phrase', kwargs={'pk': pk})
         return redirect(success_url)
