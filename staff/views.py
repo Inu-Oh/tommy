@@ -746,16 +746,15 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             row += 1
             # If the phrase's module doesn't exists create it
             if module_name := dict_obj["module"] not in module_names:
-                module = ModuleForm()
-                module.name = module_name
-                module.save()
+                module = Module.objects.create(
+                    name = module_name
+                )
                 module_names.append(module_name)
                 added_modules += 1
             else:
                 module = modules.get(name=dict_obj["module"])
             
             # Create new phrase or update it if phrase id was listed
-            trans_lang = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
             if phrase_id := dict_obj["phrase_id"] != "":
                 phrase = phrases.get(id=phrase_id)
                 phrase.language = dict_obj["phr_lang"]
@@ -769,33 +768,34 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     translation.delete()
                     deleted_translations += 1
             else:
-                phrase = CreatePhraseForm()
-                phrase.language = dict_obj["phr_lang"]
-                phrase.phrase = dict_obj["phrase"]
-                phrase.module = module
-                phrase.save()
+                phrase = Phrase.objects.create(
+                    language = dict_obj["phr_lang"],
+                    phrase = dict_obj["phrase"],
+                    module = module
+                )
                 added_phrases += 1
                 # Create phrase strength objects for each user for new phrases only
                 User = get_user_model()
                 users = User.objects.all()
                 for user in users:
-                    phrase_strength = PhraseStrengthForm()
-                    phrase_strength.phrase = phrase
-                    phrase_strength.user = user
-                    phrase_strength.learned = False
-                    phrase_strength.strength = 0
-                    phrase_strength.views = 0
-                    phrase_strength.correct = 0
-                    phrase_strength.save()
+                    UserPhraseStrength.objects.create(
+                        phrase = phrase,
+                        user = user,
+                        learned = False,
+                        strength = 0,
+                        views = 0,
+                        correct = 0
+                    )
                     added_strength_objs += 1
             
             # Loop through translations and save each one for the phrase
+            translation_language = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
             for translation in dict_obj["tranlations"]:
-                new_translation = CreateTranslationForm()
-                new_translation.language = trans_lang
-                new_translation.translation = translation
-                new_translation.phrase = phrase
-                new_translation.save()
+                Translation.objects.create(
+                    language = translation_language,
+                    translation = translation,
+                    phrase = phrase
+                )
                 added_translations += 1
                
         """The final loop writes a new copy of the database to CSV"""
