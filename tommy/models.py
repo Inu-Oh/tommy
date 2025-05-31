@@ -21,7 +21,7 @@ class Profile(models.Model):
 class Module(models.Model):
     name = models.CharField(
         max_length=24,
-        validators=[MinLengthValidator(5, "This name is too short")]
+        validators=[MinLengthValidator(3, "This name is too short")]
     )
 
     def __str__(self):

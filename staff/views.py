@@ -9,7 +9,6 @@ from django.urls import reverse_lazy
 from django.views.generic import UpdateView, CreateView, ListView, View
 
 from tommy.models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from tommy.forms import PhraseStrengthForm
 
 from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePhraseForm, UpdateTranslationForm, CsvTestForm, CsvSubmitForm
     
@@ -332,8 +331,9 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
                 row_count = 1
                 for row in data_reader:
                     row_count += 1
+                    id_cell_value = int(row[0]) if row[0] else ""
                     dict_obj = {
-                        'phrase_id': row[0],
+                        'phrase_id': id_cell_value,
                         'module_name': row[1],
                         'phrase': row[2],
                         'phrase_lang': row[3],
@@ -571,12 +571,12 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             else:
                 csv_phrase_ids.append(item["phrase_id"])
                 phrase = phrases.get(id=item["phrase_id"])
-                if phrase["language"] != item["phrase_lang"]:
-                    changed.add(item["phrase_id"])
-                elif phrase["phrase"] != item["phrase"]:
-                    changed.add(item["phrase_id"])
-                elif phrase["module"] != item["module"]:
-                    changed.add(item["phrase_id"])
+                if phrase.language != item["phrase_lang"]:
+                    changed.add(item["phrase"])
+                elif phrase.phrase != item["phrase"]:
+                    changed.add(item["phrase"])
+                elif phrase.module != item["module_name"]:
+                    changed.add(item["phrase"])
                 else:
                     phrase_translations = translations.filter(phrase=phrase)
                     a = set(phrase_translations)
@@ -628,14 +628,16 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 next(data_reader)
                 row_count = 1
                 for row in data_reader:
+                    id_cell_value = int(row[0]) if row[0] else ""
                     dict_obj = {
                         'row': row_count,
-                        'phrase_id': row[0],
-                        'module': row[1],
+                        'phrase_id': id_cell_value,
+                        'module_name': row[1],
                         'phrase': row[2],
-                        'phr_lang': row[3],
+                        'phrase_lang': row[3],
                         'translations': loads(row[4])
                     }
+                    print(dict_obj)
                     if not dict_obj['module_name'] or not dict_obj['phrase'] or not dict_obj['phrase_lang'] or not dict_obj['translations']:
                         val_error += f"There is blank data at row {dict_obj['row']}. "
                         raise ValueError
@@ -689,7 +691,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         phrase_list, row = [phrase.phrase for phrase in phrases], 1
         for item in data_list:
             row += 1
-            if not item["id"]:
+            if not item["phrase_id"]:
                 if phrase := item["phrase"] in phrase_list:
                     message = "The CSV file includes duplicate phrases. Remove them before continuing."
                     context = { 'profile': profile, 'message': message }
@@ -705,17 +707,17 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 message = "Some rows list an invalid phrase language. Review all rows and ensure that "
                 message += "phrases have either French or English language before continuing."
                 context = { 'profile': profile, 'message': message }
-            return render(request, self.template_name, context)
+                return render(request, self.template_name, context)
 
         # Verify that all phrases have translations and those include only alphabetic characters
         row, non_lists, non_alphas, missing_translations = 1, False, False, False
         for item in data_list:
             row += 1
-            if translations := item["translations"]:
-                if type(translations) is not list:
+            if item["translations"]:
+                if type(item["translations"]) is not list:
                     non_lists = True
                     break
-                for translation in translations:
+                for translation in item["translations"]:
                     if match(r'[a-zA-Z ]$', translation):
                         non_alphas = True
                         break
@@ -744,31 +746,31 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         for dict_obj in data_list:
             row += 1
             # If the phrase's module doesn't exists create it
-            if module_name := dict_obj["module"] not in module_names:
+            if module_name := dict_obj["module_name"] not in module_names:
                 module = Module.objects.create(
                     name = module_name
                 )
                 module_names.append(module_name)
                 added_modules += 1
             else:
-                module = modules.get(name=dict_obj["module"])
+                module = modules.get(name=dict_obj["module_name"])
             
             # Create new phrase or update it if phrase id was listed
             if phrase_id := dict_obj["phrase_id"] != "":
                 phrase = phrases.get(id=phrase_id)
-                phrase.language = dict_obj["phr_lang"]
-                phrase.phrase = dict_obj["pharse"]
+                phrase.language = dict_obj["phrase_lang"]
+                phrase.phrase = dict_obj["phrase"]
                 phrase.module = module
                 phrase.save()
                 updated_phrases += 1
                 # Delete old translations rather than comparing for changes
-                old_translations = translations.filter(phrase=phrase.phrase)
+                old_translations = translations.filter(phrase=phrase)
                 for translation in old_translations:
                     translation.delete()
                     deleted_translations += 1
             else:
                 phrase = Phrase.objects.create(
-                    language = dict_obj["phr_lang"],
+                    language = dict_obj["phrase_lang"],
                     phrase = dict_obj["phrase"],
                     module = module
                 )
@@ -788,8 +790,8 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     added_strength_objs += 1
             
             # Loop through translations and save each one for the phrase
-            translation_language = "English" if str(dict_obj["phr_lang"]) == "French" else "French"
-            for translation in dict_obj["tranlations"]:
+            translation_language = "English" if str(dict_obj["phrase_lang"]) == "French" else "French"
+            for translation in dict_obj["translations"]:
                 Translation.objects.create(
                     language = translation_language,
                     translation = translation,
@@ -810,7 +812,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             phrase_translations = updated_tranlations.filter(phrase=phrase)
             translation_set = []
             for translation in phrase_translations:
-                translation_set.append(translation)
+                translation_set.append(translation.translation)
             row["translations"] = translation_set
             export_data.append(row)
         with open("new_db.csv", "w") as export:
