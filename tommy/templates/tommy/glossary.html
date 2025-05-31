@@ -25,6 +25,15 @@
 {% block content %}
 <section class="container-fluid d-flex justify-content-between">
     <form action="" muted="get" class="m-4 input-group">
+        <input type="text" placeholder="Search phrases and translations" name="search"
+        class="form-control"
+        {% if search %} value="{{ search }}" {% endif %}>
+        <button type="submit" class="btn btn-outline-dark">
+            <i class="fa fa-search"></i></button>
+        <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
+            <i class="fa fa-undo"></i></a>
+    </form>
+    {% comment %} <form action="" muted="get" class="m-4 input-group">
         <input type="text" placeholder="Search French phrases" name="search_phrases"
         class="form-control"
         {% if search_phrases %} value="{{ search_phrases }}" {% endif %}>
@@ -41,15 +50,15 @@
             <i class="fa fa-search"></i></button>
         <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
             <i class="fa fa-undo"></i></a>
-    </form>
+    </form> {% endcomment %}
 </section>
 
 <section class="container-fluid p-2">
     <div class="container">
         <div class="row pb-2">
-            <div class="col-5 text-end fw-bold">Phrase</div>
+            <div class="col-4 text-end fw-bold">Phrase</div>
             <div class="col-5 text-start fw-bold">Translation</div>
-            <div class="col-2 text-end fw-bold">Strength</div>
+            <div class="col-3 text-end fw-bold">Strength</div>
         </div>
     </div>
     
@@ -65,7 +74,30 @@
         </div>
         {% else %}
         
-        {% for phrase in phrases %}
+        {% if phrase_data %}{% for phrase in phrase_data %}{% if phrase.language == "French" %}
+        <div class="row">
+            <div class="col-4 text-end">{{ phrase.phrase }} </div>
+            <div class="col-5 text-start">
+                {% for translation in phrase.translations %}
+                    &raquo; {{ translation }} <br>
+                {% endfor %}
+            </div>
+            <div class="col-3 text-end">
+                {% if phrase.learned %}
+                    {% if phrase_strength.strength > 90 %}Excellent
+                    {% elif phrase_strength.strength > 80 %}Amazing
+                    {% elif phrase_strength.strength > 60 %}Great
+                    {% elif phrase_strength.strength > 40 %}Good
+                    {% else %}Keep at it {% endif %}
+                {% else %}
+                    <a href="{% url 'tommy:learn' phrase.module_id %}"
+                        class="text-decoration-none link-style">Learn in Module: {{ phrase.module }}</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}{% endfor %}{% endif %}   
+        
+        {% comment %} {% for phrase in phrases %}
         {% if phrase.language == "French" %}
         {% for translation in translations %}
         {% if translation.phrase == phrase %} 
@@ -85,13 +117,13 @@
                             {% else %}Keep at it {% endif %}
                         {% else %}
                             <a href="{% url 'tommy:learn' phrase.module.id %}"
-                            class="text-decoration-none link-style">Learn</a>
+                                class="text-decoration-none link-style">Learn</a>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
             {% endif %}</div>
         </div>
-        {% endif %}{% endfor %}{% endif %}{% endfor %}
+        {% endif %}{% endfor %}{% endif %}{% endfor %} {% endcomment %}
     </div>
 </section>
     {% endif %}

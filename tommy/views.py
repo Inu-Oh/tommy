@@ -161,8 +161,9 @@ class GlossaryView(LoginRequiredMixin, ListView):
     template_name = 'tommy/glossary.html'
 
     def get(self, request):
-        profile = Profile.objects.get(user = request.user)
-        phrases = Phrase.objects.all()
+        profile = Profile.objects.get(user=request.user)
+        phrases = Phrase.objects.all().order_by('phrase')
+        modules = Module.objects.all()
         translations = Translation.objects.all()
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
         if phrase_strength_set.count() > 0:
@@ -172,22 +173,45 @@ class GlossaryView(LoginRequiredMixin, ListView):
             unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
+        phrase_data = []
+        for phrase in phrases:
+            item = {}
+            item["phrase"] = phrase.phrase
+            item["id"] = phrase.id
+            item["language"] = phrase.language
+            item["module"] = phrase.module
+            module = modules.get(name=phrase.module)
+            item["module_id"] = module.id
+            item_translations = translations.filter(phrase=phrase)
+            item["translations"] = []
+            for item_translation in item_translations:
+                item["translations"].append(item_translation.translation)
+            user_strength = phrase_strength_set.get(phrase=phrase)
+            item["learned"] = user_strength.learned
+            item["strength"] = user_strength.strength
+            phrase_data.append(item)
+
         # Searches
-        search_phrases = request.GET.get("search_phrases", False)
-        if search_phrases:
-            phrases = phrases.filter(Q(phrase__icontains=search_phrases)).select_related().distinct()
-        search_translations = request.GET.get("search_translations", False)
-        if search_translations:
-            translations = translations.filter(Q(translation__icontains=search_translations)).select_related().distinct()
+        search = request.GET.get("search", False)
+        if search:
+            phrase_data = [d for d in phrase_data if search in d["phrase"] or search in " ".join(d["translations"])]
+        # search_phrases = request.GET.get("search_phrases", False)
+        # if search_phrases:
+        #     phrases = phrases.filter(Q(phrase__icontains=search_phrases)).select_related().distinct()
+        # search_translations = request.GET.get("search_translations", False)
+        # if search_translations:
+        #     translations = translations.filter(Q(translation__icontains=search_translations)).select_related().distinct()
 
         context = {
+            'phrase_data': phrase_data,
             'profile': profile,
             'phrases': phrases,
             'translations': translations,
             'phrase_strength_set': phrase_strength_set,
             'progress': progress,
-            'search_phrases': search_phrases,
-            'search_translations': search_translations,
+            'search': search,
+            # 'search_phrases': search_phrases,
+            # 'search_translations': search_translations,
         }
         return render(request, self.template_name, context)
 
