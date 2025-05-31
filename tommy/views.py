@@ -64,10 +64,12 @@ class Home(LoginRequiredMixin, TemplateView):
             pass
         
         # Get user phrase strength data for progress
-        user_phrase_strength = UserPhraseStrength.objects.all()
-        unlearned_phrase_count = user_phrase_strength.filter(learned=False, user=request.user).count()
-        learned_phrases = user_phrase_strength.filter(learned=True, user=request.user)
-        learned_phrase_count = learned_phrases.count()
+        user_phrase_strength = UserPhraseStrength.objects.filter(user=request.user)
+        if user_phrase_strength.count() > 0:
+            unlearned_phrase_count = user_phrase_strength.filter(learned=False).count()
+            learned_phrase_count = user_phrase_strength.filter(learned=True).count()
+        else:
+            unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
         context = {
@@ -163,8 +165,11 @@ class GlossaryView(LoginRequiredMixin, ListView):
         phrases = Phrase.objects.all()
         translations = Translation.objects.all()
         phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
-        unlearned_phrase_count = phrase_strength_set.filter(learned=False, user=request.user).count()
-        learned_phrase_count = phrase_strength_set.filter(learned=True, user=request.user).count()
+        if phrase_strength_set.count() > 0:
+            unlearned_phrase_count = phrase_strength_set.filter(learned=False).count()
+            learned_phrase_count = phrase_strength_set.filter(learned=True).count()
+        else:
+            unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
         # Searches
@@ -193,11 +198,14 @@ class ModulesView(LoginRequiredMixin, ListView):
     def get(self, request):
         profile = Profile.objects.get(user = request.user)
         phrases = Phrase.objects.all()
-        user_phrase_data = UserPhraseStrength.objects.filter(user = request.user)
-        unlearned_phrase_set = user_phrase_data.filter(learned=False, user=request.user)
-        unlearned_phrase_count = unlearned_phrase_set.count()
-        learned_phrase_set= user_phrase_data.filter(learned=True, user=request.user)
-        learned_phrase_count = learned_phrase_set.count()
+        user_phrase_data = UserPhraseStrength.objects.filter(user=request.user)
+        if user_phrase_data.count() > 0:
+            unlearned_phrase_set = user_phrase_data.filter(learned=False)
+            unlearned_phrase_count = unlearned_phrase_set.count()
+            learned_phrase_set= user_phrase_data.filter(learned=True)
+            learned_phrase_count = learned_phrase_set.count()
+        else:
+            unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
 
