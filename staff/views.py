@@ -637,7 +637,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                         'phrase_lang': row[3],
                         'translations': loads(row[4])
                     }
-                    print(dict_obj)
                     if not dict_obj['module_name'] or not dict_obj['phrase'] or not dict_obj['phrase_lang'] or not dict_obj['translations']:
                         val_error += f"There is blank data at row {dict_obj['row']}. "
                         raise ValueError
@@ -746,17 +745,18 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         for dict_obj in data_list:
             row += 1
             # If the phrase's module doesn't exists create it
-            if module_name := dict_obj["module_name"] not in module_names:
+            if dict_obj["module_name"] not in module_names:
                 module = Module.objects.create(
-                    name = module_name
+                    name = dict_obj["module_name"] 
                 )
-                module_names.append(module_name)
+                module_names.append(dict_obj["module_name"] )
                 added_modules += 1
             else:
                 module = modules.get(name=dict_obj["module_name"])
             
             # Create new phrase or update it if phrase id was listed
-            if phrase_id := dict_obj["phrase_id"] != "":
+            if phrase_id := dict_obj["phrase_id"]:
+                print(phrase_id, type(phrase_id))
                 phrase = phrases.get(id=phrase_id)
                 phrase.language = dict_obj["phrase_lang"]
                 phrase.phrase = dict_obj["phrase"]
@@ -826,6 +826,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     "translations"
                 ]
             )
+            writer.writeheader()
             for phrase in export_data:
                 writer.writerow(
                     {
