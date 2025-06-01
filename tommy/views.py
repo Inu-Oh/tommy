@@ -278,23 +278,22 @@ class LearnView(LoginRequiredMixin, View):
                 phrase__in=phrases
             )
             testing_phrase = unlearned_phrases.first()
+            translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+            translation_langauge = translations[0].language
+            phrase_language = "French" if translation_langauge == "English" else "English"
+            phrase = phrases.get(phrase=testing_phrase.phrase, language=phrase_language)
+            context = {
+                'profile': profile,
+                'form': form,
+                # 'module': module,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                # 'translations': translations,
+            }
+            return render(request, self.template_name, context)
         except: # If no unlearned phrase is found, redirect to home page
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
-
-        translations = Translation.objects.filter(phrase=testing_phrase.phrase)
-        translation_langauge = translations[0].language
-        phrase_language = "French" if translation_langauge == "English" else "English"
-        phrase = phrases.get(phrase=testing_phrase.phrase, language=phrase_language)
-        context = {
-            'profile': profile,
-            'form': form,
-            # 'module': module,
-            'phrase': phrase,
-            'testing_phrase': testing_phrase, # Phrase strength object
-            # 'translations': translations,
-        }
-        return render(request, self.template_name, context)
     
     def post(self, request, pk):
         profile = Profile.objects.get(user=request.user)
@@ -438,6 +437,7 @@ class PracticeView(LoginRequiredMixin, View):
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:practice'
+        request.session['phrase_language'] = phrase.language
         return redirect(success_url)
 
 
@@ -524,6 +524,7 @@ class ReviewView(LoginRequiredMixin, View):
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:review'
+        request.session['phrase_language'] = phrase.language
         return redirect(success_url)
 
 
@@ -608,6 +609,7 @@ class AccentView(LoginRequiredMixin, View):
         request.session['user_answer'] = user_answer
         request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:accent'
+        request.session['phrase_language'] = phrase.language
         return redirect(success_url)
 
 
