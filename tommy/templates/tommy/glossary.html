@@ -63,19 +63,14 @@
     </div>
     
     <div class="container">
-        {% if not translations and search_translations %}
+        {% if not phrase_data and search %}
         <div class="row justify-content-center p-5 fs-5">
-            Your search found no translations for "{{ search_translations }}"
-        </div>
-        {% endif %}
-        {% if not phrases and search_phrases %}
-        <div class="row justify-content-center p-5 fs-5">
-            Your search found no phrases for "{{ search_phrases }}"
+            Your search found no phrases for "{{ search }}"
         </div>
         {% else %}
         
         {% if phrase_data %}{% for phrase in phrase_data %}{% if phrase.language == "French" %}
-        <div class="row">
+        <div class="row pb-3">
             <div class="col-4 text-end">{{ phrase.phrase }} </div>
             <div class="col-5 text-start">
                 {% for translation in phrase.translations %}

@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+# from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, UpdateView, View, CreateView, ListView
@@ -191,10 +191,10 @@ class GlossaryView(LoginRequiredMixin, ListView):
             item["strength"] = user_strength.strength
             phrase_data.append(item)
 
-        # Searches
+        # Search result implemention for search bar
         search = request.GET.get("search", False)
         if search:
-            phrase_data = [d for d in phrase_data if search in d["phrase"] or search in " ".join(d["translations"])]
+            phrase_data = [d for d in phrase_data if search.lower() in d["phrase"].lower() or search in " ".join(d["translations"]).lower()]
         # search_phrases = request.GET.get("search_phrases", False)
         # if search_phrases:
         #     phrases = phrases.filter(Q(phrase__icontains=search_phrases)).select_related().distinct()
@@ -205,9 +205,9 @@ class GlossaryView(LoginRequiredMixin, ListView):
         context = {
             'phrase_data': phrase_data,
             'profile': profile,
-            'phrases': phrases,
-            'translations': translations,
-            'phrase_strength_set': phrase_strength_set,
+            # 'phrases': phrases,
+            # 'translations': translations,
+            # 'phrase_strength_set': phrase_strength_set,
             'progress': progress,
             'search': search,
             # 'search_phrases': search_phrases,
@@ -270,52 +270,25 @@ class LearnView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         module = Module.objects.get(id=pk)
-        try:
+        try: # Select unlearned phrase for testing and its translations
             phrases = Phrase.objects.filter(module=module)
             unlearned_phrases = UserPhraseStrength.objects.filter(
                 learned=False,
-                user=request.user
+                user=request.user,
+                phrase__in=phrases
             )
-            # Get an unlearned phrase for testing and its translations
-            for unlearned in unlearned_phrases:
-                if unlearned.phrase in phrases:
-                    testing_phrase = unlearned.phrase
-                    break
-            translations = Translation.objects.filter(phrase=testing_phrase)
-            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-
-            context = {
-                'profile': profile,
-                'form': form,
-                'module': module,
-                'phrase': phrase,
-                'testing_phrase': testing_phrase, # Phrase strength object
-                'translations': translations,
-
-            }
-            return render(request, self.template_name, context)
+            testing_phrase = unlearned_phrases[:1].get()
         except: # If no unlearned phrase is found, redirect to home page
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
-    
-    def post(self, request, pk):
-        profile = Profile.objects.get(user=request.user)
-        form = TestForm(request.POST)
-        module = Module.objects.get(id=pk)
-        # Change the code below to get the testing phrase without repeating the search
-        phrases = Phrase.objects.filter(module=module)
-        unlearned_phrases = UserPhraseStrength.objects.filter(
-            learned=False,
-            user=request.user
-        )
-        # Get an unlearned phrase for testing and its translations
-        for unlearned in unlearned_phrases:
-            if unlearned.phrase in phrases:
-                testing_phrase = unlearned
-                break
-        translations = Translation.objects.filter(phrase=testing_phrase.phrase)
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
 
+        translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+        translation_langauge = translations[0].language
+        phrase_language = "French" if translation_langauge == "English" else "English"
+        phrase = phrases.get(
+            phrase=testing_phrase.phrase,
+            language=phrase_language
+        )
         context = {
             'profile': profile,
             'form': form,
@@ -323,10 +296,41 @@ class LearnView(LoginRequiredMixin, View):
             'phrase': phrase,
             'testing_phrase': testing_phrase, # Phrase strength object
             'translations': translations,
+
         }
+        return render(request, self.template_name, context)
+    
+    def post(self, request, pk):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm(request.POST)
         if not form.is_valid():
+            context = {
+                'profile': profile,
+                'form': form,
+                'module': module,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'translations': translations,
+            }
             # REVISE: Add error message if form is not valid
             return render(request, self.template_name, context)
+        
+        # Get an unlearned phrase for testing and its translations
+        module = Module.objects.get(id=pk)
+        phrases = Phrase.objects.filter(module=module)
+        unlearned_phrases = UserPhraseStrength.objects.filter(
+            learned=False,
+            user=request.user,
+            phrase__in=phrases
+        )
+        testing_phrase = unlearned_phrases[:1].get()
+        translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+        translation_langauge = translations[0].language
+        phrase_language = "French" if translation_langauge == "English" else "English"
+        phrase = Phrase.objects.get(
+            phrase=testing_phrase.phrase,
+            language=phrase_language
+        )
 
         # Prepare user's answer and don't grade accent before testing
         user_answer = form.cleaned_data['answer'].strip()
@@ -354,6 +358,7 @@ class LearnView(LoginRequiredMixin, View):
         request.session['respone_accuracy'] = respone_accuracy
         request.session['testing_view'] = 'tommy:learn'
         request.session['module_id'] = pk
+        request.session['phrase_language'] = phrase_language
         return redirect(success_url)
 
 
@@ -614,7 +619,10 @@ class FeedbackView(LoginRequiredMixin, View):
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
         testing_phrase = request.session.get('testing_phrase')
-        phrase = Phrase.objects.get(phrase=testing_phrase)
+        phrase = Phrase.objects.get(
+            phrase=testing_phrase,
+            language=request.session.get('phrase_language')
+        )
         testing_phrase = UserPhraseStrength.objects.get(
             phrase=phrase,
             user=request.user)
