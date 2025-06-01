@@ -277,7 +277,7 @@ class LearnView(LoginRequiredMixin, View):
                 user=request.user,
                 phrase__in=phrases
             )
-            testing_phrase = unlearned_phrases[:1].get()
+            testing_phrase = unlearned_phrases.first()
         except: # If no unlearned phrase is found, redirect to home page
             finished_learning_url = reverse_lazy('tommy:home')
             return redirect(finished_learning_url)
@@ -285,35 +285,20 @@ class LearnView(LoginRequiredMixin, View):
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
-        phrase = phrases.get(
-            phrase=testing_phrase.phrase,
-            language=phrase_language
-        )
+        phrase = phrases.get(phrase=testing_phrase.phrase, language=phrase_language)
         context = {
             'profile': profile,
             'form': form,
-            'module': module,
+            # 'module': module,
             'phrase': phrase,
             'testing_phrase': testing_phrase, # Phrase strength object
-            'translations': translations,
-
+            # 'translations': translations,
         }
         return render(request, self.template_name, context)
     
     def post(self, request, pk):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        if not form.is_valid():
-            context = {
-                'profile': profile,
-                'form': form,
-                'module': module,
-                'phrase': phrase,
-                'testing_phrase': testing_phrase, # Phrase strength object
-                'translations': translations,
-            }
-            # REVISE: Add error message if form is not valid
-            return render(request, self.template_name, context)
         
         # Get an unlearned phrase for testing and its translations
         module = Module.objects.get(id=pk)
@@ -323,14 +308,22 @@ class LearnView(LoginRequiredMixin, View):
             user=request.user,
             phrase__in=phrases
         )
-        testing_phrase = unlearned_phrases[:1].get()
+        testing_phrase = unlearned_phrases.first()
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+        if not form.is_valid():
+            context = {
+                'profile': profile,
+                'form': form,
+                # 'module': module,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                # 'translations': translations,
+            }
+            # REVISE: Add error message if form is not valid
+            return render(request, self.template_name, context)
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
-        phrase = Phrase.objects.get(
-            phrase=testing_phrase.phrase,
-            language=phrase_language
-        )
+        phrase = Phrase.objects.get(phrase=testing_phrase.phrase, language=phrase_language)
 
         # Prepare user's answer and don't grade accent before testing
         user_answer = form.cleaned_data['answer'].strip()
@@ -383,8 +376,9 @@ class PracticeView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('strength')
-            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-            translations = Translation.objects.filter(phrase=phrase)
+            phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+            translation_language = "English" if phrase.language == "French" else "French"
+            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
@@ -406,8 +400,9 @@ class PracticeView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-        translations = Translation.objects.filter(phrase=phrase)
+        phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        translation_language = "English" if phrase.language == "French" else "French"
+        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
         context = {
             'profile': profile,
@@ -467,8 +462,9 @@ class ReviewView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('updated_at')
-            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-            translations = Translation.objects.filter(phrase=phrase)
+            phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+            translation_language = "English" if phrase.language == "French" else "French"
+            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
@@ -490,8 +486,9 @@ class ReviewView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('updated_at')
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-        translations = Translation.objects.filter(phrase=phrase)
+        phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        translation_language = "English" if phrase.language == "French" else "French"
+        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
         context = {
             'profile': profile,
@@ -551,8 +548,9 @@ class AccentView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('updated_at')
-            phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-            translations = Translation.objects.filter(phrase=phrase)
+            phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+            translation_language = "English" if phrase.language == "French" else "French"
+            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
@@ -574,8 +572,9 @@ class AccentView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('updated_at')
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase)
-        translations = Translation.objects.filter(phrase=phrase)
+        phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        translation_language = "English" if phrase.language == "French" else "French"
+        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
         context = {
             'profile': profile,
@@ -623,9 +622,7 @@ class FeedbackView(LoginRequiredMixin, View):
             phrase=testing_phrase,
             language=request.session.get('phrase_language')
         )
-        testing_phrase = UserPhraseStrength.objects.get(
-            phrase=phrase,
-            user=request.user)
+        testing_phrase = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
         user_answer = request.session.get('user_answer')
         response_accuracy = request.session.get('respone_accuracy')
         translations = Translation.objects.filter(phrase=phrase)
