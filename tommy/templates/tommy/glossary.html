@@ -31,7 +31,7 @@
         <button type="submit" class="btn btn-outline-dark">
             <i class="fa fa-search"></i></button>
         <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
-            <i class="fa fa-undo"></i></a>
+            <i class="fa fa-undo pt-1"></i></a>
     </form>
     {% comment %} <form action="" muted="get" class="m-4 input-group">
         <input type="text" placeholder="Search French phrases" name="search_phrases"
@@ -79,10 +79,10 @@
             </div>
             <div class="col-3 text-end">
                 {% if phrase.learned %}
-                    {% if phrase_strength.strength > 90 %}Excellent
-                    {% elif phrase_strength.strength > 80 %}Amazing
-                    {% elif phrase_strength.strength > 60 %}Great
-                    {% elif phrase_strength.strength > 40 %}Good
+                    {% if phrase.strength > 90 %}Excellent
+                    {% elif phrase.strength > 80 %}Amazing
+                    {% elif phrase.strength > 60 %}Great
+                    {% elif phrase.strength > 40 %}Good
                     {% else %}Keep at it {% endif %}
                 {% else %}
                     <a href="{% url 'tommy:learn' phrase.module_id %}"
