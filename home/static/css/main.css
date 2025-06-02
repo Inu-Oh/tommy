@@ -30,12 +30,18 @@ body {
 
 }
 
-.main {
+.main, #container-card {
     background-color: var(--main_bg) !important;
     /* display: block;
     height: 45vh;
     overflow: auto; */
 } 
+
+#container-card {
+    border: none;
+    max-height: 37em;
+    overflow-y: auto;
+}
 
 .footer {
     background-color: var(--footer_bg) !important;
