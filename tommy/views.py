@@ -285,10 +285,8 @@ class LearnView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                # 'module': module,
                 'phrase': phrase,
                 'testing_phrase': testing_phrase, # Phrase strength object
-                # 'translations': translations,
             }
             return render(request, self.template_name, context)
         except: # If no unlearned phrase is found, redirect to home page
@@ -313,12 +311,10 @@ class LearnView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                # 'module': module,
                 'phrase': phrase,
                 'testing_phrase': testing_phrase, # Phrase strength object
-                # 'translations': translations,
             }
-            # REVISE: Add error message if form is not valid
+            # TODO Add error message if form is not valid ?
             return render(request, self.template_name, context)
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
@@ -376,15 +372,12 @@ class PracticeView(LoginRequiredMixin, View):
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('strength')
             phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
-            translation_language = "English" if phrase.language == "French" else "French"
-            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
                 'form': form,
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'phrase': phrase,
-                'translations': translations,
             }
             # Iterate test count for each phrase test before passing to session
             request.session['test_count'] += 1
@@ -408,7 +401,6 @@ class PracticeView(LoginRequiredMixin, View):
             'form': form,
             'testing_phrase': testing_phrase, # Phrase strength object
             'phrase': phrase,
-            'translations': translations,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
@@ -463,15 +455,12 @@ class ReviewView(LoginRequiredMixin, View):
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('updated_at')
             phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
-            translation_language = "English" if phrase.language == "French" else "French"
-            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
                 'form': form,
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'phrase': phrase,
-                'translations': translations,
             }
             # Iterate test count for each phrase test before passing to session
             request.session['test_count'] += 1
@@ -495,7 +484,6 @@ class ReviewView(LoginRequiredMixin, View):
             'form': form,
             'testing_phrase': testing_phrase, # Phrase strength object
             'phrase': phrase,
-            'translations': translations,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)
@@ -550,15 +538,12 @@ class AccentView(LoginRequiredMixin, View):
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = phrase_strength_set.earliest('updated_at')
             phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
-            translation_language = "English" if phrase.language == "French" else "French"
-            translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
             context = {
                 'profile': profile,
                 'form': form,
                 'testing_phrase': testing_phrase, # Phrase strength object
                 'phrase': phrase,
-                'translations': translations,
             }
             # Iterate test count for each phrase test before passing to session
             request.session['test_count'] += 1
@@ -582,7 +567,6 @@ class AccentView(LoginRequiredMixin, View):
             'form': form,
             'testing_phrase': testing_phrase, # Phrase strength object
             'phrase': phrase,
-            'translations': translations,
         }
         if not form.is_valid():
             return render(request, self.template_name, context)

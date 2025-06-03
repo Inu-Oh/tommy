@@ -33,24 +33,6 @@
         <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
             <i class="fa fa-undo pt-1"></i></a>
     </form>
-    {% comment %} <form action="" muted="get" class="m-4 input-group">
-        <input type="text" placeholder="Search French phrases" name="search_phrases"
-        class="form-control"
-        {% if search_phrases %} value="{{ search_phrases }}" {% endif %}>
-        <button type="submit" class="btn btn-outline-dark">
-            <i class="fa fa-search"></i></button>
-        <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
-            <i class="fa fa-undo"></i></a>
-    </form>
-    <form action="" muted="get" class="m-4 input-group">
-        <input type="text" placeholder="Search English translations" name="search_translations"
-        class="form-control"
-        {% if search_translations %} value="{{ search_translations }}" {% endif %}>
-        <button type="submit" class="btn btn-outline-dark">
-            <i class="fa fa-search"></i></button>
-        <a href="{% url 'tommy:glossary' %}" class="btn btn-outline-dark">
-            <i class="fa fa-undo"></i></a>
-    </form> {% endcomment %}
 </section>
 
 <section class="container-fluid p-2">
@@ -91,34 +73,6 @@
             </div>
         </div>
         {% endif %}{% endfor %}{% endif %}   
-        
-        {% comment %} {% for phrase in phrases %}
-        {% if phrase.language == "French" %}
-        {% for translation in translations %}
-        {% if translation.phrase == phrase %} 
-        <div class="row">
-            <div class="col-5 text-end">{{ phrase.phrase }} </div>
-            <div class="col-5 text-start">
-                &raquo;&nbsp;&nbsp;{{ translation.translation }}&nbsp;
-                </div>
-            <div class="col-2 text-end">{% if phrase_strength_set %}
-                {% for phrase_strength in phrase_strength_set %}
-                    {% if phrase_strength.phrase == phrase %}
-                        {% if phrase_strength.learned %}
-                            {% if phrase_strength.strength > 90 %}Excellent
-                            {% elif phrase_strength.strength > 80 %}Amazing
-                            {% elif phrase_strength.strength > 60 %}Great
-                            {% elif phrase_strength.strength > 40 %}Good
-                            {% else %}Keep at it {% endif %}
-                        {% else %}
-                            <a href="{% url 'tommy:learn' phrase.module.id %}"
-                                class="text-decoration-none link-style">Learn</a>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}</div>
-        </div>
-        {% endif %}{% endfor %}{% endif %}{% endfor %} {% endcomment %}
     </div>
 </section>
     {% endif %}
