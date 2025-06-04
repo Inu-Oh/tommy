@@ -10,7 +10,7 @@ from random import choice
 from unidecode import unidecode
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm, PhraseStrengthForm
+from .forms import ProfileForm, TestForm #, PhraseStrengthForm
 
 
 # Functions for grading user answer comapred to actual phrase
@@ -36,8 +36,9 @@ def grade_answer(answer, phrase):
 
 
 def eval_answer(answer, phrase):
-    answer_words = answer.split(" ")
-    phrase_words = phrase.split(" ")
+    answer_words = answer.split()
+    print(answer_words)
+    phrase_words = phrase.split()
     if len(answer_words) != len(phrase_words):
         return False
     else:
@@ -48,14 +49,14 @@ def eval_answer(answer, phrase):
             word_accuracy += 100
         else:
             ans_word_len, word_length = len(answer_words[i]), len(phrase_words[i])
-            correct = 0
+            correct_chars = 0
             index = ans_word_len if ans_word_len <= word_length else word_length
             for j in range(index):
                 if answer_words[i][j] == phrase_words[i][j]:
-                    correct += 1
-            if abs(ans_word_len - word_length) >= 2:
-                correct /= 2
-            word_accuracy += (correct / word_length) * 100
+                    correct_chars += 1
+            if (abs(ans_word_len - word_length)/word_length) > 0.2:
+                correct_chars /= 2
+            word_accuracy += (correct_chars / word_length) * 100
     avg_accuracy = word_accuracy / word_count
     print(avg_accuracy)
     if len(answer) < 10 and avg_accuracy > 90:
