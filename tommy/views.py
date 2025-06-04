@@ -8,6 +8,7 @@ from django.views.generic import TemplateView, UpdateView, View, CreateView, Lis
 from datetime import datetime
 from random import choice
 from unidecode import unidecode
+import string
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm #, PhraseStrengthForm
@@ -33,6 +34,35 @@ def grade_answer(answer, phrase):
         if typos > 1:
             return False
     return True
+
+
+def eval_and_feedback(answer, phrase):
+    if answer.lower() == phrase.lower():
+        return 100, f'<span class="text-danger">{answer}</span>'
+    elif len(phrase.split()) == 1:
+        if len(answer.split()) == 1:
+            length = len(phrase) if len(phrase) >= len(answer) else len(answer)
+            char_count, right = 0, 0
+            for i in range(length):
+                char_count += 1
+                if phrase[i] == answer[i]:
+                    right += 1
+                
+        # check that answer also has one length 
+            # if not give penalties
+        # check that all chars are the same
+            # if not give penalties
+        # return score and feedback
+    else:
+        answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
+        phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
+        # Compare pure string without punctuation or whitespace
+            # if this gets perfect score return score and feedback
+        # Check if each phrase word is in the answer words
+        #   For words that do not match 
+        #   Remove punctuation and compare their characters
+        # Compare which of the two tests got better results and use this to generate feedback before return
+        #   decide how feedback should be formatted
 
 
 def eval_answer(answer, phrase):
@@ -65,20 +95,23 @@ def phrase_feedback(answer, phrase, accuracy):
     char_list = [char for char in answer if char not in " .?',!"]
     answer_words, phrase_words = answer.split(), phrase.split()
     index = len(answer_words) if len(answer_words) <= len(phrase_words) else len(phrase_words)
-    if len(phrase_words) > len(answer_words):
-        pass # get the index of the answer text where the superfluous word(s) begin
     for i in range(index):
-        (longer, shorter) = (len(phrase_words[i]), len(answer_words[i])) if len(phrase_words[i]) >= len(answer_words[i]) else (len(answer_words[i]), len(phrase_words[i]))
+        if len(phrase_words[i]) >= len(answer_words[i]):
+            (longer, shorter, longer_word) = (len(phrase_words[i]), len(answer_words[i]), phrase_words[i]) 
+        else:
+            (longer, shorter, longer_word) = (len(answer_words[i]), len(phrase_words[i]), answer_words[i])
         for j in range(shorter):
-            if answer_words[i][j] in ".?',!" or answer_words[i][j] == phrase_words[i][j]:
+            if answer_words[i][j] in ".?',!" or answer_words[i][j].lower() == phrase_words[i][j].lower():
                 right[dict_index] = answer_words[i][j]
             else:
                 wrong[dict_index] = answer_words[i][j]
             dict_index += 1
+        for k in range(shorter, longer):
+            wrong[dict_index] = longer_word[k]
         right[dict_index] = " "
         dict_index += 1
     right_chars, wrong_chars = [i for i, _ in right.items()], [i for i, _ in wrong.items()]
-    html_string, invalid = '', "<>{}[]()"
+    html_string, invalid = '', "><][}{)(;"
     if accuracy > 50:
         for i in range(dict_index-1):
             if i in right_chars:
@@ -86,7 +119,7 @@ def phrase_feedback(answer, phrase, accuracy):
             elif i in wrong_chars:
                 html_string += f'<span class="text-danger">{wrong[i]}</span>'
     elif any(char in answer for char in invalid):
-        html_string = '<span class="text-danger">Invalid input, ><)(}{][, can\'t show your answer.</span>'
+        html_string = '<span class="text-danger">Invalid input, ><)(}{][;, can\'t show your answer.</span>'
     else:
         html_string = f'<span class="text-danger">{answer}</span>'
     return html_string
@@ -389,8 +422,8 @@ class LearnView(LoginRequiredMixin, View):
         cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            print("\nAnswer:", user_answer, "Phrase:", translation.translation)
             if eval_answer(cleaned_answer, cleaned_test_phrase) > response_score:
+                print("\nAnswer:", user_answer, "Phrase:", translation.translation)
                 response_score = eval_answer(cleaned_answer, cleaned_test_phrase)
                 feedback_html = phrase_feedback(user_answer, translation.translation, response_score)
         print(feedback_html)
