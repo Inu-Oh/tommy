@@ -13,7 +13,7 @@ from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm, PhraseStrengthForm
 
 
-# Function for grading user answer comapred to actual phrase
+# Functions for grading user answer comapred to actual phrase
 def grade_answer(answer, phrase):
     phrase_len = len(phrase)
     answer_len = len(answer)
@@ -33,6 +33,36 @@ def grade_answer(answer, phrase):
         if typos > 1:
             return False
     return True
+
+
+def eval_answer(answer, phrase):
+    answer_words = answer.split(" ")
+    phrase_words = phrase.split(" ")
+    if len(answer_words) != len(phrase_words):
+        return False
+    else:
+        word_count = len(answer_words)
+    word_accuracy = 0
+    for i in range(word_count):
+        if answer_words[i] == phrase_words[i]:
+            word_accuracy += 100
+        else:
+            ans_word_len, word_length = len(answer_words[i]), len(phrase_words[i])
+            correct = 0
+            index = ans_word_len if ans_word_len <= word_length else word_length
+            for j in range(index):
+                if answer_words[i][j] == phrase_words[i][j]:
+                    correct += 1
+            if abs(ans_word_len - word_length) >= 2:
+                correct /= 2
+            word_accuracy += (correct / word_length) * 100
+    avg_accuracy = word_accuracy / word_count
+    print(avg_accuracy)
+    if len(answer) < 10 and avg_accuracy > 90:
+        return True
+    elif avg_accuracy >= 85:
+        return True
+    return False    
 
 
 class Home(LoginRequiredMixin, TemplateView):
@@ -176,7 +206,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
 
         # Create list of dicts for faster data access and search
         phrase_data, total_strength, total_learned, strength_count = [], 0, 0, 0
-        strength_data = { 'learned': 0, 'total': 0, 'average': 0 }
+        strength_data = { 'learned': 0, 'total': 0 }
         for phrase in phrases:
             item = {}
             item["phrase"] = phrase.phrase
@@ -330,13 +360,14 @@ class LearnView(LoginRequiredMixin, View):
         for translation in translations:
             cleaned_answer = unidecode(user_answer.lower())
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            if grade_answer(cleaned_answer, cleaned_test_phrase):
+            if eval_answer(cleaned_answer, cleaned_test_phrase):
                 testing_phrase.correct = 1
                 testing_phrase.strength = 100
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
                 respone_accuracy = True
+                break
         testing_phrase.save()
 
         # Prepare data for feedback view
@@ -420,6 +451,7 @@ class PracticeView(LoginRequiredMixin, View):
                 profile.xp += 5
                 profile.save()
                 respone_accuracy = True
+                break
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -503,6 +535,7 @@ class ReviewView(LoginRequiredMixin, View):
                 profile.xp += 5
                 profile.save()
                 respone_accuracy = True
+                break
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -584,6 +617,7 @@ class AccentView(LoginRequiredMixin, View):
                 profile.xp += 5
                 profile.save()
                 respone_accuracy = True
+                break
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
