@@ -13,7 +13,7 @@ from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm #, PhraseStrengthForm
 
 
-# Functions for grading user answer comapred to actual phrase
+# Two funcitons grade user answer comapred to actual phrase
 def grade_answer(answer, phrase):
     phrase_len = len(phrase)
     answer_len = len(answer)
@@ -37,12 +37,8 @@ def grade_answer(answer, phrase):
 
 def eval_answer(answer, phrase):
     answer_words = answer.split()
-    print(answer_words)
     phrase_words = phrase.split()
-    if len(answer_words) != len(phrase_words):
-        return False
-    else:
-        word_count = len(answer_words)
+    word_count = len(phrase_words) if len(phrase_words) <= len(answer_words) else len(answer_words)
     word_accuracy = 0
     for i in range(word_count):
         if answer_words[i] == phrase_words[i]:
@@ -57,13 +53,43 @@ def eval_answer(answer, phrase):
             if (abs(ans_word_len - word_length)/word_length) > 0.2:
                 correct_chars /= 2
             word_accuracy += (correct_chars / word_length) * 100
-    avg_accuracy = word_accuracy / word_count
-    print(avg_accuracy)
-    if len(answer) < 10 and avg_accuracy > 90:
-        return True
-    elif avg_accuracy >= 85:
-        return True
-    return False    
+    factor = abs( len(phrase_words) - len(answer_words) ) / len(phrase_words)
+    avg_accuracy = (word_accuracy / word_count) * (1 - factor)
+    return avg_accuracy
+
+
+# Generates HTML feedback for user test answer
+def phrase_feedback(answer, phrase, accuracy):
+    length = (len(answer), "longer answre") if len(answer) >= len(phrase) else (len(phrase), "longer phrase")
+    right, wrong, dict_index = {}, {}, 0
+    char_list = [char for char in answer if char not in " .?',!"]
+    answer_words, phrase_words = answer.split(), phrase.split()
+    index = len(answer_words) if len(answer_words) <= len(phrase_words) else len(phrase_words)
+    if len(phrase_words) > len(answer_words):
+        pass # get the index of the answer text where the superfluous word(s) begin
+    for i in range(index):
+        (longer, shorter) = (len(phrase_words[i]), len(answer_words[i])) if len(phrase_words[i]) >= len(answer_words[i]) else (len(answer_words[i]), len(phrase_words[i]))
+        for j in range(shorter):
+            if answer_words[i][j] in ".?',!" or answer_words[i][j] == phrase_words[i][j]:
+                right[dict_index] = answer_words[i][j]
+            else:
+                wrong[dict_index] = answer_words[i][j]
+            dict_index += 1
+        right[dict_index] = " "
+        dict_index += 1
+    right_chars, wrong_chars = [i for i, _ in right.items()], [i for i, _ in wrong.items()]
+    html_string, invalid = '', "<>{}[]()"
+    if accuracy > 50:
+        for i in range(dict_index-1):
+            if i in right_chars:
+                html_string += f'<span class="text-success">{right[i]}</span>'
+            elif i in wrong_chars:
+                html_string += f'<span class="text-danger">{wrong[i]}</span>'
+    elif any(char in answer for char in invalid):
+        html_string = '<span class="text-danger">Invalid input, ><)(}{][, can\'t show your answer.</span>'
+    else:
+        html_string = f'<span class="text-danger">{answer}</span>'
+    return html_string
 
 
 class Home(LoginRequiredMixin, TemplateView):
@@ -354,31 +380,39 @@ class LearnView(LoginRequiredMixin, View):
         # Prepare user's answer and don't grade accent before testing
         user_answer = form.cleaned_data['answer'].strip()
 
-        # Set phrase to learned. Calculate and set user phrase strength data
+        # Set phrase to learned. Calculate and set user phrase strength data. Generate feedback.
         testing_phrase.learned = True
         testing_phrase.views = 1
-        respone_accuracy = False
+        response_accuracy = False
+        response_score = -1
+        feedback_html = ""
+        cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
-            cleaned_answer = unidecode(user_answer.lower())
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            if eval_answer(cleaned_answer, cleaned_test_phrase):
-                testing_phrase.correct = 1
-                testing_phrase.strength = 100
-                # Add XP points to user profile
-                profile.xp += 5
-                profile.save()
-                respone_accuracy = True
-                break
+            print("\nAnswer:", user_answer, "Phrase:", translation.translation)
+            if eval_answer(cleaned_answer, cleaned_test_phrase) > response_score:
+                response_score = eval_answer(cleaned_answer, cleaned_test_phrase)
+                feedback_html = phrase_feedback(user_answer, translation.translation, response_score)
+        print(feedback_html)
+        print("Response score:", response_score)
+        if ((len(cleaned_test_phrase) < 10) and (response_score >= 85)) or response_score > 90:
+            testing_phrase.correct = 1
+            testing_phrase.strength = round(response_score)
+            # Add XP points to user profile
+            profile.xp += 5
+            profile.save()
+            response_accuracy = True
         testing_phrase.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
-        request.session['user_answer'] = form.cleaned_data['answer'].strip()
-        request.session['respone_accuracy'] = respone_accuracy
+        request.session['user_answer'] = form.cleaned_data['answer'].strip() # remove ?
+        request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:learn'
         request.session['module_id'] = pk
         request.session['phrase_language'] = phrase_language
+        request.session['feedback_html'] = feedback_html
         return redirect(success_url)
 
 
@@ -526,7 +560,7 @@ class ReviewView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        respone_accuracy = False
+        response_accuracy = False
         for translation in translations:
             cleaned_answer = unidecode(user_answer.lower())
             cleaned_test_phrase = unidecode(translation.translation.lower())
@@ -535,7 +569,7 @@ class ReviewView(LoginRequiredMixin, View):
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
-                respone_accuracy = True
+                response_accuracy = True
                 break
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
@@ -544,7 +578,7 @@ class ReviewView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
-        request.session['respone_accuracy'] = respone_accuracy
+        request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:review'
         request.session['phrase_language'] = phrase.language
         return redirect(success_url)
@@ -610,14 +644,14 @@ class AccentView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        respone_accuracy = False
+        response_accuracy = False
         for translation in translations:
             if user_answer.lower() == translation.translation.lower():
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
-                respone_accuracy = True
+                response_accuracy = True
                 break
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
@@ -626,7 +660,7 @@ class AccentView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
-        request.session['respone_accuracy'] = respone_accuracy
+        request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:accent'
         request.session['phrase_language'] = phrase.language
         return redirect(success_url)
@@ -644,10 +678,11 @@ class FeedbackView(LoginRequiredMixin, View):
             language=request.session.get('phrase_language')
         )
         testing_phrase = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
-        user_answer = request.session.get('user_answer')
-        response_accuracy = request.session.get('respone_accuracy')
+        user_answer = request.session.get('user_answer') # remove ?
+        response_accuracy = request.session.get('response_accuracy')
         translations = Translation.objects.filter(phrase=phrase)
         testing_view = request.session.get('testing_view')
+        feedback_html = request.session.get('feedback_html')
 
         if response_accuracy:
             correct = [
@@ -668,13 +703,14 @@ class FeedbackView(LoginRequiredMixin, View):
 
         context = {
             'profile': profile,
-            'user_answer': user_answer,
+            'user_answer': user_answer, # remove ?
             'response_accuracy': response_accuracy,
             'testing_phrase': testing_phrase,
             'translations': translations,
             'testing_view': testing_view,
             'result': result,
             'module_id': module_id,
+            'feedback_html': feedback_html
         }
         # Retrieve and pass on test count for the current exercise session
         return render(request, self.template_name, context)

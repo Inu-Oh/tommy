@@ -57,10 +57,17 @@
     <div class="px-5 container-fluid d-flex justify-content-between">
         <p class="fs-3 lh-sm text-dark text-start">
             <span class="fs-6 text-muted">Your answer</span><br>
-            {% if response_accuracy == True %}
-            <span class="text-success fw-bold">{{ user_answer }}
-            {% else %}<span class="text-danger fw-bold">{{ user_answer }}
-            {% endif %}</span></p>
+             <span class="fw-bold">
+            {% if feedback_html %}
+               {{ feedback_html|safe }}
+            {% else %}
+                {% if response_accuracy == True %}
+                    <span class="text-success fw-bold">{{ user_answer }}
+                {% else %}
+                    <span class="text-danger fw-bold">{{ user_answer }}
+                {% endif %}
+            {% endif %}
+            </span></p>
     {% if testing_view == 'tommy:learn' %}
         <p><a href="{% url testing_view module_id %}" autofocus
             class="btn btn-lg btn-primary mt-3">Next test question</a></p>
