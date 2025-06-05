@@ -36,33 +36,90 @@ def grade_answer(answer, phrase):
     return True
 
 
-def eval_and_feedback(answer, phrase):
-    if answer.lower() == phrase.lower():
-        return 100, f'<span class="text-danger">{answer}</span>'
-    elif len(phrase.split()) == 1:
-        if len(answer.split()) == 1:
-            length = len(phrase) if len(phrase) >= len(answer) else len(answer)
-            char_count, right = 0, 0
-            for i in range(length):
-                char_count += 1
-                if phrase[i] == answer[i]:
-                    right += 1
-                
-        # check that answer also has one length 
-            # if not give penalties
-        # check that all chars are the same
-            # if not give penalties
-        # return score and feedback
+# Evaluaes a single word to support the eval_phrase() funciton
+def eval_word(ans_word, phr_word):
+    right, wrong, dict_i, correct_count = {}, {}, 0, 0
+    length = len(phr_word) if len(phr_word) >= len(ans_word) else len(ans_word)
+    for i in range(length):
+        if len(ans_word) >= i:
+            if phr_word[i] == ans_word[i]:
+                right[dict_i] = ans_word[i]
+                correct += 1
+                dict_i += 1
+            else:
+                wrong[dict_i] = ans_word[i]
+                dict_i += 1
+    accuracy = (correct_count / len(phr_word)) * 100
+    correct = True if 0 in right.keys() else False
+    html = f'<span class="text-success">{right[0]}' if correct else f'<span class="text-warning">{wrong[0]}'
+    for i in range(1, dict_i-1):
+        if correct:
+            if i in right.keys():
+                html += right[i]
+            else:
+                html += f'</span><span class="text-success">{right[i]}'
+        else:
+            if i in wrong.keys():
+                html += wrong[i]
+            else:
+                html += f'</span><span class="text-warning">{wrong[0]}'
+    html += '</span>'
+    return accuracy, html
+
+
+# Function grades the user answer and provides feedback HTML
+def eval_phrase(answer, phrase):
+    answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
+    phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
+    phrase_words, answer_words = phrase.split(), answer.split()
+
+    # Case: Exact same string gets full mark
+    if answer_str == phrase_str:
+        return 100, f'<span class="text-success">{answer}</span>'
+    
+    # One word phrase is evaluated for spelling errors and additional words
+    elif len(phrase_words) == 1:
+        if len(answer_words) == 1:
+            return eval_word(answer, phrase)
+        else:
+            factor = 1.7 / len(answer_words)
+            for word in answer_words:
+                if len(phrase_words) >= len(answer_words):
+                    accuracy, html = eval_word(word, phrase)
+                    return accuracy * factor, html
+
+    # Multiple word phrase evaluates accuracy of phrases separately
     else:
-        answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
-        phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
-        # Compare pure string without punctuation or whitespace
-            # if this gets perfect score return score and feedback
-        # Check if each phrase word is in the answer words
-        #   For words that do not match 
-        #   Remove punctuation and compare their characters
-        # Compare which of the two tests got better results and use this to generate feedback before return
-        #   decide how feedback should be formatted
+        total_score, html = 0, ""
+        if len(answer_words) == len(phrase_words):
+            for i in range(phrase_words):
+                if answer_words[i] == phrase_words[i]:
+                    total_score += 100
+                else:
+                    word_socore, word_html = eval_word(answer_words[i], phrase_words[i])
+                    total_score += word_socore
+                    html += word_html
+            return total_score / len(phrase_words), html
+        else:
+            if phrase_str in answer_str:
+                accuracy = (len(phrase_str) - abs(len(phrase_str) - len(answer_str))) / len(phrase_str)
+                if accuracy >= 0.85:
+                    # TODO Figure out how to compare phrase and answer to add the wrong text
+                    return accuracy, f'<span class="text-success">{answer}</span>'
+                else:
+                    return accuracy, f'<span class="text-warning">{answer}</span>'
+            else:
+                factor = (len(phrase_words) - abs(len(answer_words) - len(phrase_words))) / len(phrase_words)
+                correct_words = 0
+                for word in phrase_words:
+                    if word in answer_words:
+                        correct_words += 1
+                accuracy = (correct_words / len(phrase_words)) * factor
+                if accuracy >= 0.85:
+                    # TODO Figure out how to compare phrase and answer to add the wrong text
+                    return accuracy, f'<span class="text-success">{answer}</span>'
+                else:
+                    return accuracy, f'<span class="text-warning">{answer}</span>'
 
 
 def eval_answer(answer, phrase):
