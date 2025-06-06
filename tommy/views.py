@@ -44,62 +44,66 @@ def eval_word(ans_word, phr_word):
         if len(ans_word) >= i:
             if phr_word[i] == ans_word[i]:
                 right[dict_i] = ans_word[i]
-                correct += 1
+                correct_count += 1
                 dict_i += 1
             else:
                 wrong[dict_i] = ans_word[i]
                 dict_i += 1
     accuracy = (correct_count / len(phr_word)) * 100
-    correct = True if 0 in right.keys() else False
-    html = f'<span class="text-success">{right[0]}' if correct else f'<span class="text-warning">{wrong[0]}'
+    success = True if 0 in right.keys() else False
+    html = f'<span class="text-success">{right[0]}' if success else f'<span class="text-warning">{wrong[0]}'
     for i in range(1, dict_i-1):
-        if correct:
+        if success:
             if i in right.keys():
                 html += right[i]
             else:
-                html += f'</span><span class="text-success">{right[i]}'
+                html += f'</span><span class="text-warning">{wrong[i]}'
         else:
             if i in wrong.keys():
                 html += wrong[i]
             else:
-                html += f'</span><span class="text-warning">{wrong[0]}'
+                html += f'</span><span class="text-success">{right[i]}'
     html += '</span>'
     return accuracy, html
 
 
 # Function grades the user answer and provides feedback HTML
 def eval_phrase(answer, phrase):
+    # TODO check that string input is valid else raise error to escape or refresh window
+
+    
     answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
     phrase_words, answer_words = phrase.split(), answer.split()
+    phrase_length, answer_length = len(phrase_words), len(answer_words)
 
     # Case: Exact same string gets full mark
     if answer_str == phrase_str:
         return 100, f'<span class="text-success">{answer}</span>'
     
     # One word phrase is evaluated for spelling errors and additional words
-    elif len(phrase_words) == 1:
-        if len(answer_words) == 1:
+    elif phrase_length == 1:
+        if answer_length == 1:
             return eval_word(answer, phrase)
         else:
-            factor = 1.7 / len(answer_words)
+            factor = 1.7 / answer_length
             for word in answer_words:
-                if len(phrase_words) >= len(answer_words):
+                if phrase_length >= answer_length:
                     accuracy, html = eval_word(word, phrase)
                     return accuracy * factor, html
 
     # Multiple word phrase evaluates accuracy of phrases separately
     else:
         total_score, html = 0, ""
-        if len(answer_words) == len(phrase_words):
-            for i in range(phrase_words):
+        if answer_length == phrase_length:
+            for i in range(phrase_length):
                 if answer_words[i] == phrase_words[i]:
                     total_score += 100
                 else:
-                    word_socore, word_html = eval_word(answer_words[i], phrase_words[i])
-                    total_score += word_socore
+                    word_score, word_html = eval_word(answer_words[i], phrase_words[i])
+                    total_score += word_score
                     html += word_html
-            return total_score / len(phrase_words), html
+            return total_score / phrase_length, html
         else:
             if phrase_str in answer_str:
                 accuracy = (len(phrase_str) - abs(len(phrase_str) - len(answer_str))) / len(phrase_str)
@@ -109,12 +113,12 @@ def eval_phrase(answer, phrase):
                 else:
                     return accuracy, f'<span class="text-warning">{answer}</span>'
             else:
-                factor = (len(phrase_words) - abs(len(answer_words) - len(phrase_words))) / len(phrase_words)
+                factor = (phrase_length - abs(answer_length - phrase_length)) / phrase_length
                 correct_words = 0
                 for word in phrase_words:
                     if word in answer_words:
                         correct_words += 1
-                accuracy = (correct_words / len(phrase_words)) * factor
+                accuracy = (correct_words / phrase_length) * factor
                 if accuracy >= 0.85:
                     # TODO Figure out how to compare phrase and answer to add the wrong text
                     return accuracy, f'<span class="text-success">{answer}</span>'
@@ -479,9 +483,10 @@ class LearnView(LoginRequiredMixin, View):
         cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            if eval_answer(cleaned_answer, cleaned_test_phrase) > response_score:
-                print("\nAnswer:", user_answer, "Phrase:", translation.translation)
-                response_score = eval_answer(cleaned_answer, cleaned_test_phrase)
+            translation_score= eval_answer(cleaned_answer, cleaned_test_phrase)
+            if translation_score > response_score:
+                print("\nAnswer:", user_answer, "Phrase:", translation.translation, "Score:", translation_score)
+                response_score = translation_score
                 feedback_html = phrase_feedback(user_answer, translation.translation, response_score)
         print(feedback_html)
         print("Response score:", response_score)
