@@ -14,7 +14,7 @@ from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm #, PhraseStrengthForm
 
 
-# Two funcitons grade user answer comapred to actual phrase
+# Grade user answer
 def grade_answer(answer, phrase):
     phrase_len = len(phrase)
     answer_len = len(answer)
