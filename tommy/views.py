@@ -38,7 +38,7 @@ def grade_answer(answer, phrase):
 
 # Evaluates a single word to support the eval_phrase() funciton
 def eval_word(ans_word, phr_word):
-    print("using eval_word() func")
+    print("using eval_word() func: ", end="")
     correct_count, error_count, ans_length, phr_length = 0, 0, len(ans_word), len(phr_word)
     length = (phr_length, 'phr') if phr_length <= ans_length else (ans_length, 'ans')
     for i in range(length[0]):
@@ -50,6 +50,7 @@ def eval_word(ans_word, phr_word):
     error_count += length_difference
     accuracy = ( correct_count / ( length[0] + length_difference ) ) * 100
     return accuracy, error_count
+
 
 """# Evaluaes a single word to support the eval_phrase() funciton
 def eval_word(ans_word, phr_word):
@@ -84,19 +85,20 @@ def eval_word(ans_word, phr_word):
 
 # Grades the user answer by comparing it to translation phrase
 def eval_phrase(answer, phrase):
-    print("\nIn eval func:\nAnswer:", answer, "\nphrase:", phrase)
+    print("\nIn eval func: ", end="") # \nAnswer:", answer, "\nphrase:", phrase)
     answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
-    print("answer_str:", answer_str, "\nphrase_str", phrase_str)
+    # print("answer_str:", answer_str, "\nphrase_str", phrase_str)
+    answer_words, phrase_words = answer_str.split(), phrase_str.split()
+    # print("phrase_words", phrase_words, "\nanswer_words", answer_words)
     answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
-    print("answer_str:", answer_str, "\nphrase_str", phrase_str)
-    phrase_words, answer_words = phrase.split(), answer.split()
-    print("phrase_words", phrase_words, "\nanswer_words", answer_words)
+    # print("answer_str:", answer_str, "\nphrase_str", phrase_str)
     phrase_length, answer_length = len(phrase_words), len(answer_words)
     error_count, total_score = 0, 0
 
     # Case: Exact same string gets full mark
     if answer_str == phrase_str:
+        print("answer and phrase have same string after punctuation and spaces are removed")
         return 100, error_count
     
     # One word phrase is evaluated for spelling errors and additional words
@@ -106,13 +108,16 @@ def eval_phrase(answer, phrase):
         else:
             print("one word in phrase but more in answer")
             factor = 1.7 / answer_length
+            word_accuracy = None
             for word in answer_words:
-                if phrase_length >= answer_length:
-                    word_accuracy, word_errors = eval_word(word, phrase)
-                    error_count = word_errors + ( len(answer_str) - ( len(phrase_str) - len(word) ) )
-                    return word_accuracy * factor, error_count
-                else:
-                    return -1, len(answer_str)
+                word_accuracy, word_errors = eval_word(word, phrase)
+            if word_accuracy == 100:
+                print("one word is right")
+                error_count = word_errors + ( len(answer_str) - ( len(phrase_str) - len(word) ) )
+                return word_accuracy * factor, error_count
+            else:
+                print("no words are right")
+                return 0, len(answer_str)
 
     # Multiple word phrase evaluates accuracy of phrases separately
     else:
@@ -236,37 +241,43 @@ def eval_answer(answer, phrase):
     return avg_accuracy
 
 
-def feedback(answer, phrase, errors):
+def feedback(answer, phrase, errors, score):
     answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
     answer_words, phrase_words = answer.split(), unidecode(phrase_str).split()
     answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
-    if not errors:
+    if not errors or score == 100:
+        print("Feedback: no errors except unnecessary spaces or punctuation")
         return f'<span class="text-success">{answer}</span>'
-    elif errors > 3:
+    elif errors > 3 or score < 70:
+        print(f"Feedback: more than three errors or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
     elif errors == 1 and len(answer) == len(phrase):
+        print("Feedback: one error and same number of words")
         for i in range(len(answer)):
             if unidecode(answer[i].lower()) != unidecode(phrase[i].lower()):
                 html += f'<span class="text-danger">{answer[i]}</span>'
             else:
                 html += answer[i]
     else:
+        print(f"Feedback: two to three errors and score 70% or above")
         if answer_length >= phrase_length:
+            print("two to three errors and more answer words than phrase words")
             for word in answer_words:
                 if unidecode(word.lower().translate(str.maketrans("", "", string.punctuation))) not in phrase_words:
                     html += f'<span class="text-danger">{word}</span> '
                 else:
                     html += f'{word} '
         else:
-            for word in phrase_words:
-                for i in range(phrase_length):
-                    if word != unidecode(answer_words[i].translate(str.maketrans("", "", string.punctuation))):
-                        html += f'<span class="text-danger">{answer_words[i]}</span> '
-                    else:
-                        html += f'{answer_words[i]} '
+            print("two or three errors and less or equal words in answer as in phrase")
+            for i in range(answer_length):
+                if phrase_words[i] != unidecode(answer_words[i].translate(str.maketrans("", "", string.punctuation))):
+                    html += f'<span class="text-danger">{answer_words[i]}</span> '
+                else:
+                    html += f'{answer_words[i]} '
+                    
     return html + '\b</span>'
 
 
@@ -603,18 +614,17 @@ class LearnView(LoginRequiredMixin, View):
         response_score = -1
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
-        print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
+        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
+            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score = translation_score
-                # TODO replace phrase feedback to add error count for better feedback string
-                feedback_html = feedback(user_answer, translation.translation, error_count)
+        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
         print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
-        # print(feedback_html)
+        print(feedback_html)
         translation_length = len(cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation)))
         print("Translation length:", translation_length)
         if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
