@@ -108,8 +108,8 @@ def eval_phrase(answer, phrase):
                     if word not in phrase_words:
                         error_count += len(word)
                 accuracy = (correct_words / phrase_length) * factor * 100
-                print("Error count:", error_count, "Accuracy:", accuracy)
-                return accuracy, error_count
+                print("Error count:", error_count / 2, "Accuracy:", accuracy)
+                return accuracy, error_count / 2
 
 
 def feedback(answer, phrase, errors, score):
@@ -126,7 +126,7 @@ def feedback(answer, phrase, errors, score):
         print(f"Feedback: more than three errors or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
     elif errors == 1 and len(answer) == len(phrase):
-        print("Feedback: one error and same number of words")
+        print("Feedback: one error and same length for answer and translation")
         for i in range(len(answer)):
             if unidecode(answer[i].lower()) != unidecode(phrase[i].lower()):
                 html += f'<span class="text-danger">{answer[i]}</span>'
@@ -135,20 +135,58 @@ def feedback(answer, phrase, errors, score):
     else:
         print(f"Feedback: two to three errors and score 70% or above")
         if answer_length >= phrase_length:
-            print("two to three errors and more answer words than phrase words")
+            print("two to three errors and more or equal answer and phrase words")
             for word in answer_words:
                 if unidecode(word.lower().translate(str.maketrans("", "", string.punctuation))) not in phrase_words:
                     html += f'<span class="text-danger">{word}</span> '
                 else:
                     html += f'{word} '
         else:
-            print("two or three errors and less or equal words in answer as in phrase")
+            print("two or three errors and less words in answer than phrase")
             for i in range(answer_length):
                 if phrase_words[i] != unidecode(answer_words[i].translate(str.maketrans("", "", string.punctuation))):
                     html += f'<span class="text-danger">{answer_words[i]}</span> '
                 else:
                     html += f'{answer_words[i]} '
-                    
+    return html + '\b</span>'
+
+
+def accent_feedback(answer, phrase, errors, score):
+    answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
+    phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
+    answer_words, phrase_words = answer.split(), phrase_str.split()
+    answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
+    answer_length, phrase_length = len(answer_words), len(phrase_words)
+    html = '<span class="text-success">'
+    if not errors or score == 100:
+        print("Feedback: no errors except possibly unnecessary spaces or punctuation")
+        return f'<span class="text-success">{answer}</span>'
+    elif errors > 3 or score < 70:
+        print(f"Feedback: more than three errors or accuracy below 70%")
+        return f'<span class="text-danger">{answer}</span>'
+    elif errors == 1 and len(answer) == len(phrase):
+        print("Feedback: one error and same length for answer and translation")
+        for i in range(len(answer)):
+            if answer[i].lower() != phrase[i].lower():
+                html += f'<span class="text-danger">{answer[i]}</span>'
+            else:
+                html += answer[i]
+    else:
+        print(f"Feedback: two to three errors and score 70% or above")
+        if answer_length >= phrase_length:
+            print("two to three errors and more or equal answer and phrase words")
+            for word in answer_words:
+                if word.lower().translate(str.maketrans("", "", string.punctuation)) not in phrase_words:
+                    html += f'<span class="text-danger">{word}</span> '
+                else:
+                    html += f'{word} '
+        else:
+            print("two or three errors and less words in answer than phrase")
+            for i in range(answer_length):
+                if phrase_words[i] != answer_words[i].translate(str.maketrans("", "", string.punctuation)):
+                    html += f'<span class="text-danger">{answer_words[i]}</span> '
+                else:
+                    html += f'{answer_words[i]} '
     return html + '\b</span>'
 
 
@@ -734,7 +772,7 @@ class AccentView(LoginRequiredMixin, View):
         for translation in translations:
             response_score, error_count = eval_phrase(user_answer.lower(), translation.translation.lower())
             if user_answer.lower() == translation.translation.lower():
-                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
@@ -742,7 +780,7 @@ class AccentView(LoginRequiredMixin, View):
                 response_accuracy = True
                 break
         if not feedback_html:
-            feedback_html = feedback(user_answer, translations[0].translation, error_count, response_score)
+            feedback_html = accent_feedback(user_answer, translations[0].translation, error_count, response_score)
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
