@@ -96,7 +96,7 @@ def eval_phrase(answer, phrase):
                 return accuracy, error_count
             else:
                 print("answer string not found in the translation")
-                factor = ( ( phrase_length - abs( answer_length - phrase_length) ) / phrase_length )
+                factor = ( ( phrase_length - abs( answer_length - phrase_length ) ) / phrase_length )
                 correct_words = 0
                 # Counts too many errors - consider revision
                 for word in phrase_words:
@@ -152,14 +152,11 @@ def feedback(answer, phrase, errors, score):
 
 
 def accent_feedback(answer, phrase, errors, score):
-    answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
-    phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
-    answer_words, phrase_words = answer.split(), phrase_str.split()
-    answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
+    answer_words, phrase_words = answer.split(), answer.split()
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
     if not errors or score == 100:
-        print("Feedback: no errors except possibly unnecessary spaces or punctuation")
+        print("Feedback: no errors")
         return f'<span class="text-success">{answer}</span>'
     elif errors > 3 or score < 70:
         print(f"Feedback: more than three errors or accuracy below 70%")
