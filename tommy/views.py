@@ -27,6 +27,7 @@ def eval_word(ans_word, phr_word):
     length_difference = abs(ans_length - phr_length)
     error_count += length_difference
     accuracy = ( correct_count / ( length[0] + length_difference ) ) * 100
+    print("Accuracy:", accuracy, "Errors:", error_count)
     return accuracy, error_count
 
 
@@ -41,12 +42,14 @@ def eval_phrase(answer, phrase):
     answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
     # print("answer_str:", answer_str, "\nphrase_str", phrase_str)
     phrase_length, answer_length = len(phrase_words), len(answer_words)
-    error_count, total_score = 0, 0
+    phr_len, ans_len = len(phrase_str), len(answer_str)
+    error_count, total_score, FULL_SCORE, FAIL = 0, 0, 100, 0
 
     # Case: Exact same string gets full mark
     if answer_str == phrase_str:
         print("answer and phrase have same string after punctuation and spaces are removed")
-        return 100, error_count
+        print("Error count:", error_count, "Accuracy:", FULL_SCORE)
+        return FULL_SCORE, error_count
     
     # One word phrase is evaluated for spelling errors and additional words
     elif phrase_length == 1:
@@ -55,16 +58,16 @@ def eval_phrase(answer, phrase):
         else:
             print("one word in phrase but more in answer")
             factor = 1.7 / answer_length
-            word_accuracy = None
             for word in answer_words:
                 word_accuracy, word_errors = eval_word(word, phrase)
-            if word_accuracy == 100:
-                print("one word is right")
-                error_count = word_errors + ( len(answer_str) - ( len(phrase_str) - len(word) ) )
-                return word_accuracy * factor, error_count
-            else:
-                print("no words are right")
-                return 0, len(answer_str)
+                if word_accuracy == FULL_SCORE:
+                    print("one word is right")
+                    error_count = word_errors + ( ans_len - ( phr_len - len(word) ) )
+                    print("Error count:", error_count, "Accuracy:", accuracy)
+                    return word_accuracy * factor, error_count
+            print("no words are right")
+            print("Error count:", ans_len, "Accuracy:", FAIL)
+            return FAIL, ans_len
 
     # Multiple word phrase evaluates accuracy of phrases separately
     else:
@@ -74,25 +77,28 @@ def eval_phrase(answer, phrase):
             print("same number of words in phrase and answer")
             for i in range(phrase_length):
                 if answer_words[i] == phrase_words[i]:
-                    total_score += 100
+                    total_score += FULL_SCORE
                 else:
                     word_score, word_errors = eval_word(answer_words[i], phrase_words[i])
                     total_score += word_score
                     error_count += word_errors
+            print("Error count:", error_count, "Accuracy:", (total_score / phrase_length))
             return (total_score / phrase_length), error_count
         # Otherwise search for the words in the full string
         else:
             print("different number of words in phrase and answer")
             if phrase_str in answer_str:
-                print("phrase in answer string")
-                accuracy = (len(phrase_str) - abs(len(phrase_str) - len(answer_str)) ) / len(phrase_str) * 100
-                print("phrase in answer accuracy", accuracy)
-                error_count += abs(len(phrase_str) - len(answer_str))
+                # May result in negative score - OK but can be imporved
+                accuracy = ( phr_len - abs( phr_len - ans_len ) ) / phr_len * 100
+                print("full answer found in translation / Accuracy score:", accuracy, end="")
+                error_count += abs(phr_len - ans_len)
+                print("Error count:", error_count, "Accuracy:", accuracy)
                 return accuracy, error_count
             else:
-                print("phrase string not found in answer string")
-                factor = ((phrase_length - abs(answer_length - phrase_length)) / phrase_length)
+                print("answer string not found in the translation")
+                factor = ( ( phrase_length - abs( answer_length - phrase_length) ) / phrase_length )
                 correct_words = 0
+                # Counts too many errors - consider revision
                 for word in phrase_words:
                     if word in answer_words:
                         correct_words += 1
@@ -102,6 +108,7 @@ def eval_phrase(answer, phrase):
                     if word not in phrase_words:
                         error_count += len(word)
                 accuracy = (correct_words / phrase_length) * factor * 100
+                print("Error count:", error_count, "Accuracy:", accuracy)
                 return accuracy, error_count
 
 
@@ -113,7 +120,7 @@ def feedback(answer, phrase, errors, score):
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
     if not errors or score == 100:
-        print("Feedback: no errors except unnecessary spaces or punctuation")
+        print("Feedback: no errors except possibly unnecessary spaces or punctuation")
         return f'<span class="text-success">{answer}</span>'
     elif errors > 3 or score < 70:
         print(f"Feedback: more than three errors or accuracy below 70%")
@@ -451,7 +458,9 @@ class LearnView(LoginRequiredMixin, View):
         feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
         print(feedback_html)
-        translation_length = len(cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation)))
+        translation_length = len(
+            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+        )
         print("Translation length:", translation_length, "Score:", response_score)
         if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
             testing_phrase.correct = 1
@@ -534,17 +543,25 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        respone_accuracy = False
+        response_accuracy = False
+        response_score = -1
+        feedback_html = ""
+        cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
-            cleaned_answer = unidecode(user_answer.lower())
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            if grade_answer(cleaned_answer, cleaned_test_phrase):
-                testing_phrase.correct += 1
-                # Add XP points to user profile
-                profile.xp += 5
-                profile.save()
-                respone_accuracy = True
-                break
+            translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            if translation_score > response_score:
+                response_score = translation_score
+        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+        translation_length = len(
+            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+        )
+        if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
+            testing_phrase.correct += 1
+            # Add XP points to user profile
+            profile.xp += 5
+            profile.save()
+            response_accuracy = True
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -552,9 +569,10 @@ class PracticeView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
-        request.session['respone_accuracy'] = respone_accuracy
+        request.session['respone_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:practice'
         request.session['phrase_language'] = phrase.language
+        request.session['feedback_html'] = feedback_html
         return redirect(success_url)
 
 
@@ -614,21 +632,29 @@ class ReviewView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
 
         # Prepare user's answer before testing and don't grade accent
-        user_answer = unidecode(form.cleaned_data['answer'].strip())
+        user_answer = form.cleaned_data['answer'].strip()
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         response_accuracy = False
+        response_score = -1
+        feedback_html = ""
+        cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
-            cleaned_answer = unidecode(user_answer.lower())
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            if grade_answer(cleaned_answer, cleaned_test_phrase):
-                testing_phrase.correct += 1
-                # Add XP points to user profile
-                profile.xp += 5
-                profile.save()
-                response_accuracy = True
-                break
+            translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            if translation_score > response_score:
+                response_score = translation_score
+        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+        translation_length = len(
+            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+        )
+        if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
+            testing_phrase.correct += 1
+            # Add XP points to user profile
+            profile.xp += 5
+            profile.save()
+            response_accuracy = True
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -639,6 +665,7 @@ class ReviewView(LoginRequiredMixin, View):
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:review'
         request.session['phrase_language'] = phrase.language
+        request.session['feedback_html'] = feedback_html
         return redirect(success_url)
 
 
@@ -703,14 +730,19 @@ class AccentView(LoginRequiredMixin, View):
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         response_accuracy = False
+        feedback_html = ""
         for translation in translations:
+            response_score, error_count = eval_phrase(user_answer.lower(), translation.translation.lower())
             if user_answer.lower() == translation.translation.lower():
+                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
                 response_accuracy = True
                 break
+        if not feedback_html:
+            feedback_html = feedback(user_answer, translations[0].translation, error_count, response_score)
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
@@ -721,6 +753,7 @@ class AccentView(LoginRequiredMixin, View):
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:accent'
         request.session['phrase_language'] = phrase.language
+        request.session['feedback_html'] = feedback_html
         return redirect(success_url)
 
 
