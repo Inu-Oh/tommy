@@ -215,6 +215,8 @@ class Home(LoginRequiredMixin, TemplateView):
             del request.session['user_answer']
             del request.session['testing_view']
             del request.session['respone_accuracy']
+            del request.session['phrase_language']
+            del request.session['feedback_html']
         except:
             pass
         
@@ -422,6 +424,18 @@ class LearnView(LoginRequiredMixin, View):
     template_name = 'tommy/learn.html'
 
     def get(self, request, pk):
+        # Delete session data for previous testing phrase if it exists
+        if request.session.get('testing_phrase'):
+            try:
+                print("Deleting session data from previous testing phrase")
+                del request.session['testing_phrase']
+                del request.session['user_answer']
+                del request.session['respone_accuracy']
+                del request.session['phrase_language']
+                del request.session['feedback_html']
+            except:
+                print("There was an error deleting session data. Do you want to do sm about it?")
+
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         module = Module.objects.get(id=pk)
@@ -536,13 +550,17 @@ class PracticeView(LoginRequiredMixin, View):
                 return redirect(finished_exercise_url)
         except: # if test count doesn't exist initiate it
             request.session['test_count'] = 0
+        # Delete session data for previous testing phrase if it exists
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase")
-            del request.session['testing_phrase']
-            del request.session['user_answer']
-            del request.session['respone_accuracy']
-            del request.session['phrase_language']
-            del request.session['feedback_html']
+            try:
+                print("Deleting session data from previous testing phrase")
+                del request.session['testing_phrase']
+                del request.session['user_answer']
+                del request.session['respone_accuracy']
+                del request.session['phrase_language']
+                del request.session['feedback_html']
+            except:
+                print("There was an error deleting session data. Do you want to do sm about it?")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -644,6 +662,17 @@ class ReviewView(LoginRequiredMixin, View):
                 return redirect(finished_exercise_url)
         except: # if test count doesn't exist initiate it
             request.session['test_count'] = 0
+        # Delete session data for previous testing phrase if it exists
+        if request.session.get('testing_phrase'):
+            try:
+                print("Deleting session data from previous testing phrase")
+                del request.session['testing_phrase']
+                del request.session['user_answer']
+                del request.session['respone_accuracy']
+                del request.session['phrase_language']
+                del request.session['feedback_html']
+            except:
+                print("There was an error deleting session data. Do you want to do sm about it?")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -743,6 +772,17 @@ class AccentView(LoginRequiredMixin, View):
                 return redirect(finished_exercise_url)
         except: # if test count doesn't exist initiate it
             request.session['test_count'] = 0
+        # Delete session data for previous testing phrase if it exists
+        if request.session.get('testing_phrase'):
+            try:
+                print("Deleting session data from previous testing phrase")
+                del request.session['testing_phrase']
+                del request.session['user_answer']
+                del request.session['respone_accuracy']
+                del request.session['phrase_language']
+                del request.session['feedback_html']
+            except:
+                print("There was an error deleting session data. Do you want to do sm about it?")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
