@@ -536,6 +536,13 @@ class PracticeView(LoginRequiredMixin, View):
                 return redirect(finished_exercise_url)
         except: # if test count doesn't exist initiate it
             request.session['test_count'] = 0
+        if request.session.get('testing_phrase'):
+            print("Deleting session data from previous testing phrase")
+            del request.session['testing_phrase']
+            del request.session['user_answer']
+            del request.session['respone_accuracy']
+            del request.session['phrase_language']
+            del request.session['feedback_html']
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -581,7 +588,6 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        response_accuracy = False
         response_score = -1
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
@@ -600,12 +606,15 @@ class PracticeView(LoginRequiredMixin, View):
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         print("Translation length:", translation_length, "Score:", response_score)
-        if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
+        print("Condition passed ?", (translation_length < 10 and response_score >= 85) or response_score > 90)
+        if (translation_length < 10 and response_score >= 85) or response_score > 90:
             testing_phrase.correct += 1
+            response_accuracy = True
             # Add XP points to user profile
             profile.xp += 5
             profile.save()
-            response_accuracy = True
+        else:
+            response_accuracy = False
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
