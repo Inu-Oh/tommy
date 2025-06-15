@@ -622,7 +622,7 @@ class PracticeView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
-        request.session['respone_accuracy'] = response_accuracy
+        request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:practice'
         request.session['phrase_language'] = phrase.language
         request.session['feedback_html'] = feedback_html
