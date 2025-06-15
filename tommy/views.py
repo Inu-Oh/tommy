@@ -71,12 +71,13 @@ def eval_phrase(answer, phrase):
 
     # Multiple word phrase evaluates accuracy of phrases separately
     else:
-        print("multiple words in phrases")
+        print("multiple words in phrase")
         # If the number of words is the same compare the words
         if answer_length == phrase_length:
             print("same number of words in phrase and answer")
             for i in range(phrase_length):
                 if answer_words[i] == phrase_words[i]:
+                    print("Full word score")
                     total_score += FULL_SCORE
                 else:
                     word_score, word_errors = eval_word(answer_words[i], phrase_words[i])
@@ -101,8 +102,10 @@ def eval_phrase(answer, phrase):
                 # Counts too many errors - consider revision
                 for word in phrase_words:
                     if word in answer_words:
+                        print("one word correct ", end="")
                         correct_words += 1
                     else:
+                        print("one word wrong; ", end="")
                         error_count += len(word)
                 for word in answer_words:
                     if word not in phrase_words:
@@ -133,7 +136,7 @@ def feedback(answer, phrase, errors, score):
             else:
                 html += answer[i]
     else:
-        print(f"Feedback: two to three errors and score 70% or above")
+        print(f"Feedback: less than four errors and score 70% or above")
         if answer_length >= phrase_length:
             print("two to three errors and more or equal answer and phrase words")
             for word in answer_words:
@@ -156,20 +159,20 @@ def accent_feedback(answer, phrase, errors, score):
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
     if not errors or score == 100:
-        print("Feedback: no errors")
+        print("AccentFeedback: no errors")
         return f'<span class="text-success">{answer}</span>'
     elif errors > 3 or score < 70:
-        print(f"Feedback: more than three errors or accuracy below 70%")
+        print(f"AccentFeedback: more than three errors or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
     elif errors == 1 and len(answer) == len(phrase):
-        print("Feedback: one error and same length for answer and translation")
+        print("AccentFeedback: one error and same length for answer and translation")
         for i in range(len(answer)):
             if answer[i].lower() != phrase[i].lower():
                 html += f'<span class="text-danger">{answer[i]}</span>'
             else:
                 html += answer[i]
     else:
-        print(f"Feedback: two to three errors and score 70% or above")
+        print(f"AccentFeedback: less than three errors and score 70% or above")
         if answer_length >= phrase_length:
             print("two to three errors and more or equal answer and phrase words")
             for word in answer_words:
@@ -582,15 +585,21 @@ class PracticeView(LoginRequiredMixin, View):
         response_score = -1
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
+        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
+            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score = translation_score
         feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+        # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
+        print(feedback_html)
         translation_length = len(
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
+        print("Translation length:", translation_length, "Score:", response_score)
         if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
             testing_phrase.correct += 1
             # Add XP points to user profile
@@ -675,15 +684,21 @@ class ReviewView(LoginRequiredMixin, View):
         response_score = -1
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
+        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
+            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score = translation_score
         feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+        # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
+        print(feedback_html)
         translation_length = len(
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
+        print("Translation length:", translation_length, "Score:", response_score)
         if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
             testing_phrase.correct += 1
             # Add XP points to user profile
