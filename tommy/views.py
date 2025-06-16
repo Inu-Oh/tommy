@@ -18,15 +18,15 @@ from .forms import ProfileForm, TestForm #, PhraseStrengthForm
 def eval_word(ans_word, phr_word):
     print("using eval_word() func: ", end="")
     correct_count, error_count, ans_length, phr_length = 0, 0, len(ans_word), len(phr_word)
-    length = (phr_length, 'phr') if phr_length <= ans_length else (ans_length, 'ans')
-    for i in range(length[0]):
+    length = phr_length if phr_length <= ans_length else ans_length
+    for i in range(length):
         if phr_word[i] == ans_word[i]:
             correct_count += 1
         else:
             error_count += 1
     length_difference = abs(ans_length - phr_length)
     error_count += length_difference
-    accuracy = ( correct_count / ( length[0] + length_difference ) ) * 100
+    accuracy = ( correct_count / ( length + length_difference ) ) * 100
     print("Accuracy:", accuracy, "Errors:", error_count)
     return accuracy, error_count
 
