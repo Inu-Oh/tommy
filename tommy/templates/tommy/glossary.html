@@ -81,7 +81,11 @@
 
 {% block footer %}
 <div class="container p-4 fs-5">
-    <p>You learned to translate {{ strength_data.learned }} French and English phrases and 
-        achieved an average score of {{ strength_data.average }}%.</p>
+    {% if strength_data.learned > 0 %}
+        <p>You learned to translate {{ strength_data.learned }} French and English phrases and 
+            achieved an average score of {{ strength_data.average }}%.</p>
+    {% else %}
+            <p>Start learning. Choose a module above or click on Learn in the Home Menu.</p>
+    {% endif %}
 </div>
 {% endblock footer %}

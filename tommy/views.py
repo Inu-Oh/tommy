@@ -345,7 +345,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
         # Create list of dicts for faster data access and search
-        phrase_data, total_strength, total_learned, strength_count = [], 0, 0, 0
+        phrase_data = []
         strength_data = { 'learned': 0, 'total': 0 }
         for phrase in phrases:
             item = {}
@@ -368,7 +368,10 @@ class GlossaryView(LoginRequiredMixin, ListView):
             if user_strength.learned:
                 strength_data['learned'] += 1
                 strength_data['total'] += user_strength.strength
-        strength_data['average'] = round(strength_data['total'] / strength_data['learned'])
+        if learned_phrase_count > 0:
+            strength_data['average'] = round(strength_data['total'] / strength_data['learned'])
+        else:
+            strength_data['average'] = None
 
         # Search result implemention for search bar
         search = request.GET.get("search", False)
