@@ -479,11 +479,22 @@ class LearnView(LoginRequiredMixin, View):
             translation_langauge = translations[0].language
             phrase_language = "French" if translation_langauge == "English" else "English"
             phrase = phrases.get(phrase=testing_phrase.phrase, language=phrase_language)
+
+            # Module progress
+            module_phrase_count = phrases.count()
+            learned_count = UserPhraseStrength.objects.filter(
+                learned=True,
+                user=request.user,
+                phrase__in=phrases
+            ).count()
+            module_progress = round( (learned_count / module_phrase_count) * 100 )
+
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
                 'testing_phrase': testing_phrase, # Phrase strength object
+                'module_progress': module_progress
             }
             return render(request, self.template_name, context)
         except: # If no unlearned phrase is found, redirect to home page
@@ -938,6 +949,20 @@ class FeedbackView(LoginRequiredMixin, View):
         testing_view = request.session.get('testing_view')
         feedback_html = request.session.get('feedback_html')
 
+        # Module progress - for learn view only
+        if module_id := request.session.get('module_id'):
+            module = Module.objects.get(id=module_id)
+            module_phrases = Phrase.objects.filter(module=module)
+            module_phrase_count = module_phrases.count()
+            user_learned_count = UserPhraseStrength.objects.filter(
+                learned=True,
+                user=request.user,
+                phrase__in=module_phrases
+            ).count()
+            module_progress = round( (user_learned_count / module_phrase_count) * 100 )
+        else:
+            module_progress = None
+
         if response_accuracy:
             correct = [
                 "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
@@ -964,7 +989,8 @@ class FeedbackView(LoginRequiredMixin, View):
             'testing_view': testing_view,
             'result': result,
             'module_id': module_id,
-            'feedback_html': feedback_html
+            'feedback_html': feedback_html,
+            'module_progress': module_progress
         }
         # Retrieve and pass on test count for the current exercise session
         return render(request, self.template_name, context)

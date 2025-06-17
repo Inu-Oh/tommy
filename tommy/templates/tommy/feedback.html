@@ -5,6 +5,16 @@
 <div class="nonav px-3 my-3 navbar rounded-3 shadow-sm">
     <div class="container-fluid">
         <p class="fs-4 ps-3 fw-bolder">{{ profile.name }}</p>
+        {% if module_progress %}
+            <div style="width:39%" class="pb-2">
+                <label for="prog-bar">Module progress</label>
+                <div class="progress" id="prog-bar" style="width: 100%; height: 25px;">
+                    <div class="progress-bar progress-bar-striped bg-danger fw-bold fs-6"
+                        role="progressbar" style="width: {{ module_progress }}%;"
+                        aria-valuenow="{{ module_progress }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ module_progress }}%</div>
+            </div></div>
+        {% endif %}
         <p class="text-end p-2 fs-4">
             <span class="badge bg-success px-3">
             XP {{ profile.xp|intcomma }}</span></p> 
@@ -18,11 +28,6 @@
     <p class="p-3 fs-3">
         {{ result }} 
     </p>
-    <p class="text-success p-3 fs-3 fw-bold">
-        {% if response_accuracy == True %}
-        +5 XP
-        {% endif %}
-    </p>
 </div>
 {% endblock header %}
 
@@ -32,21 +37,18 @@
     {% if not testing_phrase %}
     Error with feedback on testing phrase
     {% else %}
-    
-        <div class="ps-5 col-5 text-start">
-            <p class="fs-3 lh-sm">
-                <span class="fs-6 text-muted">Test phrase</span><br>
-                {{ testing_phrase.phrase }}</p>
+        <div class="ps-4 col-5 text-start">   
+            <p class="fs-6 text-muted mb-1">Test phrase</p>
+            <p class="fs-3 lh-sm">{{ testing_phrase.phrase }}</p>
         </div>
         <div class="ps-5 col-7 text-start">
-            <p class="fs-3 lh-sm">
-                <span class="fs-6 text-muted">
-                    {% if translations|length == 1 %}
-                    Translation{% else %}
-                    Translations{% endif %}</span><br>
-                {% for translation in translations %}
-                {{ translation.translation }}&nbsp;<br>
-                {% endfor %}</p>
+            <p class="fs-6 text-muted mb-0">
+                {% if translations|length == 1 %}
+                Translation{% else %}
+                Translations{% endif %}</p>
+            {% for translation in translations %}
+                <p class="fs-4 lh-sm mb-1">{{ translation.translation }}&nbsp;</p>
+            {% endfor %}
         </div>
     {% endif %}
 </div>
@@ -54,12 +56,13 @@
 
 
 {% block footer %}
-    <div class="px-5 container-fluid d-flex justify-content-between">
+<div class="row ps-4 container-fluid d-flex justify content between">
+    <div class="col-6">
         <p class="fs-3 lh-sm text-dark text-start">
             <span class="fs-6 text-muted">Your answer</span><br>
-             <span class="fw-bold">
+                <span class="fw-bold">
             {% if feedback_html %}
-               {{ feedback_html|safe }}
+                {{ feedback_html|safe }}
             {% else %}
                 {% if response_accuracy == True %}
                     <span class="text-success fw-bold">{{ user_answer }}
@@ -67,15 +70,23 @@
                     <span class="text-danger fw-bold">{{ user_answer }}
                 {% endif %}
             {% endif %}
-            </span></p>
-    {% if testing_view == 'tommy:learn' %}
-        <p><a href="{% url testing_view module_id %}" autofocus
-            class="btn btn-lg btn-primary mt-3">Next test question</a></p>
+        </span></p>
+    </div>
+    <div class="col-2">
+        <p class="text-success pt-4 fs-2 fw-bold">
+            {% if response_accuracy == True %}
+            +5 XP
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-4 text-end">
+        {% if testing_view == 'tommy:learn' %}
+            <p><a href="{% url testing_view module_id %}" autofocus
+                class="btn btn-lg btn-primary mt-3">Next test question</a></p>
+        {% else %}
+            <p><a href="{% url testing_view %}" autofocus
+                class="btn btn-lg btn-primary mt-3">Next test question</a></p>
+        {% endif %}
         </div>
-    {% else %}
-        <p><a href="{% url testing_view %}" autofocus
-            class="btn btn-lg btn-primary mt-3">Next test question</a></p>
-        </div>
-    {% endif %}
-
+</div>
 {% endblock footer %}
