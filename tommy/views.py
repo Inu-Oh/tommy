@@ -138,7 +138,7 @@ def feedback(answer, phrase, errors, score):
     else:
         print(f"Feedback: less than four errors and score 70% or above")
         if answer_length >= phrase_length:
-            print("two to three errors and more or equal answer and phrase words")
+            print("more or equal answer and phrase words")
             for word in answer_words:
                 if unidecode(word.lower().translate(str.maketrans("", "", string.punctuation))) not in phrase_words:
                     html += f'<span class="text-danger">{word}</span> '
@@ -172,18 +172,18 @@ def accent_feedback(answer, phrase, errors, score):
             else:
                 html += answer[i]
     else:
-        print(f"AccentFeedback: less than three errors and score 70% or above")
+        print(f"AccentFeedback: three or less errors and score 70% or above")
         if answer_length >= phrase_length:
-            print("two to three errors and more or equal answer and phrase words")
+            print("more or equal answer and phrase words")
             for word in answer_words:
-                if word.lower().translate(str.maketrans("", "", string.punctuation)) not in phrase_words:
+                if word not in phrase_words:
                     html += f'<span class="text-danger">{word}</span> '
                 else:
                     html += f'{word} '
         else:
             print("two or three errors and less words in answer than phrase")
             for i in range(answer_length):
-                if phrase_words[i] != answer_words[i].translate(str.maketrans("", "", string.punctuation)):
+                if phrase_words[i] != answer_words[i]:
                     html += f'<span class="text-danger">{answer_words[i]}</span> '
                 else:
                     html += f'{answer_words[i]} '
@@ -906,6 +906,7 @@ class AccentView(LoginRequiredMixin, View):
         response_accuracy = False
         feedback_html = ""
         for translation in translations:
+            print("User input:", user_answer, "Translation:", translation.translation)
             response_score, error_count = eval_phrase(user_answer.lower(), translation.translation.lower())
             if user_answer.lower() == translation.translation.lower():
                 feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
@@ -917,6 +918,7 @@ class AccentView(LoginRequiredMixin, View):
                 break
         if not feedback_html:
             feedback_html = accent_feedback(user_answer, translations[0].translation, error_count, response_score)
+        
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
