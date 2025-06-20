@@ -155,7 +155,10 @@ def feedback(answer, phrase, errors, score):
 
 
 def accent_feedback(answer, phrase, errors, score):
-    answer_words, phrase_words = answer.split(), answer.split()
+    answer_words, phrase_words = answer.split(), phrase.split()
+    answer_words = [answer_words] if isinstance(answer_words, str) else answer_words
+    phrase_words = [phrase_words] if isinstance(phrase_words, str) else phrase_words
+    print(answer_words, len(answer_words), phrase_words, len(phrase_words))
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
     if not errors or score == 100:
@@ -906,9 +909,9 @@ class AccentView(LoginRequiredMixin, View):
         response_accuracy = False
         feedback_html = ""
         for translation in translations:
-            print("User input:", user_answer, "Translation:", translation.translation)
+            print("User input:", user_answer, "\nTranslation:", translation.translation)
             response_score, error_count = eval_phrase(user_answer.lower(), translation.translation.lower())
-            if user_answer.lower() == translation.translation.lower():
+            if user_answer == translation.translation:
                 feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
