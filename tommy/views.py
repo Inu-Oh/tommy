@@ -27,7 +27,7 @@ def eval_word(ans_word, phr_word):
     length_difference = abs(ans_length - phr_length)
     error_count += length_difference
     accuracy = ( correct_count / ( length + length_difference ) ) * 100
-    print("Accuracy:", accuracy, "Errors:", error_count)
+    print("Accuracy:", accuracy, "Errors:", error_count, "Word length differende,", length_difference)
     return accuracy, error_count
 
 
@@ -158,10 +158,9 @@ def accent_feedback(answer, phrase, errors, score):
     answer_words, phrase_words = answer.split(), phrase.split()
     answer_words = [answer_words] if isinstance(answer_words, str) else answer_words
     phrase_words = [phrase_words] if isinstance(phrase_words, str) else phrase_words
-    print(answer_words, len(answer_words), phrase_words, len(phrase_words))
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
-    if not errors or score == 100:
+    if (not errors or score == 100) and answer == phrase:
         print("AccentFeedback: no errors")
         return f'<span class="text-success">{answer}</span>'
     elif errors > 3 or score < 70:
