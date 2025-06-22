@@ -182,11 +182,11 @@ def accent_feedback(answer, phrase, errors, score):
             print("more or equal answer and phrase words")
             index = 0
             for word in answer_words:
-                index += 1
                 if word not in phrase_words:
                     html += f'<span class="text-danger">{ans_feedback[index]}</span> '
                 else:
                     html += f'{ans_feedback[index]} '
+                index += 1
         else:
             print("two or three errors and less words in answer than phrase")
             for i in range(answer_length):
@@ -535,8 +535,22 @@ class LearnView(LoginRequiredMixin, View):
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
 
-        # Prepare user's answer and don't grade accent before testing
+        # Validate and clean user's answer - accent will not be graded
         user_answer = form.cleaned_data['answer'].strip()
+        invalid_input = False
+        for char in "][}{)($@:":
+            if char in user_answer:
+                invalid_input = True
+        if invalid_input:
+            context = {
+                'profile': profile,
+                'form': form,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'message': "Invalid input"
+            }
+            # TODO Add error message to template
+            return render(request, self.template_name, context)
 
         # Set phrase to learned. Calculate and set user phrase strength data. Generate feedback.
         testing_phrase.learned = True
@@ -651,17 +665,31 @@ class PracticeView(LoginRequiredMixin, View):
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
-        context = {
-            'profile': profile,
-            'form': form,
-            'testing_phrase': testing_phrase, # Phrase strength object
-            'phrase': phrase,
-        }
         if not form.is_valid():
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
+            }
             return render(request, self.template_name, context)
 
-        # Prepare user's answer before testing and don't grade accent
+        # Validate and clean user's answer before testing - accent will not be graded
         user_answer = form.cleaned_data['answer'].strip()
+        invalid_input = False
+        for char in "][}{)($@:":
+            if char in user_answer:
+                invalid_input = True
+        if invalid_input:
+            context = {
+                'profile': profile,
+                'form': form,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'message': "Invalid input"
+            }
+            # TODO Add error message to template
+            return render(request, self.template_name, context)
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
@@ -777,18 +805,32 @@ class ReviewView(LoginRequiredMixin, View):
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
-        context = {
-            'profile': profile,
-            'form': form,
-            'testing_phrase': testing_phrase, # Phrase strength object
-            'phrase': phrase,
-        }
         if not form.is_valid():
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
+            }
             return render(request, self.template_name, context)
 
-        # Prepare user's answer before testing and don't grade accent
+        # Validate and clean user's answer before testing - accent will not be graded
         user_answer = form.cleaned_data['answer'].strip()
-
+        invalid_input = False
+        for char in "][}{)($@:":
+            if char in user_answer:
+                invalid_input = True
+        if invalid_input:
+            context = {
+                'profile': profile,
+                'form': form,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'message': "Invalid input"
+            }
+            # TODO Add error message to template
+            return render(request, self.template_name, context)
+        
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         response_accuracy = False
@@ -901,17 +943,31 @@ class AccentView(LoginRequiredMixin, View):
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
-        context = {
-            'profile': profile,
-            'form': form,
-            'testing_phrase': testing_phrase, # Phrase strength object
-            'phrase': phrase,
-        }
         if not form.is_valid():
+            context = {
+                'profile': profile,
+                'form': form,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'phrase': phrase,
+            }
             return render(request, self.template_name, context)
 
-        # Clean up data for user's answer before testing and don't test for correct accent
+        # Validate and clean user's answer before testing - accent will be tested
         user_answer = form.cleaned_data['answer'].strip()
+        invalid_input = False
+        for char in "][}{)($@:":
+            if char in user_answer:
+                invalid_input = True
+        if invalid_input:
+            context = {
+                'profile': profile,
+                'form': form,
+                'phrase': phrase,
+                'testing_phrase': testing_phrase, # Phrase strength object
+                'message': "Invalid input"
+            }
+            # TODO Add error message to template
+            return render(request, self.template_name, context)
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
