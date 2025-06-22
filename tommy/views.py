@@ -88,7 +88,7 @@ def eval_phrase(answer, phrase):
         # Otherwise search for the words in the full string
         else:
             print("different number of words in phrase and answer")
-            if phrase_str in answer_str:
+            if phrase_str in answer_str or answer_str in phrase_str:
                 # May result in negative score - OK but can be imporved
                 accuracy = ( phr_len - abs( phr_len - ans_len ) ) / phr_len * 100
                 print("full answer found in translation / Accuracy score:", accuracy, end="")
@@ -102,7 +102,7 @@ def eval_phrase(answer, phrase):
                 # Counts too many errors - consider revision
                 for word in phrase_words:
                     if word in answer_words:
-                        print("one word correct ", end="")
+                        print("one word correct; ", end="")
                         correct_words += 1
                     else:
                         print("one word wrong; ", end="")
@@ -218,27 +218,14 @@ class Home(LoginRequiredMixin, TemplateView):
         except:
             pass
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase:", request.session.get('testing_phrase'))
             try:
                 del request.session['testing_phrase']
-            except:
-                print("There was an error deleting testing phrase from session")
-            try:
                 del request.session['user_answer']
-            except:
-                print("There was an error deleting user answer from session")
-            try:
                 del request.session['response_accuracy']
-            except:
-                print("There was an error deleting response accuracy from session")
-            try:
                 del request.session['phrase_language']
-            except:
-                print("There was an error deleting phrase language from session")
-            try:
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting feedback html from session")
+                print("There was an error deleting data related to the testing phrase")
         
         # Get user phrase strength data for progress
         user_phrase_strength = UserPhraseStrength.objects.filter(user=request.user)
@@ -449,27 +436,14 @@ class LearnView(LoginRequiredMixin, View):
     def get(self, request, pk):
         # Delete session data for previous testing phrase if it exists
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase", request.session.get('testing_phrase'))
             try:
                 del request.session['testing_phrase']
-            except:
-                print("There was an error deleting testing phrase from session")
-            try:
                 del request.session['user_answer']
-            except:
-                print("There was an error deleting user answer from session")
-            try:
                 del request.session['response_accuracy']
-            except:
-                print("There was an error deleting response accuracy from session")
-            try:
                 del request.session['phrase_language']
-            except:
-                print("There was an error deleting phrase language from session")
-            try:
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting feedback html from session")
+                print("There was an error deleting data related to the testing phrase")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -535,7 +509,7 @@ class LearnView(LoginRequiredMixin, View):
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
 
-        # Validate and clean user's answer - accent will not be graded
+        # Validate and clean user's answer - TODO or refresh page with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
         for char in "][}{)($@:":
@@ -612,27 +586,14 @@ class PracticeView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
         # Delete session data for previous testing phrase if it exists
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase", request.session.get('testing_phrase'))
             try:
                 del request.session['testing_phrase']
-            except:
-                print("There was an error deleting testing phrase from session")
-            try:
                 del request.session['user_answer']
-            except:
-                print("There was an error deleting user answer from session")
-            try:
                 del request.session['response_accuracy']
-            except:
-                print("There was an error deleting response accuracy from session")
-            try:
                 del request.session['phrase_language']
-            except:
-                print("There was an error deleting phrase language from session")
-            try:
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting feedback html from session")
+                print("There was an error deleting data related to the testing phrase")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -674,7 +635,7 @@ class PracticeView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - accent will not be graded
+        # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
         for char in "][}{)($@:":
@@ -752,27 +713,14 @@ class ReviewView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
         # Delete session data for previous testing phrase if it exists
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase", request.session.get('testing_phrase'))
             try:
                 del request.session['testing_phrase']
-            except:
-                print("There was an error deleting testing phrase from session")
-            try:
                 del request.session['user_answer']
-            except:
-                print("There was an error deleting user answer from session")
-            try:
                 del request.session['response_accuracy']
-            except:
-                print("There was an error deleting response accuracy from session")
-            try:
                 del request.session['phrase_language']
-            except:
-                print("There was an error deleting phrase language from session")
-            try:
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting feedback html from session")
+                print("There was an error deleting data related to the testing phrase")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -814,7 +762,7 @@ class ReviewView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - accent will not be graded
+        # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
         for char in "][}{)($@:":
@@ -890,27 +838,14 @@ class AccentView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
         # Delete session data for previous testing phrase if it exists
         if request.session.get('testing_phrase'):
-            print("Deleting session data from previous testing phrase", request.session.get('testing_phrase'))
             try:
                 del request.session['testing_phrase']
-            except:
-                print("There was an error deleting testing phrase from session")
-            try:
                 del request.session['user_answer']
-            except:
-                print("There was an error deleting user answer from session")
-            try:
                 del request.session['response_accuracy']
-            except:
-                print("There was an error deleting response accuracy from session")
-            try:
                 del request.session['phrase_language']
-            except:
-                print("There was an error deleting phrase language from session")
-            try:
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting feedback html from session")
+                print("There was an error deleting data related to the testing phrase")
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -952,7 +887,7 @@ class AccentView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - accent will be tested
+        # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
         for char in "][}{)($@:":
