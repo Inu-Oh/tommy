@@ -909,9 +909,12 @@ class AccentView(LoginRequiredMixin, View):
         feedback_html = ""
         for translation in translations:
             print("User input:", user_answer, "\nTranslation:", translation.translation)
-            response_score, error_count = eval_phrase(user_answer.lower(), translation.translation.lower())
-            if user_answer == translation.translation:
-                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
+            test_user_ans = user_answer.translate(str.maketrans("", "", string.punctuation))
+            test_translation = translation.translation.translate(str.maketrans("", "", string.punctuation))
+            print("After processing\nUser input:", test_user_ans, "\nTranslation:", test_translation)
+            response_score, error_count = eval_phrase(test_user_ans.lower(), test_translation.lower())
+            if test_user_ans == test_translation:
+                feedback_html = accent_feedback(test_user_ans, test_translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
