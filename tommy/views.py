@@ -155,12 +155,15 @@ def feedback(answer, phrase, errors, score):
 
 
 def accent_feedback(answer, phrase, errors, score):
-    answer_words, phrase_words = answer.split(), phrase.split()
+    answer_str = answer.translate(str.maketrans("", "", string.punctuation))
+    phrase_str = phrase.translate(str.maketrans("", "", string.punctuation))
+    answer_words, phrase_words = answer_str.split(), phrase_str.split()
+    ans_feedback = answer.split()
     answer_words = [answer_words] if isinstance(answer_words, str) else answer_words
     phrase_words = [phrase_words] if isinstance(phrase_words, str) else phrase_words
     answer_length, phrase_length = len(answer_words), len(phrase_words)
     html = '<span class="text-success">'
-    if (not errors or score == 100) and answer == phrase:
+    if (not errors or score == 100) and answer_str == phrase_str:
         print("AccentFeedback: no errors")
         return f'<span class="text-success">{answer}</span>'
     elif errors > 3 or score < 70:
@@ -177,18 +180,20 @@ def accent_feedback(answer, phrase, errors, score):
         print(f"AccentFeedback: three or less errors and score 70% or above")
         if answer_length >= phrase_length:
             print("more or equal answer and phrase words")
+            index = 0
             for word in answer_words:
+                index += 1
                 if word not in phrase_words:
-                    html += f'<span class="text-danger">{word}</span> '
+                    html += f'<span class="text-danger">{ans_feedback[index]}</span> '
                 else:
-                    html += f'{word} '
+                    html += f'{ans_feedback[index]} '
         else:
             print("two or three errors and less words in answer than phrase")
             for i in range(answer_length):
                 if phrase_words[i] != answer_words[i]:
-                    html += f'<span class="text-danger">{answer_words[i]}</span> '
+                    html += f'<span class="text-danger">{ans_feedback[i]}</span> '
                 else:
-                    html += f'{answer_words[i]} '
+                    html += f'{ans_feedback[i]} '
     return html + '\b</span>'
 
 
@@ -517,6 +522,7 @@ class LearnView(LoginRequiredMixin, View):
         )
         testing_phrase = unlearned_phrases.first()
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
+        phrase = phrases.get(id=testing_phrase.phrase_id)
         if not form.is_valid():
             context = {
                 'profile': profile,
@@ -528,7 +534,6 @@ class LearnView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
-        phrase = Phrase.objects.get(phrase=testing_phrase.phrase, language=phrase_language)
 
         # Prepare user's answer and don't grade accent before testing
         user_answer = form.cleaned_data['answer'].strip()
@@ -642,6 +647,7 @@ class PracticeView(LoginRequiredMixin, View):
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('strength')
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
@@ -692,6 +698,7 @@ class PracticeView(LoginRequiredMixin, View):
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:practice'
@@ -766,6 +773,7 @@ class ReviewView(LoginRequiredMixin, View):
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('updated_at')
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
@@ -814,6 +822,7 @@ class ReviewView(LoginRequiredMixin, View):
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
+        request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:review'
@@ -888,6 +897,7 @@ class AccentView(LoginRequiredMixin, View):
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
         testing_phrase = phrase_strength_set.earliest('updated_at')
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+        module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
 
@@ -914,7 +924,7 @@ class AccentView(LoginRequiredMixin, View):
             print("After processing\nUser input:", test_user_ans, "\nTranslation:", test_translation)
             response_score, error_count = eval_phrase(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
-                feedback_html = accent_feedback(test_user_ans, test_translation, error_count, response_score)
+                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
@@ -932,6 +942,7 @@ class AccentView(LoginRequiredMixin, View):
         request.session['testing_phrase'] = testing_phrase.phrase.phrase
         request.session['user_answer'] = user_answer
         request.session['response_accuracy'] = response_accuracy
+        request.session['module_id'] = module.id
         request.session['testing_view'] = 'tommy:accent'
         request.session['phrase_language'] = phrase.language
         request.session['feedback_html'] = feedback_html
@@ -945,9 +956,11 @@ class FeedbackView(LoginRequiredMixin, View):
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
         testing_phrase = request.session.get('testing_phrase')
+        module = Module.objects.get(id=request.session.get('module_id'))
         phrase = Phrase.objects.get(
             phrase=testing_phrase,
-            language=request.session.get('phrase_language')
+            language=request.session.get('phrase_language'),
+            module=module
         )
         testing_phrase = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
         user_answer = request.session.get('user_answer') # remove ?
@@ -956,9 +969,8 @@ class FeedbackView(LoginRequiredMixin, View):
         testing_view = request.session.get('testing_view')
         feedback_html = request.session.get('feedback_html')
 
-        # Module progress - for learn view only
-        if module_id := request.session.get('module_id'):
-            module = Module.objects.get(id=module_id)
+        # Module progress - for LearnView only
+        if testing_view == "tommy:learn":
             module_phrases = Phrase.objects.filter(module=module)
             module_phrase_count = module_phrases.count()
             user_learned_count = UserPhraseStrength.objects.filter(
@@ -970,6 +982,7 @@ class FeedbackView(LoginRequiredMixin, View):
         else:
             module_progress = None
 
+        # Feedback langauge
         if response_accuracy:
             correct = [
                 "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
