@@ -169,7 +169,7 @@ def accent_feedback(answer, phrase, errors, score):
     elif errors > 3 or score < 70:
         print(f"AccentFeedback: more than three errors or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
-    elif errors == 1 and len(answer) == len(phrase):
+    elif errors <= 1 and len(answer) == len(phrase):
         print("AccentFeedback: one error and same length for answer and translation")
         for i in range(len(answer)):
             if answer[i].lower() != phrase[i].lower():
