@@ -907,7 +907,7 @@ class AccentView(LoginRequiredMixin, View):
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         response_accuracy = False
-        feedback_html = ""
+        feedback_html, highest_score = "", 0
         for translation in translations:
             print("User input:", user_answer, "\nTranslation:", translation.translation)
             test_user_ans = user_answer.translate(str.maketrans("", "", string.punctuation))
@@ -915,16 +915,15 @@ class AccentView(LoginRequiredMixin, View):
             print("After processing\nUser input:", test_user_ans, "\nTranslation:", test_translation)
             response_score, error_count = eval_phrase(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
-                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
                 testing_phrase.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
                 response_accuracy = True
+                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
                 break
-        if not feedback_html:
-            feedback_html = accent_feedback(user_answer, translations[0].translation, error_count, response_score)
-        
+            elif response_score > highest_score:
+                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
         testing_phrase.strength = ((testing_phrase.views - (testing_phrase.views - testing_phrase.correct)) * 100) / testing_phrase.views
         testing_phrase.save()
 
