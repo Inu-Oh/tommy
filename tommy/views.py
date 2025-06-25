@@ -665,8 +665,10 @@ class PracticeView(LoginRequiredMixin, View):
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score = translation_score
-        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
+        if not feedback_html:
+            feedback_html = feedback(user_answer, translation[0].translation, error_count, response_score)
         print(feedback_html)
         translation_length = len(
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
@@ -793,8 +795,10 @@ class ReviewView(LoginRequiredMixin, View):
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score = translation_score
-        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
+        if not feedback_html:
+            feedback_html = feedback(user_answer, translation[0].translation, error_count, response_score)
         print(feedback_html)
         translation_length = len(
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
