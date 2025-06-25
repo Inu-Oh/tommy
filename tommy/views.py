@@ -121,12 +121,12 @@ def feedback(answer, phrase, errors, score):
     answer_words, phrase_words = answer.split(), unidecode(phrase_str).split()
     answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
     answer_length, phrase_length = len(answer_words), len(phrase_words)
-    html = '<span class="text-success">'
+    html, error_limit = '<span class="text-success">', len(phrase) / 8
     if not errors or score == 100:
         print("Feedback: no errors except possibly unnecessary spaces or punctuation")
         return f'<span class="text-success">{answer}</span>'
-    elif errors > 3 or score < 70:
-        print(f"Feedback: more than three errors or accuracy below 70%")
+    elif errors > error_limit or score < 70:
+        print(f"Feedback: errors over limit or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
     elif errors == 1 and len(answer) == len(phrase):
         print("Feedback: one error and same length for answer and translation")
@@ -162,12 +162,12 @@ def accent_feedback(answer, phrase, errors, score):
     answer_words = [answer_words] if isinstance(answer_words, str) else answer_words
     phrase_words = [phrase_words] if isinstance(phrase_words, str) else phrase_words
     answer_length, phrase_length = len(answer_words), len(phrase_words)
-    html = '<span class="text-success">'
+    html, error_limit = '<span class="text-success">', len(phrase) / 8
     if (not errors or score == 100) and answer_str == phrase_str:
         print("AccentFeedback: no errors")
         return f'<span class="text-success">{answer}</span>'
-    elif errors > 3 or score < 70:
-        print(f"AccentFeedback: more than three errors or accuracy below 70%")
+    elif errors > error_limit or score < 70:
+        print(f"AccentFeedback: errors over limit or accuracy below 70%")
         return f'<span class="text-danger">{answer}</span>'
     elif errors <= 1 and len(answer) == len(phrase):
         print("AccentFeedback: one error and same length for answer and translation")
