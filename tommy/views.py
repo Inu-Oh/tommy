@@ -19,6 +19,21 @@ def eval_word(ans_word, phr_word):
     print("using eval_word() func: ", end="")
     correct_count, error_count, ans_length, phr_length = 0, 0, len(ans_word), len(phr_word)
     length = phr_length if phr_length <= ans_length else ans_length
+    if ans_length == phr_length - 1:
+        words = []
+        for i in range(phr_length):
+            word = ""
+            for j in range(phr_length):
+                if i == j:
+                    continue
+                else:
+                    word += phr_word[j]
+            words.append(word)
+        print("Possible errors with one missing letter:", words, "Answer word:", ans_word)
+        if ans_word in words:
+            accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
+            print("Accuracy:", accuracy)
+            return accuracy, 1
     for i in range(length):
         if phr_word[i] == ans_word[i]:
             correct_count += 1
