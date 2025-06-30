@@ -34,6 +34,21 @@ def eval_word(ans_word, phr_word):
             accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
             print("Accuracy:", accuracy)
             return accuracy, 1
+    elif ans_length - 1 == phr_length:
+        words = []
+        for i in range(ans_length):
+            word = ""
+            for j in range(ans_length):
+                if i == j:
+                    continue
+                else:
+                    word += ans_word[j]
+            words.append(word)
+        print("Possible errors with one extra letter:", words, "Answer word:", ans_word)
+        if phr_word in words:
+            accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
+            print("Accuracy:", accuracy)
+            return accuracy, 1
     for i in range(length):
         if phr_word[i] == ans_word[i]:
             correct_count += 1
