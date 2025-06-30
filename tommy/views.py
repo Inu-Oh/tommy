@@ -578,7 +578,7 @@ class LearnView(LoginRequiredMixin, View):
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         print("Translation length:", translation_length, "Score:", response_score)
-        if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
+        if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
             testing_phrase.correct = 1
             testing_phrase.strength = round(response_score)
             # Add XP points to user profile
@@ -705,7 +705,7 @@ class PracticeView(LoginRequiredMixin, View):
         )
         print("Translation length:", translation_length, "Score:", response_score)
         print("Condition passed ?", (translation_length < 10 and response_score >= 85) or response_score > 90)
-        if (translation_length < 10 and response_score >= 85) or response_score > 90:
+        if (translation_length < 10 and response_score >= 85) or response_score >= 90:
             testing_phrase.correct += 1
             response_accuracy = True
             # Add XP points to user profile
@@ -834,7 +834,7 @@ class ReviewView(LoginRequiredMixin, View):
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         print("Translation length:", translation_length, "Score:", response_score)
-        if ((translation_length < 10) and (response_score >= 85)) or response_score > 90:
+        if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
             testing_phrase.correct += 1
             # Add XP points to user profile
             profile.xp += 5
