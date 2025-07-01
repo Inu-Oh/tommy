@@ -29,7 +29,7 @@ def eval_word(ans_word, phr_word):
                 else:
                     word += phr_word[j]
             words.append(word)
-        print("Possible errors with one missing letter:", words, "Answer word:", ans_word)
+        print("Possible errors with one missing letter:", words, "Answer word:", ans_word, end="")
         if ans_word in words:
             accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
             print("Accuracy:", accuracy)
@@ -44,7 +44,7 @@ def eval_word(ans_word, phr_word):
                 else:
                     word += ans_word[j]
             words.append(word)
-        print("Possible errors with one extra letter:", words, "Answer word:", ans_word)
+        print("Possible errors with one extra letter:", words, "Answer word:", ans_word, end="")
         if phr_word in words:
             accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
             print("Accuracy:", accuracy)
