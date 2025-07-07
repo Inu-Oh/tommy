@@ -468,6 +468,7 @@ class LearnView(LoginRequiredMixin, View):
         if request.session.get('testing_phrase'):
             try:
                 del request.session['testing_phrase']
+                del request.session['testing_phrase_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -478,18 +479,22 @@ class LearnView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         module = Module.objects.get(id=pk)
-        try: # Select unlearned phrase for testing and its translations
+        try: # Select random unlearned phrase for testing and get its translations
             phrases = Phrase.objects.filter(module=module)
             unlearned_phrases = UserPhraseStrength.objects.filter(
                 learned=False,
                 user=request.user,
                 phrase__in=phrases
             )
-            testing_phrase = unlearned_phrases.first()
+            testing_phrase = choice(unlearned_phrases)
+            print("Testing phrase: ", testing_phrase, "\nID: ", testing_phrase.id)
             translations = Translation.objects.filter(phrase=testing_phrase.phrase)
             translation_langauge = translations[0].language
-            phrase_language = "French" if translation_langauge == "English" else "English"
-            phrase = phrases.get(phrase=testing_phrase.phrase, language=phrase_language)
+            # TODO phrase_language = "French" if translation_langauge == "English" else "English"
+            phrase = phrases.get(id=testing_phrase.phrase_id)
+
+            # Save phrase data to session to be access in POST
+            request.session['testing_phrase_id'] = testing_phrase.id
 
             # Module progress
             module_phrase_count = phrases.count()
@@ -517,16 +522,10 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         
         # Get an unlearned phrase for testing and its translations
-        module = Module.objects.get(id=pk)
-        phrases = Phrase.objects.filter(module=module)
-        unlearned_phrases = UserPhraseStrength.objects.filter(
-            learned=False,
-            user=request.user,
-            phrase__in=phrases
-        )
-        testing_phrase = unlearned_phrases.first()
+        print("POST: Testing phrase ID saved to session: ", request.session.get('testing_phrase_id'))
+        testing_phrase = UserPhraseStrength.objects.get(id=request.session.get('testing_phrase_id'))
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
-        phrase = phrases.get(id=testing_phrase.phrase_id)
+        phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
         if not form.is_valid():
             context = {
                 'profile': profile,
