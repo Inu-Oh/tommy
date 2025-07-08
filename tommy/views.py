@@ -145,6 +145,7 @@ def eval_phrase(answer, phrase):
                 return accuracy, error_count / 2
 
 
+# Styles the feedback HTML to show letters or words with errors
 def feedback(answer, phrase, errors, score):
     answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
@@ -184,6 +185,7 @@ def feedback(answer, phrase, errors, score):
     return html + '\b</span>'
 
 
+# Styles the feedback HTML for the AccentView class
 def accent_feedback(answer, phrase, errors, score):
     answer_str = answer.translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.translate(str.maketrans("", "", string.punctuation))
@@ -873,6 +875,7 @@ class AccentView(LoginRequiredMixin, View):
         if request.session.get('testing_phrase'):
             try:
                 del request.session['testing_phrase']
+                del request.session['testing_phrase_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -882,10 +885,14 @@ class AccentView(LoginRequiredMixin, View):
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
-        try:
+        try: # Select random unlearned phrase for testing and get its translationstry:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-            testing_phrase = phrase_strength_set.earliest('updated_at')
+            testing_phrase = choice(phrase_strength_set)
+            print("Testing phrase: ", testing_phrase, "\nID: ", testing_phrase.id)
             phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
+
+            # Save phrase data to session to be access in POST
+            request.session['testing_phrase_id'] = testing_phrase.id
 
             context = {
                 'profile': profile,
@@ -904,8 +911,8 @@ class AccentView(LoginRequiredMixin, View):
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-        testing_phrase = phrase_strength_set.earliest('updated_at')
+        print(f"POST: Testing phrase ID saved to session: {request.session.get('testing_phrase_id')}")
+        testing_phrase = UserPhraseStrength.objects.get(id=request.session.get('testing_phrase_id'))
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
         module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
