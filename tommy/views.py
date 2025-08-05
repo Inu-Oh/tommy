@@ -171,10 +171,12 @@ def feedback(answer, phrase, errors, score):
         if answer_length >= phrase_length:
             print("more or equal answer and phrase words")
             for word in answer_words:
-                if unidecode(word.lower().translate(str.maketrans("", "", string.punctuation))) not in phrase_words:
+                word = unidecode(word.lower().translate(str.maketrans("", "", string.punctuation)))
+                if word not in phrase_words:
                     html += f'<span class="text-danger">{word}</span> '
                 else:
                     html += f'{word} '
+                    phrase.remove(word)
         else:
             print("two or three errors and less words in answer than phrase")
             for i in range(answer_length):
