@@ -491,10 +491,6 @@ class LearnView(LoginRequiredMixin, View):
                 phrase__in=phrases
             )
             testing_phrase = choice(unlearned_phrases)
-            print("Testing phrase: ", testing_phrase, "\nID: ", testing_phrase.id)
-            translations = Translation.objects.filter(phrase=testing_phrase.phrase)
-            translation_langauge = translations[0].language
-            # TODO phrase_language = "French" if translation_langauge == "English" else "English"
             phrase = phrases.get(id=testing_phrase.phrase_id)
 
             # Save phrase data to session to be access in POST
@@ -526,7 +522,6 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         
         # Get an unlearned phrase for testing and its translations
-        print("POST: Testing phrase ID saved to session: ", request.session.get('testing_phrase_id'))
         testing_phrase = UserPhraseStrength.objects.get(id=request.session.get('testing_phrase_id'))
         translations = Translation.objects.filter(phrase=testing_phrase.phrase)
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
@@ -537,7 +532,6 @@ class LearnView(LoginRequiredMixin, View):
                 'phrase': phrase,
                 'testing_phrase': testing_phrase, # Phrase strength object
             }
-            # TODO Add error message if form is not valid ?
             return render(request, self.template_name, context)
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
@@ -560,27 +554,28 @@ class LearnView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
 
         # Set phrase to learned. Calculate and set user phrase strength data. Generate feedback.
+        MAX_ERRORS = 100
+
         testing_phrase.learned = True
         testing_phrase.views = 1
         response_accuracy = False
-        response_score, errors = -1, False
-        feedback_html = ""
+        response_score, errors = -1, MAX_ERRORS
+        matched_translation, feedback_html = "", ""
         cleaned_answer = unidecode(user_answer.lower())
         # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
             # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
-            print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
-        feedback_html = feedback(user_answer, translation.translation, errors, response_score)
-        # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
-        print(feedback_html)
+                matched_translation = cleaned_test_phrase
+        if not matched_translation:
+            matched_translation =  translations[0].translation
+        feedback_html = feedback(user_answer, matched_translation, errors, response_score)
         translation_length = len(
-            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+            matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
-        print("Translation length:", translation_length, "Score:", response_score)
         if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
             testing_phrase.correct = 1
             testing_phrase.strength = round(response_score)
@@ -686,28 +681,25 @@ class PracticeView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
 
         # Calculate and set user phrase strength data
+        MAX_ERRORS = 100
+
         testing_phrase.views += 1
-        response_score, errors = -1, False
-        feedback_html = ""
+        response_score, errors = -1, MAX_ERRORS
+        matched_translation, feedback_html = "", ""
         cleaned_answer = unidecode(user_answer.lower())
-        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
+
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
-            print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
-                response_score, errors = translation_score, errors
-                feedback_html = feedback(user_answer, translation.translation, errors, response_score)
-        # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
-        if not feedback_html:
-            feedback_html = feedback(user_answer, translation[0].translation, errors, response_score)
-        print(feedback_html)
+                response_score, errors = translation_score, error_count
+                matched_translation = cleaned_test_phrase
+        if not matched_translation:
+            matched_translation =  translations[0].translation
+        feedback_html = feedback(user_answer, matched_translation, errors, response_score)
         translation_length = len(
-            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+            matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
-        print("Translation length:", translation_length, "Score:", response_score)
-        print("Condition passed ?", (translation_length < 10 and response_score >= 85) or response_score > 90)
         if (translation_length < 10 and response_score >= 85) or response_score >= 90:
             testing_phrase.correct += 1
             response_accuracy = True
@@ -815,28 +807,25 @@ class ReviewView(LoginRequiredMixin, View):
             return render(request, self.template_name, context)
         
         # Calculate and set user phrase strength data
+        MAX_ERRORS = 100
+
         testing_phrase.views += 1
         response_accuracy = False
-        response_score, errors = -1, False
-        feedback_html = ""
+        response_score, errors = -1, MAX_ERRORS
+        matched_translation, feedback_html = "", ""
         cleaned_answer = unidecode(user_answer.lower())
-        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
-            print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
-                feedback_html = feedback(user_answer, translation.translation, errors, response_score)
-        # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
-        if not feedback_html:
-            feedback_html = feedback(user_answer, translation[0].translation, error_count, response_score)
-        print(feedback_html)
+                matched_translation = cleaned_test_phrase
+        if not matched_translation:
+            matched_translation =  translations[0].translation
+        feedback_html = feedback(user_answer, matched_translation, errors, response_score)
         translation_length = len(
-            cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
+            matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
-        print("Translation length:", translation_length, "Score:", response_score)
         if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
             testing_phrase.correct += 1
             # Add XP points to user profile
@@ -951,10 +940,8 @@ class AccentView(LoginRequiredMixin, View):
         response_accuracy = False
         feedback_html, highest_score = "", 0
         for translation in translations:
-            print("User input:", user_answer, "\nTranslation:", translation.translation)
             test_user_ans = user_answer.translate(str.maketrans("", "", string.punctuation))
             test_translation = translation.translation.translate(str.maketrans("", "", string.punctuation))
-            print("After processing\nUser input:", test_user_ans, "\nTranslation:", test_translation)
             response_score, error_count = eval_phrase(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
                 testing_phrase.correct += 1
