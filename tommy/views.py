@@ -287,7 +287,7 @@ class ResetView(LoginRequiredMixin, UpdateView):
     def get(self, request):
         learned_phrases = UserPhraseStrength.objects.filter(learned=True, user=request.user)
 
-        # Recalculate phrase strength based on last time seen
+        # Recalculate phrase strength based on last time seen by user
         for phrase in learned_phrases:
             now = datetime.now()
             day_of_last_reset = datetime(
@@ -563,7 +563,7 @@ class LearnView(LoginRequiredMixin, View):
         testing_phrase.learned = True
         testing_phrase.views = 1
         response_accuracy = False
-        response_score = -1
+        response_score, errors = -1, False
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
         # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
@@ -573,8 +573,8 @@ class LearnView(LoginRequiredMixin, View):
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
-                response_score = translation_score
-        feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                response_score, errors = translation_score, error_count
+        feedback_html = feedback(user_answer, translation.translation, errors, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
         print(feedback_html)
         translation_length = len(
@@ -687,7 +687,7 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
-        response_score = -1
+        response_score, errors = -1, False
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
         # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
@@ -697,11 +697,11 @@ class PracticeView(LoginRequiredMixin, View):
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
-                response_score = translation_score
-                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                response_score, errors = translation_score, errors
+                feedback_html = feedback(user_answer, translation.translation, errors, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
         if not feedback_html:
-            feedback_html = feedback(user_answer, translation[0].translation, error_count, response_score)
+            feedback_html = feedback(user_answer, translation[0].translation, errors, response_score)
         print(feedback_html)
         translation_length = len(
             cleaned_test_phrase.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
@@ -817,7 +817,7 @@ class ReviewView(LoginRequiredMixin, View):
         # Calculate and set user phrase strength data
         testing_phrase.views += 1
         response_accuracy = False
-        response_score = -1
+        response_score, errors = -1, False
         feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
         # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
@@ -827,8 +827,8 @@ class ReviewView(LoginRequiredMixin, View):
             translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
             print("\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
             if translation_score > response_score:
-                response_score = translation_score
-                feedback_html = feedback(user_answer, translation.translation, error_count, response_score)
+                response_score, errors = translation_score, error_count
+                feedback_html = feedback(user_answer, translation.translation, errors, response_score)
         # print("\nFinal test data:\nAnswer:", user_answer, "\nPhrase:", translation.translation, "\nErrors:", error_count, "Score:", translation_score)
         if not feedback_html:
             feedback_html = feedback(user_answer, translation[0].translation, error_count, response_score)
