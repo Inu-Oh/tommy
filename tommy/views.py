@@ -283,8 +283,14 @@ class Home(LoginRequiredMixin, TemplateView):
  Login redirects here.
  This page then redirects to Home view after recalculating user phrase strength."""
 class ResetView(LoginRequiredMixin, UpdateView):
+    template_name = 'tommy/reset.html'
 
+    # Login redirects here and hidden form redirects to post.
     def get(self, request):
+        return render(request, self.template_name)
+
+    # Post view updates user phrase strenght objecs.
+    def post(self, request):
         learned_phrases = UserPhraseStrength.objects.filter(learned=True, user=request.user)
 
         # Recalculate phrase strength based on last time seen by user
