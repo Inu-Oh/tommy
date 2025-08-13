@@ -178,7 +178,7 @@ def feedback(answer, phrase, errors, score):
 # Styles the feedback HTML for the AccentView class
 def accent_feedback(answer, phrase, errors, score):
 
-    # Set variables to identify errors to mark for feedback
+    # Set variables to help identify errors to mark for feedback
     answer_str = answer.translate(str.maketrans("", "", string.punctuation))
     phrase_str = phrase.translate(str.maketrans("", "", string.punctuation))
     error_limit = len(phrase) / 8
@@ -191,7 +191,7 @@ def accent_feedback(answer, phrase, errors, score):
     elif errors > error_limit or score < 70:
         return f'<span class="text-danger">{answer}</span>'
 
-    # Set variables that help identify errors to mark for feedback
+    # Remaining variables for checking errors to help generate feedback
     else:
         answer_words, phrase_words = answer_str.split(), phrase_str.split()
         ans_feedback, html = answer.split(), '<span class="text-success">'
@@ -254,7 +254,7 @@ class Home(LoginRequiredMixin, TemplateView):
                 del request.session['phrase_language']
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting data related to the testing phrase")
+                pass
         
         # Get user phrase strength data for progress
         user_phrase_strength = UserPhraseStrength.objects.filter(user=request.user)
@@ -373,7 +373,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
             unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
-        # Create list of dicts for faster data access and search
+        # Create list of dicts for faster data access and search on web page
         phrase_data = []
         strength_data = { 'learned': 0, 'total': 0 }
         for phrase in phrases:
@@ -435,7 +435,7 @@ class ModulesView(LoginRequiredMixin, ListView):
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
 
-        # Create a list of modules the user has not completed
+        # Create lists of modules the user has and has not completed
         open_modules = []
         closed_modules = []
         for module in modules:
@@ -479,7 +479,7 @@ class LearnView(LoginRequiredMixin, View):
                 del request.session['phrase_language']
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting data related to the testing phrase")
+                pass
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -622,7 +622,7 @@ class PracticeView(LoginRequiredMixin, View):
                 del request.session['phrase_language']
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting data related to the testing phrase")
+                pass
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -748,7 +748,7 @@ class ReviewView(LoginRequiredMixin, View):
                 del request.session['phrase_language']
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting data related to the testing phrase")
+                pass
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
@@ -873,14 +873,13 @@ class AccentView(LoginRequiredMixin, View):
                 del request.session['phrase_language']
                 del request.session['feedback_html']
             except:
-                print("There was an error deleting data related to the testing phrase")
+                pass
 
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         try: # Select random unlearned phrase for testing and get its translationstry:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             testing_phrase = choice(phrase_strength_set)
-            print("Testing phrase: ", testing_phrase, "\nID: ", testing_phrase.id)
             phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
 
             # Save phrase data to session to be access in POST
@@ -903,7 +902,6 @@ class AccentView(LoginRequiredMixin, View):
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        print(f"POST: Testing phrase ID saved to session: {request.session.get('testing_phrase_id')}")
         testing_phrase = UserPhraseStrength.objects.get(id=request.session.get('testing_phrase_id'))
         phrase = Phrase.objects.get(id=testing_phrase.phrase_id)
         module = Module.objects.get(name=phrase.module)

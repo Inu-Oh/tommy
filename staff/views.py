@@ -101,7 +101,6 @@ class CreatePhraseView(PermissionRequiredMixin, CreateView):
         phrase.module = module
         phrase.save()
 
-        # TODO can I remove phrase_strength_form.save(commit=False) ?
         # Create a phrase strength object for the new phrase for every user 
         User = get_user_model()
         users = User.objects.all()
