@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, UpdateView, View, CreateView, ListView
@@ -11,7 +10,7 @@ from unidecode import unidecode
 import string
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
-from .forms import ProfileForm, TestForm #, PhraseStrengthForm
+from .forms import ProfileForm, TestForm
 
 
 # Evaluates a single word to support the eval_phrase funciton
