@@ -6,7 +6,9 @@ from django.views.generic import View
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import TestForm
 
+
 class PhraseQuizView(LoginRequiredMixin, View):
+    placeholder_template = 'tommy:placeholder'
 
     def get(self, request):
         # Get and pass current test count to the request session
@@ -38,20 +40,25 @@ class PhraseQuizView(LoginRequiredMixin, View):
             except:
                 pass
 
-        # Get profile and phrase testing form for template context
+        # Data for template view
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
 
         context = { 'profile': profile, 'form': form }
         # In view.py get generic context with: context = super().get_context_data(**kwargs)
         # Then add context with: context['extra_data'] = 'This is extra context'
-        return render(request, 'tommy:placeholder', context)
+        return render(request, self.placeholder_template, context)
 
     def post(self, request):
+        # Data for template view
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
 
+        context = { 'profile': profile, 'form': form }
+
         # Update the test count if post successful
         request.session['test_count'] += 1
+
+        return redirect(self.placeholder_template)
 
 

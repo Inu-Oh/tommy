@@ -666,7 +666,7 @@ class PracticeView(LoginRequiredMixin, View):
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
-        for char in "][}{)($@:":
+        for char in "][}{)($@:": # TODO review this 
             if char in user_answer:
                 invalid_input = True
         if invalid_input:
