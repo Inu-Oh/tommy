@@ -44,9 +44,12 @@ class PhraseQuizView(LoginRequiredMixin, View):
 
         context = { 'profile': profile, 'form': form }
         # In view.py get generic context with: context = super().get_context_data(**kwargs)
+        # Then add context with: context['extra_data'] = 'This is extra context'
         return render(request, 'tommy:placeholder', context)
 
     def post(self, request):
+        profile = Profile.objects.get(user=request.user)
+        form = TestForm(request.POST)
 
         # Update the test count if post successful
         request.session['test_count'] += 1
