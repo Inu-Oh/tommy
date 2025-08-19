@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 from django.db import models
 
@@ -14,6 +15,11 @@ class Profile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def is_valid_profile(self):
+        User = get_user_model()
+        user_test = User.objects.filter(username=self.user.username).exists()
+        return self.xp >= 0 and len(self.name) >= 1 and user_test
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
@@ -23,6 +29,9 @@ class Module(models.Model):
         max_length=24,
         validators=[MinLengthValidator(3, "This name is too short")]
     )
+
+    def is_valid_module(self):
+        return len(self.name) >= 3
 
     def __str__(self):
         return self.name
@@ -47,6 +56,12 @@ class Phrase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def is_valid_phrase(self):
+        language_test = self.language in ["French", "English"]
+        phrase_test = 1 <= len(self.phrase) <= 248
+        module_test = Module.objects.filter(name=self.module.name).exists()
+        return language_test and phrase_test and module_test
+
     def __str__(self):
         return self.phrase
 
@@ -69,6 +84,12 @@ class Translation(models.Model):
     """
     phrase = models.ForeignKey(Phrase, null=True, on_delete=models.SET_NULL,
         related_name='phrase_translation')
+    
+    def is_valid_translation(self):
+        language_test = self.language in ["French", "English"]
+        translation_test = 1 <= len(self.phrase) <= 248
+        phrase_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
+        return language_test and translation_test and phrase_test
 
     def __str__(self):
         return f'{self.translation} ({self.phrase})'
@@ -87,6 +108,14 @@ class UserPhraseStrength(models.Model):
     class Meta:
         unique_together = ('user', 'phrase')
     
+    def is_valid_user_phrase_strength(self):
+        User = get_user_model()
+        user_test = User.objects.filter(username=self.user.username).exists()
+        phrase_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
+        learned_test = self.learned in [True, False]
+        views_correct_strength_tests = self.views >= 0 and self.correct >= 0 and (0 <= self.strength <= 100)
+        return user_test and phrase_test and learned_test and views_correct_strength_tests 
+
     def __str__(self):
         rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}"; '
         rep += f'Learned: "{self.learned}"; Strength: {self.strength}'

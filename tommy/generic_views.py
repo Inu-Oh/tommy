@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
-from django.views import reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import View
 
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
@@ -56,8 +56,9 @@ class PhraseQuizView(LoginRequiredMixin, View):
 
         # Verify the form data before proceeding or request new input
         user_answer = form.cleaned_data['answer'].strip()
-        invalid_chars, msg = [], ""
-        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\", "=", "+", "." "onerror", "onclick", "onload", "onmouserover"]:
+        invalid_chars = []
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
+                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
             if val in user_answer:
                 invalid_chars.append(val)
         if invalid_chars or not form.is_valid():
@@ -67,9 +68,7 @@ class PhraseQuizView(LoginRequiredMixin, View):
                 msg = "Only letters, commas and apostrophes allowed"
 
             context = { 'profile': profile, 'form': form, 'message': msg }
-
             return render(request, self.placeholder_template, context)
-
 
         # If post is successful update count and redirect to test feedback view
         request.session['test_count'] += 1
