@@ -54,11 +54,26 @@ class PhraseQuizView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
 
-        context = { 'profile': profile, 'form': form }
+        # Verify the form data before proceeding or request new input
+        user_answer = form.cleaned_data['answer'].strip()
+        invalid_chars, msg = [], ""
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\", "=", "+", "." "onerror", "onclick", "onload", "onmouserover"]:
+            if val in user_answer:
+                invalid_chars.append(val)
+        if invalid_chars or not form.is_valid():
+            if not form.is_valid():
+                msg = "Please try again"
+            else:
+                msg = "Only letters, commas and apostrophes allowed"
 
-        # Update the test count if post successful
+            context = { 'profile': profile, 'form': form, 'message': msg }
+
+            return render(request, self.placeholder_template, context)
+
+
+        # If post is successful update count and redirect to test feedback view
         request.session['test_count'] += 1
-
-        return redirect(self.placeholder_template)
+        success_url = reverse_lazy('tommy:feedback')
+        return redirect(success_url)
 
 

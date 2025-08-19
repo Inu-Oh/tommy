@@ -49,6 +49,7 @@
 
 {% block footer %}
     <div class="container px-5 lh-sm">
+        {% if message %}<p class="text-danger">{{ message }}</p>{% endif %}
         {% load crispy_forms_tags %}
         <form action="" method="post" id="upload_form" enctype="multipart/form-data">
             <span class="fs-6 text-muted"></span><br>
