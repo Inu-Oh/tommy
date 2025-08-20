@@ -8,7 +8,7 @@ from .forms import TestForm
 
 
 class PhraseQuizView(LoginRequiredMixin, View):
-    placeholder_template = 'tommy:placeholder'
+    template_name = 'tommy:placeholder'
 
     def get(self, request):
         # Get and pass current test count to the request session
@@ -47,7 +47,7 @@ class PhraseQuizView(LoginRequiredMixin, View):
         context = { 'profile': profile, 'form': form }
         # In view.py get generic context with: context = super().get_context_data(**kwargs)
         # Then add context with: context['extra_data'] = 'This is extra context'
-        return render(request, self.placeholder_template, context)
+        return render(request, self.template_name, context)
 
     def post(self, request):
         # Data for template view
@@ -68,10 +68,11 @@ class PhraseQuizView(LoginRequiredMixin, View):
                 msg = "Only letters, commas and apostrophes allowed"
 
             context = { 'profile': profile, 'form': form, 'message': msg }
-            return render(request, self.placeholder_template, context)
+            return render(request, self.template_name, context)
 
-        # If post is successful update count and redirect to test feedback view
-        request.session['test_count'] += 1
+        # If post is successful and view is not learn update count and redirect to feedback view
+        if self.template_name != 'tommy/learn.html':
+            request.session['test_count'] += 1
         success_url = reverse_lazy('tommy:feedback')
         return redirect(success_url)
 

@@ -85,6 +85,8 @@ class Translation(models.Model):
     phrase = models.ForeignKey(Phrase, null=True, on_delete=models.SET_NULL,
         related_name='phrase_translation')
     
+    # For creation, refer to phrase datetime data
+    
     def is_valid_translation(self):
         language_test = self.language in ["French", "English"]
         translation_test = 1 <= len(self.phrase) <= 248
