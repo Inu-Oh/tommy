@@ -60,7 +60,8 @@ class Phrase(models.Model):
         language_test = self.language in ["French", "English"]
         phrase_test = 1 <= len(self.phrase) <= 248
         module_test = Module.objects.filter(name=self.module.name).exists()
-        return language_test and phrase_test and module_test
+        module_name_test = (3 <= len(self.module.name) <= 24)
+        return language_test and phrase_test and module_test and module_name_test
 
     def __str__(self):
         return self.phrase

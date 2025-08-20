@@ -12,13 +12,13 @@ class ProfileTestCase(TestCase):
         User = get_user_model()
         user = User.objects.create_user(username="foo", password="dj39&*d2", email="foo@cb-bc.gc.ca")
         admin = User.objects.create_superuser(username="bar", password="jd93*&2d", email="bar@cb-bc.gc.ca")
-        threat = User.objects.create_user(username="baz", password="2fcv2$@1", email="baz@gmail.com")
+        noname = User.objects.create_user(username="baz", password="2fcv2$@1", email="baz@gmail.com")
         less_than_zero = User.objects.create_user(username="minusone", password="-13f23%^jd", email="minusone@cb-bc.gc.ca")
 
         # Create profiles
         Profile.objects.create(user=user, name="Foo")
         Profile.objects.create(user=admin, name="Bar", xp=0)
-        Profile.objects.create(user=threat, name="", xp=999_999_999)
+        Profile.objects.create(user=noname, name="", xp=999_999_999)
         Profile.objects.create(user=less_than_zero, name="Minus One", xp=-1)
     
     def test_profile_count(self):
@@ -34,8 +34,8 @@ class ProfileTestCase(TestCase):
         self.assertTrue(admin_profile.is_valid_profile())
 
     def test_invalid_profile_no_name(self):
-        threat_profile = Profile.objects.get(name="")
-        self.assertFalse(threat_profile.is_valid_profile())
+        noname_profile = Profile.objects.get(name="")
+        self.assertFalse(noname_profile.is_valid_profile())
     
     def test_invalid_profile_negative_xp(self):
         negative_xp_profile = Profile.objects.get(name="Minus One")
@@ -80,23 +80,44 @@ class PhraseTestCase(TestCase):
         Phrase.objects.create(language="French", phrase="Salut", module=good_module)
         Phrase.objects.create(language="English", phrase="Hi", module=good_module)
         Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
-        Phrase.objects.create(language="English", phrase="Bye", module=bad_module)
-        Phrase.objects.create(language="French", phrase="", module=good_module)
+        Phrase.objects.create(language="French", phrase="Coucou", module=bad_module)
+        Phrase.objects.create(language="English", phrase="", module=good_module)
         Phrase.objects.create(
-            language="English",
+            language="French",
             phrase="Je suis une histoire trop longue pour cette appli. Je ne conforme pas aux regles qui sont inscrit dans les modeles de cet appli de Django. Il faut écrire combien lettre de plus. Je ne sais plus quoi d'écrire. Aide moi ma muse de finire cette phrase trop longue et banale.",
             module=good_module
         )
 
-    def test_english_count(self):
+    def test_english_phrase_count(self):
         english_phrases = Phrase.objects.filter(language="English")
-        self.assertEqual(english_phrases.count(), 3)
+        self.assertEqual(english_phrases.count(), 2)
     
-    def test_french_count(self):
+    def test_french_phrase_count(self):
         french_phrase = Phrase.objects.filter(language="French")
-        self.assertEqual(french_phrase.count(), 2)
+        self.assertEqual(french_phrase.count(), 3)
     
     def test_module_phrase_count(self):
         module = Module.objects.get(name="Good Module")
         good_module_phrases = Phrase.objects.filter(module=module)
         self.assertEqual(good_module_phrases.count(), 5)
+
+    def test_valid_phrase(self):
+        phrase = Phrase.objects.get(phrase="Salut")
+        self.assertTrue(phrase.is_valid_phrase())
+    
+    def test_invalid_phrase_too_short(self):
+        short_phrase = Phrase.objects.get(phrase="")
+        self.assertFalse(short_phrase.is_valid_phrase())
+    
+    def test_invalid_phrase_too_long(self):
+        long_phrase = Phrase.objects.get(phrase="Je suis une histoire trop longue pour cette appli. Je ne conforme pas aux regles qui sont inscrit dans les modeles de cet appli de Django. Il faut écrire combien lettre de plus. Je ne sais plus quoi d'écrire. Aide moi ma muse de finire cette phrase trop longue et banale.")
+        self.assertFalse(long_phrase.is_valid_phrase())
+
+    def test_invalid_phrase_langauge(self):
+        finnish_phrase = Phrase.objects.get(phrase="Moi")
+        self.assertFalse(finnish_phrase.is_valid_phrase())
+    
+    def test_invalid_phrase_bad_module(self):
+        bad_module_phrase = Phrase.objects.get(phrase="Coucou")
+        self.assertFalse(bad_module_phrase.is_valid_phrase())
+    
