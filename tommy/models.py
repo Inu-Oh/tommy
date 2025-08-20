@@ -31,7 +31,7 @@ class Module(models.Model):
     )
 
     def is_valid_module(self):
-        return len(self.name) >= 3
+        return 3 <= len(self.name) <= 24
 
     def __str__(self):
         return self.name

@@ -13,20 +13,90 @@ class ProfileTestCase(TestCase):
         user = User.objects.create_user(username="foo", password="dj39&*d2", email="foo@cb-bc.gc.ca")
         admin = User.objects.create_superuser(username="bar", password="jd93*&2d", email="bar@cb-bc.gc.ca")
         threat = User.objects.create_user(username="baz", password="2fcv2$@1", email="baz@gmail.com")
+        less_than_zero = User.objects.create_user(username="minusone", password="-13f23%^jd", email="minusone@cb-bc.gc.ca")
 
         # Create profiles
         Profile.objects.create(user=user, name="Foo")
         Profile.objects.create(user=admin, name="Bar", xp=0)
         Profile.objects.create(user=threat, name="", xp=999_999_999)
+        Profile.objects.create(user=less_than_zero, name="Minus One", xp=-1)
     
     def test_profile_count(self):
         profiles = Profile.objects.all()
-        self.assertEqual(profiles.count(), 3)
+        self.assertEqual(profiles.count(), 4)
 
-    def test_valid_user(self):
+    def test_valid_profile1(self):
         user_profile = Profile.objects.get(name="Foo")
         self.assertTrue(user_profile.is_valid_profile())
     
-    def test_valid_admin(self):
+    def test_valid_profile2(self):
         admin_profile = Profile.objects.get(name="Bar")
-        self.assertEqual(admin_profile.is_valid_profile())
+        self.assertTrue(admin_profile.is_valid_profile())
+
+    def test_invalid_profile_no_name(self):
+        threat_profile = Profile.objects.get(name="")
+        self.assertFalse(threat_profile.is_valid_profile())
+    
+    def test_invalid_profile_negative_xp(self):
+        negative_xp_profile = Profile.objects.get(name="Minus One")
+        self.assertFalse(negative_xp_profile.is_valid_profile())
+
+
+class ModuleTestCase(TestCase):
+
+    def setUp(self):
+        
+        # Create modules
+        Module.objects.create(name="Good Module")
+        Module.objects.create(name="No")
+        Module.objects.create(name="I am too long to be a module name")
+    
+    def test_module_count(self):
+        modules = Module.objects.all()
+        self.assertEqual(modules.count(), 3)
+
+    def test_valid_module(self):
+        good_module = Module.objects.get(name="Good Module")
+        self.assertTrue(good_module.is_valid_module())
+    
+    def test_invalid_module_too_short(self):
+        short_name_module = Module.objects.get(name="No")
+        self.assertFalse(short_name_module.is_valid_module())
+    
+    def test_invalid_module_too_long(self):
+        long_name_module = Module.objects.get(name="I am too long to be a module name")
+        self.assertFalse(long_name_module.is_valid_module())
+
+
+class PhraseTestCase(TestCase):
+
+    def setUp(self):
+        
+        # Create modules
+        good_module = Module.objects.create(name="Good Module")
+        bad_module = Module.objects.create(name="No")
+
+        # Create phrases
+        Phrase.objects.create(language="French", phrase="Salut", module=good_module)
+        Phrase.objects.create(language="English", phrase="Hi", module=good_module)
+        Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
+        Phrase.objects.create(language="English", phrase="Bye", module=bad_module)
+        Phrase.objects.create(language="French", phrase="", module=good_module)
+        Phrase.objects.create(
+            language="English",
+            phrase="Je suis une histoire trop longue pour cette appli. Je ne conforme pas aux regles qui sont inscrit dans les modeles de cet appli de Django. Il faut écrire combien lettre de plus. Je ne sais plus quoi d'écrire. Aide moi ma muse de finire cette phrase trop longue et banale.",
+            module=good_module
+        )
+
+    def test_english_count(self):
+        english_phrases = Phrase.objects.filter(language="English")
+        self.assertEqual(english_phrases.count(), 3)
+    
+    def test_french_count(self):
+        french_phrase = Phrase.objects.filter(language="French")
+        self.assertEqual(french_phrase.count(), 2)
+    
+    def test_module_phrase_count(self):
+        module = Module.objects.get(name="Good Module")
+        good_module_phrases = Phrase.objects.filter(module=module)
+        self.assertEqual(good_module_phrases.count(), 5)
