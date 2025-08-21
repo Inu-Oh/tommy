@@ -121,3 +121,28 @@ class PhraseTestCase(TestCase):
         bad_module_phrase = Phrase.objects.get(phrase="Coucou")
         self.assertFalse(bad_module_phrase.is_valid_phrase())
     
+    def test_unique_constraint(self):
+        good_module = Module.objects.get(name="Good Module")
+
+        # Attempt to make a duplicate phrase
+        with self.assertRaises(Exception) as context:
+            Phrase.objects.create(language="French", phrase="Salut", module=good_module)
+
+        self.assertTrue("unique_phrase_per_langauge" in str(context.exception))
+
+
+class TranslationTestCase(TestCase):
+
+        # Create modules
+        good_module = Module.objects.create(name="Good Module")
+        bad_module = Module.objects.create(name="No")
+
+        # Create phrases
+        salut = Phrase.objects.create(language="French", phrase="Salut", module=good_module)
+        hi = Phrase.objects.create(language="English", phrase="Hi", module=good_module)
+        moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
+        coucou = Phrase.objects.create(language="French", phrase="Coucou", module=bad_module)
+        nophrase = Phrase.objects.create(language="English", phrase="", module=good_module)
+
+        # Create translations
+        Translation.objects.create(language="English")

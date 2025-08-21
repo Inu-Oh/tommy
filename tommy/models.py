@@ -26,6 +26,7 @@ class Profile(models.Model):
 
 class Module(models.Model):
     name = models.CharField(
+        unique=True,
         max_length=24,
         validators=[MinLengthValidator(3, "This name is too short")]
     )
@@ -55,6 +56,9 @@ class Phrase(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('language', 'phrase')
 
     def is_valid_phrase(self):
         language_test = self.language in ["French", "English"]
@@ -86,13 +90,17 @@ class Translation(models.Model):
     phrase = models.ForeignKey(Phrase, null=True, on_delete=models.SET_NULL,
         related_name='phrase_translation')
     
-    # For creation, refer to phrase datetime data
+    # For creation time, rely to phrase datetime data
     
     def is_valid_translation(self):
-        language_test = self.language in ["French", "English"]
-        translation_test = 1 <= len(self.phrase) <= 248
-        phrase_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
-        return language_test and translation_test and phrase_test
+        valid_languages = ["French", "English"]
+        translation_language_test = self.language in valid_languages
+        phrase_language_test = self.phrase.language in valid_languages
+        comparative_language_test = self.language != self.phrase.language
+        translation_length_test = 1 <= len(self.phrase) <= 248
+        phrase_exists_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
+        return (translation_language_test and phrase_language_test and 
+            comparative_language_test and translation_length_test and phrase_exists_test)
 
     def __str__(self):
         return f'{self.translation} ({self.phrase})'
