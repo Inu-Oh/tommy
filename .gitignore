@@ -5,3 +5,6 @@ __pycache__
 .DS_Store
 github_settings.py
 *.pyc
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
