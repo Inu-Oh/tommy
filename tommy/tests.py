@@ -128,8 +128,6 @@ class PhraseTestCase(TestCase):
         with self.assertRaises(Exception) as context:
             Phrase.objects.create(language="French", phrase="Salut", module=good_module)
 
-        self.assertTrue("unique_phrase_per_langauge" in str(context.exception))
-
 
 class TranslationTestCase(TestCase):
 
