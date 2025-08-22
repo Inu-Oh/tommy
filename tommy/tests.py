@@ -1,5 +1,6 @@
-from django.test import TestCase
+from django.db import IntegrityError
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 
 from .models import Module, Phrase, Profile, Translation, UserPhraseStrength
 
@@ -66,6 +67,10 @@ class ModuleTestCase(TestCase):
     def test_invalid_module_too_long(self):
         long_name_module = Module.objects.get(name="I am too long to be a module name")
         self.assertFalse(long_name_module.is_valid_module())
+
+    def test_unique_module_name(self):
+        with self.assertRaises(IntegrityError):
+            Module.objects.create(name="Good Module")
 
 
 class PhraseTestCase(TestCase):
@@ -140,7 +145,7 @@ class TranslationTestCase(TestCase):
         salut = Phrase.objects.create(language="French", phrase="Salut", module=good_module)
         hi = Phrase.objects.create(language="English", phrase="Hi", module=good_module)
         moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
-        coucou = Phrase.objects.create(language="French", phrase="Coucou", module=bad_module)
+        coucou = Phrase.objects.create(language="French", phrase="Coucou", module=bad_module) 
         no_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
 
         # Create translations
@@ -148,10 +153,10 @@ class TranslationTestCase(TestCase):
         Translation.objects.create(language="French", translation="Salut", phrase=hi)
         Translation.objects.create(language="French", translation="Coucou", phrase=hi)
         Translation.objects.create(language="French", translation="Coucou", phrase=moi)
-        Translation.objects.create(language="English", translation="Hi", phrase=coucou)
+        Translation.objects.create(language="English", translation="Kookoo", phrase=coucou)
         Translation.objects.create(language="French", translation="Rien", phrase=no_phrase)
         Translation.objects.create(language="Sweedish", translation="Hey", phrase=salut)
-        Translation.objects.create(language="English", translation="", phrase=coucou)
+        Translation.objects.create(language="English", translation="", phrase=hi)
 
     def test_english_translation_count(self):
         english_translations = Translation.objects.filter(language="English")
@@ -159,13 +164,13 @@ class TranslationTestCase(TestCase):
     
     def test_hi_translation_count(self):
         hi = Phrase.objects.get(phrase="Hi")
-        self.assertEqual(hi.phrase_translations.count(), 2)
+        self.assertEqual(hi.phrase_translations.count(), 3)
     
     def test_module_translation_count(self):
         module = Module.objects.get(name="Good Module")
         phrases = module.phrases_in_module.all()
         translations = Translation.objects.filter(phrase__in=phrases)
-        self.assertEqual(translations.count(), 6)
+        self.assertEqual(translations.count(), 7)
     
     def test_valid_translation(self):
         salut = Translation.objects.get(translation="Salut")
@@ -183,4 +188,6 @@ class TranslationTestCase(TestCase):
         translation_without_phrase = Translation.objects.get(translation="Rien")
         self.assertFalse(translation_without_phrase.is_valid_translation())
     
-    # def test_invalid_translation_no_module
+    def test_invalid_translation_module_name_too_short(self):
+        short_name_module_tranaslation = Translation.objects.get(translation="Kookoo")
+        self.assertFalse(short_name_module_tranaslation.is_valid_translation())
