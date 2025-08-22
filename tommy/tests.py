@@ -98,8 +98,7 @@ class PhraseTestCase(TestCase):
     
     def test_module_phrase_count(self):
         module = Module.objects.get(name="Good Module")
-        good_module_phrases = Phrase.objects.filter(module=module)
-        self.assertEqual(good_module_phrases.count(), 5)
+        self.assertEqual(module.phrases_in_module.count(), 5)
 
     def test_valid_phrase(self):
         phrase = Phrase.objects.get(phrase="Salut")
@@ -124,7 +123,7 @@ class PhraseTestCase(TestCase):
     def test_unique_constraint(self):
         good_module = Module.objects.get(name="Good Module")
 
-        # Attempt to make a duplicate phrase in same module
+        # Attempt to make a duplicate phrase in same module and raise exception
         with self.assertRaises(Exception) as context:
             Phrase.objects.create(language="French", phrase="Salut", module=good_module)
 
@@ -153,3 +152,17 @@ class TranslationTestCase(TestCase):
         Translation.objects.create(language="French", translation="Rien", phrase=nophrase)
         Translation.objects.create(language="Sweedish", translation="Hey", phrase=salut)
         Translation.objects.create(language="English", translation="", phrase=coucou)
+
+    def test_english_translation_count(self):
+        english_translations = Translation.objects.filter(language="English")
+        self.assertEqual(english_translations.count(), 3)
+    
+    def test_hi_translation_count(self):
+        hi = Phrase.objects.get(phrase="Hi")
+        self.assertEqual(hi.phrase_translations.count(), 2)
+    
+    def test_module_translation_count(self):
+        module = Module.objects.get(name="Good Module")
+        phrases = module.phrases_in_module.all()
+        translations = Translation.objects.filter(phrase__in=phrases)
+        self.assertEqual(translations.count(), 6)

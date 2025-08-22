@@ -52,7 +52,8 @@ class Phrase(models.Model):
     )
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
         through='UserPhraseStrength', related_name='user_strength')
-    module = models.ForeignKey(Module, null=True, on_delete=models.SET_NULL)
+    module = models.ForeignKey(Module, null=True, on_delete=models.SET_NULL,
+        related_name='phrases_in_module')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -83,14 +84,10 @@ class Translation(models.Model):
         max_length=248,
         validators=[MinLengthValidator(1, "This phrase is too short")]
     )
-    """ How to get all translations for the phrase ?
-    phrase = Phrase.objects.get(id=pk)
-    translations = phrase.translation_set.all()
-    """
     phrase = models.ForeignKey(Phrase, null=True, on_delete=models.SET_NULL,
-        related_name='phrase_translation')
+        related_name='phrase_translations')
     
-    # For creation time, rely to phrase datetime data
+    # For creation and update times, rely to phrase datetime data
     
     def is_valid_translation(self):
         valid_languages = ["French", "English"]
