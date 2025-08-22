@@ -141,7 +141,7 @@ class TranslationTestCase(TestCase):
         hi = Phrase.objects.create(language="English", phrase="Hi", module=good_module)
         moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
         coucou = Phrase.objects.create(language="French", phrase="Coucou", module=bad_module)
-        nophrase = Phrase.objects.create(language="English", phrase="", module=good_module)
+        no_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
 
         # Create translations
         Translation.objects.create(language="English", translation="Hi", phrase=salut)
@@ -149,7 +149,7 @@ class TranslationTestCase(TestCase):
         Translation.objects.create(language="French", translation="Coucou", phrase=hi)
         Translation.objects.create(language="French", translation="Coucou", phrase=moi)
         Translation.objects.create(language="English", translation="Hi", phrase=coucou)
-        Translation.objects.create(language="French", translation="Rien", phrase=nophrase)
+        Translation.objects.create(language="French", translation="Rien", phrase=no_phrase)
         Translation.objects.create(language="Sweedish", translation="Hey", phrase=salut)
         Translation.objects.create(language="English", translation="", phrase=coucou)
 
@@ -166,3 +166,21 @@ class TranslationTestCase(TestCase):
         phrases = module.phrases_in_module.all()
         translations = Translation.objects.filter(phrase__in=phrases)
         self.assertEqual(translations.count(), 6)
+    
+    def test_valid_translation(self):
+        salut = Translation.objects.get(translation="Salut")
+        self.assertTrue(salut.is_valid_translation())
+    
+    def test_invalid_translation_language(self):
+        hey = Translation.objects.get(translation="Hey")
+        self.assertFalse(hey.is_valid_translation())
+    
+    def test_invalid_translation_too_short(self):
+        no_translation = Translation.objects.get(translation="")
+        self.assertFalse(no_translation.is_valid_translation())
+    
+    def test_invalid_translation_no_phrase(self):
+        translation_without_phrase = Translation.objects.get(translation="Rien")
+        self.assertFalse(translation_without_phrase.is_valid_translation())
+    
+    # def test_invalid_translation_no_module

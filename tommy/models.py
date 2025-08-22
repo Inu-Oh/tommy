@@ -58,7 +58,7 @@ class Phrase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta: # TODO Update to use Meta.indexes - run: python -Wa manage.py test
         unique_together = ('language', 'phrase')
 
     def is_valid_phrase(self):
@@ -94,10 +94,11 @@ class Translation(models.Model):
         translation_language_test = self.language in valid_languages
         phrase_language_test = self.phrase.language in valid_languages
         comparative_language_test = self.language != self.phrase.language
-        translation_length_test = 1 <= len(self.phrase) <= 248
+        translation_length_test = 1 <= len(self.translation) <= 248
         phrase_exists_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
-        return (translation_language_test and phrase_language_test and 
-            comparative_language_test and translation_length_test and phrase_exists_test)
+        phrase_length_test = 1 <= len(self.phrase.phrase) <= 248
+        return (translation_language_test and phrase_language_test and  comparative_language_test
+            and translation_length_test and phrase_exists_test and phrase_length_test)
 
     def __str__(self):
         return f'{self.translation} ({self.phrase})'
