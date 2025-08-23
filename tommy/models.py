@@ -58,9 +58,9 @@ class Phrase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta: # TODO Update to use Meta.indexes - run: python -Wa manage.py test
+    class Meta: # Converted from unique_together to Meta.indexes - run: python -Wa manage.py test
         constraints = [
-            models.UniqueConstraint(fields=['phrase', 'language'],name='unique_phrase_language')
+            models.UniqueConstraint(fields=['phrase', 'language'], name='unique_phrase_language')
         ]
 
     def is_valid_phrase(self):
@@ -119,12 +119,15 @@ class UserPhraseStrength(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('user', 'phrase')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'phrase'], name='unique_user_phrase_strength')
+        ]
     
     def is_valid_user_phrase_strength(self):
         User = get_user_model()
         user_test = User.objects.filter(username=self.user.username).exists()
         phrase_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
+        # TODO add tests for phrase and translation length or other features ???
         learned_test = self.learned in [True, False]
         views_correct_strength_tests = self.views >= 0 and self.correct >= 0 and (0 <= self.strength <= 100)
         return user_test and phrase_test and learned_test and views_correct_strength_tests 

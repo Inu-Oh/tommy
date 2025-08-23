@@ -131,7 +131,7 @@ class PhraseTestCase(TestCase):
         good_module = Module.objects.get(name="Good Module")
 
         # Attempt to make a duplicate phrase and raise exception
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(IntegrityError) as context:
             Phrase.objects.create(language="French", phrase="Salut", module=good_module)
 
 
@@ -205,4 +205,27 @@ class TranslationTestCase(TestCase):
         short_name_module_tranaslation = Translation.objects.get(translation="Kookoo")
         self.assertFalse(short_name_module_tranaslation.is_valid_translation())
 
-    # TODO what else should be tested here
+
+class UserPhraseStrengthTestCase(TestCase):
+
+    def setUp(self):
+        
+        # Create users
+        User = get_user_model()
+        foo = User.objects.create_user(username="foo", password="dj39&*d2", email="foo@cb-bc.gc.ca")
+        bar = User.objects.create_user(username="bar", password="-13f23%^jd", email="bar@cb-bc.gc.ca")
+        baz = User.objects.create_user(username="", password="3f%@sf45", email="baz@cb-bc.gc.ca")
+
+        # Create modules
+        good_module = Module.objects.create(name="Good Module")
+
+        # Create phrases
+        salut = Phrase.objects.create(language="French", phrase="Salut", module=good_module)
+        hi = Phrase.objects.create(language="English", phrase="Hi", module=good_module)
+        moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
+        coucou = Phrase.objects.create(language="French", phrase="Coucou", module=good_module) 
+        no_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
+
+        # Create user phrase strength objects
+        UserPhraseStrength.objects.create(user=foo, phrase=salut)
+        UserPhraseStrength.objects.create(user=bar, phrase=salut, learned=True, views=23, correct=0, strength=0)
