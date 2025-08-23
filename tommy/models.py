@@ -59,7 +59,9 @@ class Phrase(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta: # TODO Update to use Meta.indexes - run: python -Wa manage.py test
-        unique_together = ('language', 'phrase')
+        constraints = [
+            models.UniqueConstraint(fields=['phrase', 'language'],name='unique_phrase_language')
+        ]
 
     def is_valid_phrase(self):
         language_test = self.language in ["French", "English"]

@@ -69,6 +69,8 @@ class ModuleTestCase(TestCase):
         self.assertFalse(long_name_module.is_valid_module())
 
     def test_unique_module_name(self):
+
+        # Attempt to create a duplicate module name and raise exception
         with self.assertRaises(IntegrityError):
             Module.objects.create(name="Good Module")
 
@@ -125,11 +127,11 @@ class PhraseTestCase(TestCase):
         bad_module_phrase = Phrase.objects.get(phrase="Coucou")
         self.assertFalse(bad_module_phrase.is_valid_phrase())
     
-    def test_unique_constraint(self):
+    def test_unique_phrase_per_langauge_constraint(self):
         good_module = Module.objects.get(name="Good Module")
 
-        # Attempt to make a duplicate phrase in same module and raise exception
-        with self.assertRaises(Exception) as context:
+        # Attempt to make a duplicate phrase and raise exception
+        with self.assertRaises(IntegrityError):
             Phrase.objects.create(language="French", phrase="Salut", module=good_module)
 
 
@@ -155,8 +157,9 @@ class TranslationTestCase(TestCase):
         Translation.objects.create(language="French", translation="Coucou", phrase=moi)
         Translation.objects.create(language="English", translation="Kookoo", phrase=coucou)
         Translation.objects.create(language="French", translation="Rien", phrase=no_phrase)
-        Translation.objects.create(language="Sweedish", translation="Hey", phrase=salut)
+        Translation.objects.create(language="Swedish", translation="Hey", phrase=salut)
         Translation.objects.create(language="English", translation="", phrase=hi)
+        Translation.objects.create(language="French", translation="Bonjour", phrase=salut)
 
     def test_english_translation_count(self):
         english_translations = Translation.objects.filter(language="English")
@@ -170,15 +173,25 @@ class TranslationTestCase(TestCase):
         module = Module.objects.get(name="Good Module")
         phrases = module.phrases_in_module.all()
         translations = Translation.objects.filter(phrase__in=phrases)
-        self.assertEqual(translations.count(), 7)
+        self.assertEqual(translations.count(), 8)
     
     def test_valid_translation(self):
         salut = Translation.objects.get(translation="Salut")
         self.assertTrue(salut.is_valid_translation())
     
-    def test_invalid_translation_language(self):
-        hey = Translation.objects.get(translation="Hey")
-        self.assertFalse(hey.is_valid_translation())
+    def test_invalid_translation_wrong_translation_language(self):
+        swedish_word = Translation.objects.get(translation="Hey")
+        self.assertFalse(swedish_word.is_valid_translation())
+    
+    def test_invalid_translation_wrong_phrase_language(self):
+        finnish_word = Phrase.objects.get(phrase="Moi")
+        coucou_as_translation_of_moi = Translation.objects.get(
+            translation="Coucou", phrase=finnish_word)
+        self.assertFalse(coucou_as_translation_of_moi.is_valid_translation())
+    
+    def test_invalid_translation_same_language_as_phrase(self):
+        bonjour_as_translation_of_salut = Translation.objects.get(translation="Bonjour")
+        self.assertFalse(bonjour_as_translation_of_salut.is_valid_translation())
     
     def test_invalid_translation_too_short(self):
         no_translation = Translation.objects.get(translation="")
@@ -191,3 +204,5 @@ class TranslationTestCase(TestCase):
     def test_invalid_translation_module_name_too_short(self):
         short_name_module_tranaslation = Translation.objects.get(translation="Kookoo")
         self.assertFalse(short_name_module_tranaslation.is_valid_translation())
+
+    # TODO what else should be tested here
