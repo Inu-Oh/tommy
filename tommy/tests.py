@@ -5,12 +5,13 @@ from django.test import TestCase
 from .models import Module, Phrase, Profile, Translation, UserPhraseStrength
 
 
+User = get_user_model()
+
 class ProfileTestCase(TestCase):
 
     def setUp(self):
         
         # Create users
-        User = get_user_model()
         user = User.objects.create_user(username="foo", password="dj39&*d2", email="foo@cb-bc.gc.ca")
         admin = User.objects.create_superuser(username="bar", password="jd93*&2d", email="bar@cb-bc.gc.ca")
         noname = User.objects.create_user(username="baz", password="2fcv2$@1", email="baz@gmail.com")
@@ -211,10 +212,8 @@ class UserPhraseStrengthTestCase(TestCase):
     def setUp(self):
         
         # Create users
-        User = get_user_model()
         foo = User.objects.create_user(username="foo", password="dj39&*d2", email="foo@cb-bc.gc.ca")
         bar = User.objects.create_user(username="bar", password="-13f23%^jd", email="bar@cb-bc.gc.ca")
-        baz = User.objects.create_user(username="", password="3f%@sf45", email="baz@cb-bc.gc.ca")
 
         # Create modules
         good_module = Module.objects.create(name="Good Module")
@@ -222,10 +221,36 @@ class UserPhraseStrengthTestCase(TestCase):
         # Create phrases
         salut = Phrase.objects.create(language="French", phrase="Salut", module=good_module)
         hi = Phrase.objects.create(language="English", phrase="Hi", module=good_module)
+        bonjour = Phrase.objects.create(language="French", phrase="Bonjour", module=good_module)
         moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
         coucou = Phrase.objects.create(language="French", phrase="Coucou", module=good_module) 
         no_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
 
         # Create user phrase strength objects
         UserPhraseStrength.objects.create(user=foo, phrase=salut)
-        UserPhraseStrength.objects.create(user=bar, phrase=salut, learned=True, views=23, correct=0, strength=0)
+        UserPhraseStrength.objects.create(user=bar, phrase=salut, learned=True, views=1, correct=1, strength=100)
+        UserPhraseStrength.objects.create(user=foo, phrase=hi, learned=True, views=23, correct=0, strength=0)
+        UserPhraseStrength.objects.create(user=bar, phrase=hi, learned=True, views=-1, correct=0, strength=0)
+        UserPhraseStrength.objects.create(user=foo, phrase=bonjour, learned=True, views=1, correct=-1, strength=0)
+        UserPhraseStrength.objects.create(user=bar, phrase=coucou, learned=True, views=1, correct=1, strength=-1)
+        UserPhraseStrength.objects.create(user=foo, phrase=no_phrase)
+        UserPhraseStrength.objects.create(user=bar, phrase=moi)
+
+    def test_user_phrase_strength_count_per_user(self):
+        foo = User.objects.get(username="foo")
+        user_phrase_strength_objects = foo.user_phrase_strength.all()
+        self.assertEqual(user_phrase_strength_objects.count(), 4)
+
+    def test_user_phrase_strength_count_per_phrase(self):
+        salut = Phrase.objects.get(phrase="Salut")
+        user_phrase_strength_objects = UserPhraseStrength.objects.filter(phrase=salut)
+        self.assertEqual(user_phrase_strength_objects.count(), 2)
+    
+    def test_user_phrase_strength_defaults(self):
+        foo = User.objects.get(username="foo")
+        salut = Phrase.objects.get(phrase="Salut")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=salut)
+        self.assertEqual(user_phrase_strength.learned, False)
+        self.assertEqual(user_phrase_strength.views, 0)
+        self.assertEqual(user_phrase_strength.correct, 0)
+        self.assertEqual(user_phrase_strength.strength, 0)
