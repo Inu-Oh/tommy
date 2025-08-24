@@ -254,3 +254,9 @@ class UserPhraseStrengthTestCase(TestCase):
         self.assertEqual(user_phrase_strength.views, 0)
         self.assertEqual(user_phrase_strength.correct, 0)
         self.assertEqual(user_phrase_strength.strength, 0)
+
+    def test_valid_user_phrase_strength_default_settings(self):
+        foo = User.objects.get(username="foo")
+        salut = Phrase.objects.get(phrase="Salut")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=salut)
+        self.assertTrue(user_phrase_strength.is_valid_user_phrase_strength())
