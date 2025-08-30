@@ -101,8 +101,8 @@ class Translation(models.Model):
         phrase_length_test = 1 <= len(self.phrase.phrase) <= 248
         module_name_test = 3 <= len(self.phrase.module.name) <= 24
         return (translation_language_test and phrase_language_test
-            and comparative_language_test and translation_length_test and phrase_exists_test
-            and phrase_length_test and module_name_test)
+                and comparative_language_test and translation_length_test
+                and phrase_exists_test and phrase_length_test and module_name_test)
 
     def __str__(self):
         return f'{self.translation} ({self.phrase})'
@@ -127,10 +127,15 @@ class UserPhraseStrength(models.Model):
         User = get_user_model()
         user_test = User.objects.filter(username=self.user.username).exists()
         phrase_test = Phrase.objects.filter(phrase=self.phrase.phrase).exists()
-        # TODO add tests for phrase and translation length or other features ???
+        phrase_length_test = 1 <= len(self.phrase.phrase) <= 248
+        phrase_language_test = self.phrase.language in ["French", "English"]
         learned_test = self.learned in [True, False]
-        views_correct_strength_tests = self.views >= 0 and self.correct >= 0 and (0 <= self.strength <= 100)
-        return user_test and phrase_test and learned_test and views_correct_strength_tests 
+        views_count_test = self.views >= 0
+        correct_count_test = self.correct >= 0
+        strength_score_test = 0 <= self.strength <= 100
+        return (user_test and phrase_test and phrase_length_test and learned_test
+                and views_count_test and correct_count_test and strength_score_test
+                and phrase_language_test)
 
     def __str__(self):
         rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}"; '

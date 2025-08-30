@@ -224,7 +224,7 @@ class UserPhraseStrengthTestCase(TestCase):
         bonjour = Phrase.objects.create(language="French", phrase="Bonjour", module=good_module)
         moi = Phrase.objects.create(language="Finnish", phrase="Moi", module=good_module)
         coucou = Phrase.objects.create(language="French", phrase="Coucou", module=good_module) 
-        no_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
+        blank_phrase = Phrase.objects.create(language="English", phrase="", module=good_module)
 
         # Create user phrase strength objects
         UserPhraseStrength.objects.create(user=foo, phrase=salut)
@@ -233,7 +233,7 @@ class UserPhraseStrengthTestCase(TestCase):
         UserPhraseStrength.objects.create(user=bar, phrase=hi, learned=True, views=-1, correct=0, strength=0)
         UserPhraseStrength.objects.create(user=foo, phrase=bonjour, learned=True, views=1, correct=-1, strength=0)
         UserPhraseStrength.objects.create(user=bar, phrase=coucou, learned=True, views=1, correct=1, strength=-1)
-        UserPhraseStrength.objects.create(user=foo, phrase=no_phrase)
+        UserPhraseStrength.objects.create(user=foo, phrase=blank_phrase)
         UserPhraseStrength.objects.create(user=bar, phrase=moi)
 
     def test_user_phrase_strength_count_per_user(self):
@@ -255,8 +255,50 @@ class UserPhraseStrengthTestCase(TestCase):
         self.assertEqual(user_phrase_strength.correct, 0)
         self.assertEqual(user_phrase_strength.strength, 0)
 
-    def test_valid_user_phrase_strength_default_settings(self):
+    def test_valid_user_phrase_strength_default_values(self):
         foo = User.objects.get(username="foo")
         salut = Phrase.objects.get(phrase="Salut")
         user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=salut)
         self.assertTrue(user_phrase_strength.is_valid_user_phrase_strength())
+
+    def test_valid_user_phrase_strength_w_perfect_score(self):
+        bar = User.objects.get(username="bar")
+        salut = Phrase.objects.get(phrase="Salut")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=bar, phrase=salut)
+        self.assertTrue(user_phrase_strength.is_valid_user_phrase_strength())
+    
+    def test_valid_user_phrase_strength_w_low_score(self):
+        foo = User.objects.get(username="foo")
+        hi = Phrase.objects.get(phrase="Hi")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=hi)
+        self.assertTrue(user_phrase_strength.is_valid_user_phrase_strength())
+    
+    def test_invalid_user_phrase_strength_w_negative_views(self):
+        bar = User.objects.get(username="bar")
+        hi = Phrase.objects.get(phrase="Hi")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=bar, phrase=hi)
+        self.assertFalse(user_phrase_strength.is_valid_user_phrase_strength())
+
+    def test_invalid_user_phrase_strength_w_negative_correct_answers(self):
+        foo = User.objects.get(username="foo")
+        bonjour = Phrase.objects.get(phrase="Bonjour")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=bonjour)
+        self.assertFalse(user_phrase_strength.is_valid_user_phrase_strength())
+    
+    def test_invalid_user_phrase_strength_w_negative_strength_score(self):
+        bar = User.objects.get(username="bar")
+        coucou = Phrase.objects.get(phrase="Coucou")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=bar, phrase=coucou)
+        self.assertFalse(user_phrase_strength.is_valid_user_phrase_strength())
+    
+    def test_invalid_user_phrase_strength_w_blank_phrase(self):
+        foo = User.objects.get(username="foo")
+        blank_phrase = Phrase.objects.get(phrase="")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=foo, phrase=blank_phrase)
+        self.assertFalse(user_phrase_strength.is_valid_user_phrase_strength())
+
+    def test_invalid_user_phrase_strenght_w_wrong_phrase_langauge(self):
+        bar = User.objects.get(username="bar")
+        finnish_phrase = Phrase.objects.get(language="Finnish")
+        user_phrase_strength = UserPhraseStrength.objects.get(user=bar, phrase=finnish_phrase)
+        self.assertFalse(user_phrase_strength.is_valid_user_phrase_strength())
