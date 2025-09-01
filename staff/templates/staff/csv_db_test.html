@@ -38,9 +38,9 @@
                     {% csrf_token %}
                     {{ test_form|crispy }}
                     <input type="submit" value="Submit"
-                        class="btn btn-outline-success me-3 text-dark">
+                        class="btn btn-outline-success m-2 text-dark">
                     <input type="submit" value="Cancel &nbsp;&raquo;&nbsp; return to menu"
-                        class="btn btn-outline-danger text-dark"
+                        class="btn btn-outline-danger m-2 text-dark"
                         onclick="window.location.href='{% url 'staff:manage_content' %}';return false;">
                 </form>
             </div>

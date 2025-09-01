@@ -27,7 +27,10 @@
                 <h5>Mass content update from CSV file</h5>
                 <p class="w-100 text-danger fw-bolder">
                     {% if changed > 0 %}
-                    The following phrases will be overwirtten: {{ changed_phrases }}
+                    The following phrases will be edited in the database:<br><span class="text-dark">
+                        {% for phrase in changed_phrases %}
+                            {{ forloop.counter }}. {{ phrase }}<br>
+                        {% endfor %}</span>
                     {% endif %}
                 </p>
             </div>
@@ -42,9 +45,9 @@
                         {% csrf_token %}
                         {{ test_form|crispy }}
                         <input type="submit" value="Submit"
-                            class="btn btn-outline-success me-3 text-dark">
+                            class="btn btn-outline-success m-2 text-dark">
                         <input type="submit" value="Cancel &nbsp;&raquo;&nbsp; return to menu"
-                            class="btn btn-outline-danger text-dark"
+                            class="btn btn-outline-danger m-2 text-dark"
                             onclick="window.location.href='{% url 'staff:manage_content' %}';return false;">
                     </form>
                 {% else %}

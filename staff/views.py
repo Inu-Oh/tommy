@@ -573,23 +573,23 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 new += 1
             # Or add the phrase ID to track list of phrases already in the database
             # Then get phrase data in database and compare with update CSV data
-            # and count changes.
+            # and keep track of changes.
             else:
                 csv_phrase_ids.append(int(item["phrase_id"]))
                 phrase = phrases.get(id=item["phrase_id"])
                 if phrase.language != item["phrase_lang"]:
-                    changed.add(item["phrase"])
+                    changed.add(phrase)
                 elif phrase.phrase != item["phrase"]:
-                    changed.add(item["phrase"])
+                    changed.add(phrase)
                 elif phrase.module.name != item["module_name"]:
-                    changed.add(item["phrase"])
+                    changed.add(phrase)
                 else:
                     a, b = set(), set(item["translations"])
                     phrase_translations = translations.filter(phrase=phrase)
                     for translation in phrase_translations:
                         a.add(translation.translation)
                     if a != b:
-                        changed.add(item["phrase"])
+                        changed.add(phrase)
 
         # Count the number of unchanged phrases in the databased based on the changes 
         unchanged = total - new - len(changed)
@@ -607,7 +607,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             'current_phrase_count': current_phrase_count,
             'new': new,
             'changed': len(changed),
-            'changed_phrases': changed_phrases,
+            'changed_phrases': changed,
             'unchanged': unchanged,
         }
         return render(request, self.template_name, context)
@@ -743,17 +743,14 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
 
 
         """The next loop populates and updates the database."""
-        # Data to track changes
+        # Set data to track changes
         module_names, added_modules = [module.name for module in modules], 0
         added_phrases, updated_phrases, added_strength_objs  = 0, 0, 0
         deleted_translations, added_translations, edited_translations = 0, 0, 0
 
-        # TODO Put this in a try except block - check best practices
-        # If id is blank set phrase as new. Otherwise, set it as old.
-        # TODO Check that this loop runs correctly on update CSVs with phrase ids
+        # Compare new data to database and change data for all updates in CSV
         row = 1
         for dict_obj in data_list:
-            print(f"reviewing {dict_obj}: ", end="")
             row += 1
             # If the phrase's module doesn't exists create it
             if dict_obj["module_name"] not in module_names:
@@ -770,38 +767,38 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             if phrase_id := dict_obj["phrase_id"]:
                 phrase = phrases.get(id=phrase_id)
                 if phrase.language != dict_obj["phrase_lang"]:
-                    print(f"chaning phrase language from {phrase.language} to {dict_obj['phrase_lang']}")
+                    print(f"chaning phrase language from {phrase.language} to {dict_obj['phrase_lang']}", end=" ")
                     phrase.language = dict_obj["phrase_lang"]
                 if phrase.phrase != dict_obj["phrase"]:
-                    print(f"chaning phrase from '{phrase.phrase}' to '{dict_obj['phrase']}'")
+                    print(f"chaning phrase from '{phrase.phrase}' to '{dict_obj['phrase']}'", end=" ")
                     phrase.phrase = dict_obj["phrase"]
                 if phrase.module.name != dict_obj["module_name"]:
-                    print(f"chaning module from '{phrase.module}' to '{dict_obj['module_name']}'")
+                    print(f"chaning module from '{phrase.module}' to '{dict_obj['module_name']}'", end=" ")
                     phrase.module = module
-                print(phrase_id, type(phrase_id), end=" ")
+                print(phrase_id, end=" ")
                 phrase.save()
                 updated_phrases += 1
-                # Loop through translations and save each one for the phrase
-                # TODO - this section NEEDS REVIEW
+                # Loop through translations and update them if there are changes
                 translation_language = "English" if str(dict_obj["phrase_lang"]) == "French" else "French"
-                a, b = set(), set(item["translations"])
-                phrase_translations = translations.filter(phrase=phrase)
-                for translation in phrase_translations:
-                    a.add(translation.translation)
-                if a != b:
-                    print()
-                    # Delete old translations
-                    old_translations = translations.filter(phrase=phrase)
-                    for translation in old_translations:
-                        translation.delete()
-                        deleted_translations += 1
-                    for translation in dict_obj["translations"]:
-                        Translation.objects.create(
-                            language = translation_language,
-                            translation = translation,
-                            phrase = phrase
-                        )
-                        edited_translations += 1
+                old_translation_set, new_translation_set = set(), set(dict_obj["translations"])
+                old_phrase_translations = translations.filter(phrase=phrase)
+                for translation in old_phrase_translations:
+                    old_translation_set.add(translation.translation)
+                if old_translation_set != new_translation_set:
+                    print(f"changing translations for the phrase")
+                    # Delete old translations if they are not in updated set
+                    for old_translation in old_phrase_translations:
+                        if old_translation.translation not in new_translation_set:
+                            old_translation.delete()
+                            deleted_translations += 1
+                    for new_translation in dict_obj["translations"]:
+                        if new_translation not in old_translation_set:
+                            Translation.objects.create(
+                                language = translation_language,
+                                translation = translation,
+                                phrase = phrase
+                            )
+                            edited_translations += 1
             # Or create new phrase if it does not yet exist
             else:
                 print(f"Creating new phrase, translation(s) and user strength objects for {dict_obj['phrase']} in {dict_obj['phrase_lang']}")
@@ -819,7 +816,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                         phrase = phrase
                     )
                     added_translations += 1
-                # Create phrase strength objects for each user for new phrases only
+                # Create phrase strength objects for each user for the new phrase
                 User = get_user_model()
                 users = User.objects.all()
                 for user in users:
