@@ -809,10 +809,12 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             row["phrase"] = phrase.phrase
             row["phrase_lang"] = phrase.language
             phrase_translations = updated_tranlations.filter(phrase=phrase)
-            translation_set = []
+            translation_dict = '['
             for translation in phrase_translations:
-                translation_set.append(translation.translation)
-            row["translations"] = translation_set
+                # translation_set.append(translation.translation)
+                translation_dict += f'"{translation.translation}", '
+            translation_dict = translation_dict[0:-2] + ']'
+            row["translations"] = translation_dict
             export_data.append(row)
         with open("new_db.csv", "w") as export:
             writer = DictWriter(
