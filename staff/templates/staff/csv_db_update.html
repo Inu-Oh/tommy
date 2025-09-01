@@ -32,6 +32,12 @@
                             {{ forloop.counter }}. {{ phrase }}<br>
                         {% endfor %}</span>
                     {% endif %}
+                    {% if new > 0 %}
+                        The following phrases will be added to the database:<br><span class="text-dark">
+                        {% for phrase in added_phrases %}
+                            {{ forloop.counter }}. {{ phrase }}<br>
+                        {% endfor %}</span>
+                    {% endif %}
                 </p>
             </div>
             <div class="col-6">
@@ -39,7 +45,7 @@
                     Phrases currently in database {{ current_phrase_count }}<br>
                     Phrases that will not be changed: {{ unchanged }} <br>
                     Phrases that will be changed: {{ changed }}</p>
-                {% if changed > 0 %}
+                {% if changed > 0 or new > 0 %}
                     {% load crispy_forms_tags %}
                     <form action="" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
