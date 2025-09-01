@@ -563,25 +563,35 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
         # Compare CSV data with database content and get stats
         current_phrase_count = phrases.count()
         new, total, changed, csv_phrase_ids = 0, 0, set(), []
+
+        # Count all the items in the data list
         for item in data_list:
             total += 1
+
+            # Count new items as those without a phrase ID
             if not item["phrase_id"]:
                 new += 1
+            # Or add the phrase ID to track list of phrases already in the database
+            # Then get phrase data in database and compare with update CSV data
+            # and count changes.
             else:
-                csv_phrase_ids.append(item["phrase_id"])
+                csv_phrase_ids.append(int(item["phrase_id"]))
                 phrase = phrases.get(id=item["phrase_id"])
                 if phrase.language != item["phrase_lang"]:
                     changed.add(item["phrase"])
                 elif phrase.phrase != item["phrase"]:
                     changed.add(item["phrase"])
-                elif phrase.module != item["module_name"]:
+                elif phrase.module.name != item["module_name"]:
                     changed.add(item["phrase"])
                 else:
+                    a, b = set(), set(item["translations"])
                     phrase_translations = translations.filter(phrase=phrase)
-                    a = set(phrase_translations)
-                    b = set(item["translations"])
-                    if len(a) != len(b) != len(a & b):
+                    for translation in phrase_translations:
+                        a.add(translation.translation)
+                    if a != b:
                         changed.add(item["phrase"])
+
+        # Count the number of unchanged phrases in the databased based on the changes 
         unchanged = total - new - len(changed)
         if changed:
             changed_phrases = ", ".join([f"{i}" for i in list(changed)]) + "\b\b."
@@ -811,7 +821,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
             phrase_translations = updated_tranlations.filter(phrase=phrase)
             translation_dict = '['
             for translation in phrase_translations:
-                # translation_set.append(translation.translation)
+                # translation_set.append(translation.translation) # NOTE This did not work
                 translation_dict += f'"{translation.translation}", '
             translation_dict = translation_dict[0:-2] + ']'
             row["translations"] = translation_dict
