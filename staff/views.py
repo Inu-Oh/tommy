@@ -506,8 +506,6 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # TODO add approval from test to save in session that will be used in update view
-
         # If successful redirect to submit page
         success_url = reverse_lazy('staff:csv_db_update') 
         return redirect(success_url)
@@ -579,18 +577,18 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                 csv_phrase_ids.append(int(item["phrase_id"]))
                 phrase = phrases.get(id=item["phrase_id"])
                 if phrase.language != item["phrase_lang"]:
-                    changed.add(phrase)
+                    changed.add(f"{phrase} (change language): {phrase.language} -> {item['phrase_lang']}")
                 elif phrase.phrase != item["phrase"]:
-                    changed.add(phrase)
+                    changed.add(f"{phrase} (change phrase) -> {item['phrase']}")
                 elif phrase.module.name != item["module_name"]:
-                    changed.add(phrase)
+                    changed.add(f"{phrase} (change module): {phrase.module.name} -> {item['module_name']}")
                 else:
-                    a, b = set(), set(item["translations"])
+                    old_translations, new_translations = set(), set(item["translations"])
                     phrase_translations = translations.filter(phrase=phrase)
                     for translation in phrase_translations:
-                        a.add(translation.translation)
-                    if a != b:
-                        changed.add(phrase)
+                        old_translations.add(translation.translation)
+                    if old_translations != new_translations:
+                        changed.add(f"{phrase.phrase} (change translations): {', '.join(old_translations)} -> {', '.join(new_translations)}")
 
         # Count the number of unchanged phrases in the databased based on the changes 
         unchanged = total - len(new) - len(changed)
@@ -741,7 +739,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
 
 
         """The next loop populates and updates the database."""
-        # Set data to track changes
+        # Set data to track changes. Log changes to terminal.
         module_names, added_modules = [module.name for module in modules], 0
         added_phrases, edited_phrases, added_strength_objs  = 0, 0, 0
         deleted_translations, added_translations, edited_translations = 0, 0, 0
@@ -835,7 +833,7 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                     )
                     added_strength_objs += 1
         
-        # List all changes in console
+        # Log all change counts in terminal
         print(f"Modules added: {added_modules}\nPhrases added: {added_phrases}")
         print(f"Phrases edited: {edited_phrases}\nStrength objects added: {added_strength_objs}")
         print(f"Translations deleted: {deleted_translations}")
@@ -885,10 +883,6 @@ class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
                         "translations": phrase["translations"]
                     }
                 )
-
-        # TODO if an error occurs redirect to error page 
-            # provide row of CSV and phrase as well as other element info
-        # if successful redirect to success url with report on changes
         
         success_url = reverse_lazy('tommy:glossary')
         return redirect(success_url)

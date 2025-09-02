@@ -25,18 +25,21 @@
         <div class="row p-3">
             <div class="col-6">
                 <h5>Mass content update from CSV file</h5>
-                <p class="w-100 text-danger fw-bolder">
                     {% if changed > 0 %}
-                    The following phrases will be edited in the database:<br><span class="text-dark">
+                        <div class="w-100 py-3"><span class="text-danger fw-bolder">
+                            The following phrases will be edited in the database:</span>
                         {% for phrase in changed_phrases %}
-                            {{ forloop.counter }}. {{ phrase }}<br>
-                        {% endfor %}</span>
+                            <p class="my-2">{{ forloop.counter }}. {{ phrase }}</p>
+                        {% endfor %}
+                        </div>
                     {% endif %}
                     {% if new > 0 %}
-                        The following phrases will be added to the database:<br><span class="text-dark">
+                        <div class="w-100 py-3"><span class="text-danger fw-bolder">
+                            The following phrases will be added to the database:</span>
                         {% for phrase in added_phrases %}
-                            {{ forloop.counter }}. {{ phrase }}<br>
-                        {% endfor %}</span>
+                            <p class="my-2">{{ forloop.counter }}. {{ phrase }}</p>
+                        {% endfor %}
+                        </div>
                     {% endif %}
                 </p>
             </div>
