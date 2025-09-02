@@ -226,6 +226,7 @@ def accent_feedback(answer, phrase, errors, score):
 
 
 class Home(LoginRequiredMixin, TemplateView):
+    """Displays the app home page menu"""
     template_name = 'tommy/home.html'
 
     def get(self, request):
@@ -260,9 +261,10 @@ class Home(LoginRequiredMixin, TemplateView):
         if user_phrase_strength.count() > 0:
             unlearned_phrase_count = user_phrase_strength.filter(learned=False).count()
             learned_phrase_count = user_phrase_strength.filter(learned=True).count()
+            progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         else:
-            unlearned_phrase_count, learned_phrase_count = 1, 0
-        progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
+            progress = 0
+        
 
         context = {
             'profile': profile,
@@ -273,13 +275,14 @@ class Home(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
 
-"""Recalculates user phrase after each login based on time elapsed
- Login redirects here.
- This page then redirects to Home view after recalculating user phrase strength."""
+# Recalculates user phrase after each login based on time elapsed
+# Login redirects here.
+# This page then redirects to Home view after recalculating user phrase strength.
 class ResetView(LoginRequiredMixin, UpdateView):
+    """Resets the user's strength for each phrase after every login"""
     template_name = 'tommy/reset.html'
 
-    # Login redirects here and hidden form redirects to post.
+    # Login redirects here and hidden form in template redirects to post.
     def get(self, request):
         return render(request, self.template_name)
 
@@ -295,24 +298,25 @@ class ResetView(LoginRequiredMixin, UpdateView):
                 month=phrase.updated_at.month,
                 year=phrase.updated_at.year,
                 hour=phrase.updated_at.hour,
-                minute=phrase.updated_at.minute)
+                minute=phrase.updated_at.minute
+            )
             delta = now - day_of_last_reset
             days_since_reset = delta.days
             
-            """# Function data for review in server log
-            test_log = f"\nDays since reset for phrase \"{str(phrase.phrase)}\""
-            test_log += f": {days_since_reset}\n  Now                : {now}"
-            test_log += f"\n  Time of last reset : {day_of_last_reset}\n"
-            test_log += f"    strength before recalc : {str(phrase.strength)}"
-            print(test_log)"""
+            # Function data for review in server log
+            # test_log = f"\nDays since reset for phrase \"{str(phrase.phrase)}\""
+            # test_log += f": {days_since_reset}\n  Now                : {now}"
+            # test_log += f"\n  Time of last reset : {day_of_last_reset}\n"
+            # test_log += f"    strength before recalc : {str(phrase.strength)}"
+            # print(test_log)
 
             # Weaken strength if phrase wasn't tested for longer than a day
             if days_since_reset > 0 and phrase.strength > 25:
                 phrase.strength -= days_since_reset
                 phrase.save()
             
-            """# Function data for review in server log - part 2
-            print(f"    strength after recalc  : {str(phrase.strength)}")"""
+            # Function data for review in server log - part 2
+            # print(f"    strength after recalc  : {str(phrase.strength)}")
             
         success_url = 'tommy:home'
         return redirect(success_url)
@@ -320,6 +324,10 @@ class ResetView(LoginRequiredMixin, UpdateView):
 
 # Adds a user name for the GUI and creates user testing objects for all course phrases
 class ProfileCreateView(LoginRequiredMixin, CreateView):
+    """
+    Adds a profile name to greet the user
+    Creates objects to track the user's skill with all phrases in the database
+    """
     model = Profile
     template_name = 'tommy/create_profile.html'
 
