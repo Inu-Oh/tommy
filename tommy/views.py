@@ -13,161 +13,179 @@ from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm
 
 
-# Evaluates a single word to support the eval_phrase funciton
-def eval_word(ans_word, phr_word):
-    # Variables to help evaluate word score
-    correct_count, error_count, ans_length, phr_length = 0, 0, len(ans_word), len(phr_word)
-    length = phr_length if phr_length <= ans_length else ans_length
+# Evaluates a single word to support the eval_tranlation funciton
+def eval_word(user_answer_word, correct_word):
+    """
+    Evaluates the test score for a word entered by the user in comparison to correct
+    answer. Supports eval_tranlation function to evaluate translation accuracy.
+    """
 
-    # Case: user word is one char shorter than correct answer
-    if ans_length == phr_length - 1:
+    # Variables to help evaluate word score
+    correct_count, error_count = 0, 0
+    answer_length, actual_length = len(user_answer_word), len(correct_word)
+
+    # Case: user answer word is one char shorter than correct word
+    if answer_length == actual_length - 1:
         words = []
-        for i in range(phr_length):
+        for i in range(actual_length):
             word = ""
-            for j in range(phr_length):
+            for j in range(actual_length):
                 if i == j:
                     continue
                 else:
-                    word += phr_word[j]
+                    word += correct_word[j]
             words.append(word)
-        if ans_word in words:
-            accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
+        if user_answer_word in words:
+            accuracy = ( ( actual_length - 1 ) / actual_length ) * 100
             return accuracy, 1
         
-    # Case: user word is one char longer than correct answer
-    elif ans_length - 1 == phr_length:
+    # Case: user answer word is one char longer than correct word
+    elif answer_length - 1 == actual_length:
         words = []
-        for i in range(ans_length):
+        for i in range(answer_length):
             word = ""
-            for j in range(ans_length):
+            for j in range(answer_length):
                 if i == j:
                     continue
                 else:
-                    word += ans_word[j]
+                    word += user_answer_word[j]
             words.append(word)
-        if phr_word in words:
-            accuracy = ( ( phr_length - 1 ) / phr_length ) * 100
+        if correct_word in words:
+            accuracy = ( ( actual_length - 1 ) / actual_length ) * 100
             return accuracy, 1
     
     # Case: same length or more than one char longer or shorter
-    for i in range(length):
-        if phr_word[i] == ans_word[i]:
+    shorter_word_length = min(actual_length, answer_length)
+    for i in range(shorter_word_length):
+        if correct_word[i] == user_answer_word[i]:
             correct_count += 1
         else:
             error_count += 1
 
     # Calculate score based on length difference and accuracy
-    length_difference = abs(ans_length - phr_length)
+    length_difference = abs(answer_length - actual_length)
     error_count += length_difference
-    accuracy = ( correct_count / ( length + length_difference ) ) * 100
+    accuracy = ( correct_count / ( shorter_word_length + length_difference ) ) * 100
     return accuracy, error_count
 
 
 # Grades the user answer by comparing it to translation phrase
-def eval_phrase(answer, phrase):
-    # Set variables to help evaluate phrase score
-    answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
-    phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
-    answer_words, phrase_words = answer_str.split(), phrase_str.split()
-    answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
-    phrase_length, answer_length = len(phrase_words), len(answer_words)
-    phr_len, ans_len = len(phrase_str), len(answer_str)
+def eval_tranlation(user_answer, correct_translation):
+    """
+    Evaluates the test score for a translation entered by the user
+    in comparison to correct translation.
+    """
+
+    # Set variables to help evaluate accuracty of translation
+    answer_str = user_answer.lower().translate(str.maketrans("", "", string.punctuation))
+    correct_str = correct_translation.lower().translate(str.maketrans("", "", string.punctuation))
+    answer_words, correct_words = answer_str.split(), correct_str.split()
+    answer_str, correct_str = answer_str.replace(" ", ""), correct_str.replace(" ", "")
+    actual_word_count, answer_word_count = len(correct_words), len(answer_words)
+    actual_str_len, answer_str_len = len(correct_str), len(answer_str)
     error_count, total_score, FULL_SCORE, FAIL = 0, 0, 100, 0
 
     # Case: Exact same string gets fullscore
-    if answer_str == phrase_str:
+    if answer_str == correct_str:
         return FULL_SCORE, error_count
     
     # One word phrase is evaluated for spelling errors and additional words
-    elif phrase_length == 1:
-        if answer_length == 1:
-            return eval_word(answer, phrase)
+    elif actual_word_count == 1:
+        if answer_word_count == 1:
+            return eval_word(user_answer, correct_translation)
         else:
-            factor = 1.7 / answer_length
+            factor = 1.7 / answer_word_count
             for word in answer_words:
-                word_accuracy, word_errors = eval_word(word, phrase)
+                word_accuracy, word_errors = eval_word(word, correct_translation)
                 if word_accuracy == FULL_SCORE:
-                    error_count = word_errors + ( ans_len - ( phr_len - len(word) ) )
+                    error_count = word_errors + ( answer_str_len - ( actual_str_len - len(word) ) )
                     return word_accuracy * factor, error_count
-            return FAIL, ans_len
+            return FAIL, answer_str_len
 
     # Multiple word phrase evaluates accuracy of phrases separately
     else:
         # If the number of words is the same compare the words
-        if answer_length == phrase_length:
-            for i in range(phrase_length):
-                if answer_words[i] == phrase_words[i]:
+        if answer_word_count == actual_word_count:
+            for i in range(actual_word_count):
+                if answer_words[i] == correct_words[i]:
                     total_score += FULL_SCORE
                 else:
-                    word_score, word_errors = eval_word(answer_words[i], phrase_words[i])
+                    word_score, word_errors = eval_word(answer_words[i], correct_words[i])
                     total_score += word_score
                     error_count += word_errors
-            return (total_score / phrase_length), error_count
+            return (total_score / actual_word_count), error_count
         # Otherwise search for the words in the full string
         else:
-            if phrase_str in answer_str or answer_str in phrase_str:
+            if correct_str in answer_str or answer_str in correct_str:
                 # May result in negative score - OK but can be imporved TODO
-                accuracy = ( phr_len - abs( phr_len - ans_len ) ) / phr_len * 100
-                error_count += abs(phr_len - ans_len)
+                accuracy = ( actual_str_len 
+                            - abs( actual_str_len - answer_str_len ) ) / actual_str_len * FULL_SCORE
+                error_count += abs(actual_str_len - answer_str_len)
                 return accuracy, error_count
             else:
-                factor = ( ( phrase_length - abs( answer_length - phrase_length ) ) / phrase_length )
-                correct_words = 0
+                factor = ( ( actual_word_count 
+                            - abs( answer_word_count - actual_word_count ) ) / actual_word_count )
+                correct_word_count = 0
                 # Counts too many errors - consider revision
-                for word in phrase_words:
+                for word in correct_words:
                     if word in answer_words:
-                        correct_words += 1
+                        correct_word_count += 1
                     else:
                         error_count += len(word)
                 for word in answer_words:
-                    if word not in phrase_words:
+                    if word not in correct_words:
                         error_count += len(word)
-                accuracy = (correct_words / phrase_length) * factor * 100
+                accuracy = (correct_word_count / actual_word_count) * factor * FULL_SCORE
                 return accuracy, error_count / 2
 
 
 # Styles the feedback HTML to show letters or words with errors
-def feedback(answer, phrase, errors, score):
-    error_limit = len(phrase) / 8
+def feedback(user_answer, correct_translation, errors, score):
+    """Generates HTML style tags to provide better feedback to the user on translation accuracy"""
+
+    error_limit = len(correct_translation) / 8
 
     # Case: no errors
     if not errors or score == 100:
-        return f'<span class="text-success">{answer}</span>'
+        return f'<span class="text-success">{user_answer}</span>'
 
     # Case: too many errors
     elif errors > error_limit or score < 70:
-        return f'<span class="text-danger">{answer}</span>'
+        return f'<span class="text-danger">{user_answer}</span>'
     
     # Set variables that help identify errors to mark for feedback
     else:
-        answer_str = answer.lower().translate(str.maketrans("", "", string.punctuation))
-        phrase_str = phrase.lower().translate(str.maketrans("", "", string.punctuation))
-        answer_words, phrase_words = answer.split(), unidecode(phrase_str).split()
-        answer_str, phrase_str = answer_str.replace(" ", ""), phrase_str.replace(" ", "")
-        answer_length, phrase_length = len(answer_words), len(phrase_words)
+        actual_str = correct_translation.lower().translate(str.maketrans("", "", string.punctuation))
+        answer_words, actual_words = user_answer.split(), unidecode(actual_str).split()
+        answer_word_count, actual_word_count = len(answer_words), len(actual_words)
+        user_answer_len = len(user_answer)
         html = '<span class="text-success">'
     
         # Case: one error and user answer same length as correct answer
-        if errors == 1 and len(answer) == len(phrase):
-            for i in range(len(answer)):
-                if unidecode(answer[i].lower()) != unidecode(phrase[i].lower()):
-                    html += f'<span class="text-danger">{answer[i]}</span>'
+        if errors == 1 and user_answer_len == len(correct_translation):
+            for i in range(user_answer_len):
+                if unidecode(user_answer[i].lower()) != unidecode(correct_translation[i].lower()):
+                    html += f'<span class="text-danger">{user_answer[i]}</span>'
                 else:
-                    html += answer[i]
+                    html += user_answer[i]
         else:
             # Case: user answer is longer than correct answer
-            if answer_length >= phrase_length:
+            if answer_word_count >= actual_word_count:
                 for word in answer_words:
-                    check_word = unidecode(word.lower().translate(str.maketrans("", "", string.punctuation)))
-                    if check_word not in phrase_words:
+                    check_word = unidecode(
+                        word.lower().translate(str.maketrans("", "", string.punctuation))
+                    )
+                    if check_word not in actual_words:
                         html += f'<span class="text-danger">{word}</span> '
                     else:
                         html += f'{word} '
-                        phrase_words.remove(check_word)
+                        actual_words.remove(check_word)
             # Case user answer is short or equal in lengh to correct answer
             else:
-                for i in range(answer_length):
-                    if phrase_words[i] != unidecode(answer_words[i].translate(str.maketrans("", "", string.punctuation))):
+                for i in range(answer_word_count):
+                    if actual_words[i] != unidecode(
+                        answer_words[i].translate(str.maketrans("", "", string.punctuation))
+                    ):
                         html += f'<span class="text-danger">{answer_words[i]}</span> '
                     else:
                         html += f'{answer_words[i]} '
@@ -175,50 +193,54 @@ def feedback(answer, phrase, errors, score):
 
 
 # Styles the feedback HTML for the AccentView class
-def accent_feedback(answer, phrase, errors, score):
+def accent_feedback(user_answer, correct_translation, errors, score):
+    """
+    Generates HTML style tags to provide better feedback to the user on translation accuracy
+    for the accent testing extreme difficulty excercise
+    """
 
     # Set variables to help identify errors to mark for feedback
-    answer_str = answer.translate(str.maketrans("", "", string.punctuation))
-    phrase_str = phrase.translate(str.maketrans("", "", string.punctuation))
-    error_limit = len(phrase) / 8
+    answer_str = user_answer.translate(str.maketrans("", "", string.punctuation))
+    actual_str = correct_translation.translate(str.maketrans("", "", string.punctuation))
+    error_limit = len(correct_translation) / 8
 
     # Case: user answer is exact same as correct answer
-    if (not errors or score == 100) and answer_str == phrase_str:
-        return f'<span class="text-success">{answer}</span>'
+    if (not errors or score == 100) and answer_str == actual_str:
+        return f'<span class="text-success">{user_answer}</span>'
     
     # Case: too many errors
     elif errors > error_limit or score < 70:
-        return f'<span class="text-danger">{answer}</span>'
+        return f'<span class="text-danger">{user_answer}</span>'
 
     # Remaining variables for checking errors to help generate feedback
     else:
-        answer_words, phrase_words = answer_str.split(), phrase_str.split()
-        ans_feedback, html = answer.split(), '<span class="text-success">'
+        answer_words, actual_words = answer_str.split(), actual_str.split()
+        ans_feedback, html = user_answer.split(), '<span class="text-success">'
         answer_words = [answer_words] if isinstance(answer_words, str) else answer_words
-        phrase_words = [phrase_words] if isinstance(phrase_words, str) else phrase_words
-        answer_length, phrase_length = len(answer_words), len(phrase_words)
+        actual_words = [actual_words] if isinstance(actual_words, str) else actual_words
+        answer_word_count, actual_word_count = len(answer_words), len(actual_words)
 
         # Case: one or no errors and user answer and correct answer are same length
-        if errors <= 1 and len(answer) == len(phrase):
-            for i in range(len(answer)):
-                if answer[i].lower() != phrase[i].lower():
-                    html += f'<span class="text-danger">{answer[i]}</span>'
+        if errors <= 1 and len(user_answer) == len(correct_translation):
+            for i in range(len(user_answer)):
+                if user_answer[i].lower() != correct_translation[i].lower():
+                    html += f'<span class="text-danger">{user_answer[i]}</span>'
                 else:
-                    html += answer[i]
+                    html += user_answer[i]
         else:
             # Case: user answer is longer than correct answer
-            if answer_length >= phrase_length:
+            if answer_word_count >= actual_word_count:
                 index = 0
                 for word in answer_words:
-                    if word not in phrase_words:
+                    if word not in actual_words:
                         html += f'<span class="text-danger">{ans_feedback[index]}</span> '
                     else:
                         html += f'{ans_feedback[index]} '
                     index += 1
             # Case user answer is short or equal in lengh to correct answer
             else:
-                for i in range(answer_length):
-                    if phrase_words[i] != answer_words[i]:
+                for i in range(answer_word_count):
+                    if actual_words[i] != answer_words[i]:
                         html += f'<span class="text-danger">{ans_feedback[i]}</span> '
                     else:
                         html += f'{ans_feedback[i]} '
@@ -574,7 +596,7 @@ class LearnView(LoginRequiredMixin, View):
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
             # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
-            translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            translation_score, error_count = eval_tranlation(cleaned_answer, cleaned_test_phrase)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
                 matched_translation = cleaned_test_phrase
@@ -698,7 +720,7 @@ class PracticeView(LoginRequiredMixin, View):
 
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            translation_score, error_count = eval_tranlation(cleaned_answer, cleaned_test_phrase)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
                 matched_translation = cleaned_test_phrase
@@ -824,7 +846,7 @@ class ReviewView(LoginRequiredMixin, View):
         cleaned_answer = unidecode(user_answer.lower())
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            translation_score, error_count = eval_phrase(cleaned_answer, cleaned_test_phrase)
+            translation_score, error_count = eval_tranlation(cleaned_answer, cleaned_test_phrase)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
                 matched_translation = cleaned_test_phrase
@@ -948,7 +970,7 @@ class AccentView(LoginRequiredMixin, View):
         for translation in translations:
             test_user_ans = user_answer.translate(str.maketrans("", "", string.punctuation))
             test_translation = translation.translation.translate(str.maketrans("", "", string.punctuation))
-            response_score, error_count = eval_phrase(test_user_ans.lower(), test_translation.lower())
+            response_score, error_count = eval_tranlation(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
                 testing_phrase.correct += 1
                 # Add XP points to user profile
