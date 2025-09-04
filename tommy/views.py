@@ -13,13 +13,11 @@ from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm
 
 
-# Evaluates a single word to support the eval_tranlation funciton
 def eval_word(user_answer_word, correct_word):
     """
     Evaluates the test score for a word entered by the user in comparison to correct
     answer. Supports eval_tranlation function to evaluate translation accuracy.
     """
-
     # Variables to help evaluate word score
     correct_count, error_count = 0, 0
     answer_length, actual_length = len(user_answer_word), len(correct_word)
@@ -69,13 +67,11 @@ def eval_word(user_answer_word, correct_word):
     return accuracy, error_count
 
 
-# Grades the user answer by comparing it to translation phrase
 def eval_tranlation(user_answer, correct_translation):
     """
     Evaluates the test score for a translation entered by the user
     in comparison to correct translation.
     """
-
     # Set variables to help evaluate accuracty of translation
     answer_str = user_answer.lower().translate(str.maketrans("", "", string.punctuation))
     correct_str = correct_translation.lower().translate(str.maketrans("", "", string.punctuation))
@@ -139,10 +135,11 @@ def eval_tranlation(user_answer, correct_translation):
                 return accuracy, error_count / 2
 
 
-# Styles the feedback HTML to show letters or words with errors
 def feedback(user_answer, correct_translation, errors, score):
-    """Generates HTML style tags to provide better feedback to the user on translation accuracy"""
-
+    """
+    Generates HTML style tags to provide better feedback on translation accuracy.
+    Used for learn, practice and review exercise view classes.
+    """
     error_limit = len(correct_translation) / 8
 
     # Case: no errors
@@ -192,13 +189,11 @@ def feedback(user_answer, correct_translation, errors, score):
         return html + '\b</span>'
 
 
-# Styles the feedback HTML for the AccentView class
 def accent_feedback(user_answer, correct_translation, errors, score):
     """
-    Generates HTML style tags to provide better feedback to the user on translation accuracy
-    for the accent testing extreme difficulty excercise
+    Generates HTML style tags to provide better feedback on translation
+    accuracy. Used in the accent testing extreme difficulty excercise view.
     """
-
     # Set variables to help identify errors to mark for feedback
     answer_str = user_answer.translate(str.maketrans("", "", string.punctuation))
     actual_str = correct_translation.translate(str.maketrans("", "", string.punctuation))
@@ -248,7 +243,8 @@ def accent_feedback(user_answer, correct_translation, errors, score):
 
 
 class Home(LoginRequiredMixin, TemplateView):
-    """Displays the app home page menu"""
+    """Displays the app home page menu with exercises for users and nav bar"""
+
     template_name = 'tommy/home.html'
 
     def get(self, request):
@@ -297,14 +293,13 @@ class Home(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
 
-# Recalculates user phrase after each login based on time elapsed
-# Login redirects here.
-# This page then redirects to Home view after recalculating user phrase strength.
 class ResetView(LoginRequiredMixin, UpdateView):
-    """Resets the user's strength for each phrase after every login"""
+    """Resets the user's strength for all phrases after each login and redirects home."""
+    # Recalculates user phrase after each login based on time elapsed. Login redirects
+    # here. The form autosubmits, post updates all user scores then redirects home.
     template_name = 'tommy/reset.html'
 
-    # Login redirects here and hidden form in template redirects to post.
+    # Login redirects to get and hidden form in template redirects to post.
     def get(self, request):
         return render(request, self.template_name)
 
@@ -344,7 +339,6 @@ class ResetView(LoginRequiredMixin, UpdateView):
         return redirect(success_url)
 
 
-# Adds a user name for the GUI and creates user testing objects for all course phrases
 class ProfileCreateView(LoginRequiredMixin, CreateView):
     """
     Adds a profile name to greet the user
@@ -386,6 +380,10 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
 
 
 class GlossaryView(LoginRequiredMixin, ListView):
+    """
+    Searches and list all phrases in the database along with their translations.
+    Displays summary of user progress
+    """
     template_name = 'tommy/glossary.html'
 
     def get(self, request):
@@ -402,7 +400,7 @@ class GlossaryView(LoginRequiredMixin, ListView):
             unlearned_phrase_count, learned_phrase_count = 1, 0
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
 
-        # Create list of dicts for faster data access and search on web page
+        # Create list of dicts for faster data access and search response on web page load
         phrase_data = []
         strength_data = { 'learned': 0, 'total': 0 }
         for phrase in phrases:
@@ -448,6 +446,8 @@ class GlossaryView(LoginRequiredMixin, ListView):
 
 
 class ModulesView(LoginRequiredMixin, ListView):
+    """Displays all available and completed modules as button links to learning exercises"""
+
     template_name = 'tommy/modules.html'
 
     def get(self, request):
@@ -493,8 +493,11 @@ class ModulesView(LoginRequiredMixin, ListView):
         return render(request, self.template_name, context)
 
 
-# Selects unlearned phrases for testing / accent not tested
 class LearnView(LoginRequiredMixin, View):
+    """
+    Test form. Prompts user to translate phrases from a learning module chosen
+    randomly one at a time. (Does not test accent and punctuation.)
+    """
     template_name = 'tommy/learn.html'
 
     def get(self, request, pk):
@@ -627,8 +630,12 @@ class LearnView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-# Selects weakest strength phrases for testing / accent not tested
 class PracticeView(LoginRequiredMixin, View):
+    """
+    Test form. Prompts user to translate phrases one at a time. Selects user's
+    weakest phrase each time. (Does not test accent and punctuation.)
+    """
+
     template_name = 'tommy/practice.html'
 
     def get(self, request):
@@ -753,8 +760,11 @@ class PracticeView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-# Selects phrases not seen for longest time for testing / accent not tested
 class ReviewView(LoginRequiredMixin, View):
+    """
+    Test form. Prompts user to translate phrases one at a time. Selects phrase not 
+    seen by user in longest time. (Does not test accent and punctuation.)
+    """
     template_name = 'tommy/review.html'
 
     def get(self, request):
@@ -877,8 +887,11 @@ class ReviewView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-# Test correct accent on phrases not seen for longest time
 class AccentView(LoginRequiredMixin, View):
+    """
+    Difficult test form. Prompts user to translate phrases one at a time. Selects
+    phrase not  seen by user in longest time. Tests accent and punctuation.
+    """
     template_name = 'tommy/accent.html'
 
     def get(self, request):
@@ -996,8 +1009,9 @@ class AccentView(LoginRequiredMixin, View):
         return redirect(success_url)
 
 
-# Feedback page for test results
 class FeedbackView(LoginRequiredMixin, View):
+    """Displays feedback on user translation accuracy and points earned."""
+
     template_name = 'tommy/feedback.html'
 
     def get(self, request):
