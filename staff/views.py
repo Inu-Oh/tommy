@@ -14,9 +14,9 @@ from tommy.models import Module, Phrase, Translation, Profile, UserPhraseStrengt
 from .forms import ModuleForm, CreatePhraseForm, CreateTranslationForm, UpdatePhraseForm, UpdateTranslationForm, CsvTestForm, CsvSubmitForm
     
 
-# Menu for admins to navigate adding and editing content
-# Reserve deleting content for superusers in django admin section
 class StaffMenuView(LoginRequiredMixin, ListView):
+    """Admin staff menu to navigate adding and editing content."""
+
     template_name = 'staff/manage_content.html'
     
     def get(self, request):
@@ -39,8 +39,10 @@ class StaffMenuView(LoginRequiredMixin, ListView):
         return render(request, self.template_name, context)
 
 
-# Views for adding new content: modules, phrases and translations
+# Three views for adding new content
 class CreateModuleView(PermissionRequiredMixin, CreateView):
+    """Admin page. Adds new modules to the database."""
+
     permission_required = 'tommy.add_module'
     template_name = 'staff/add_module.html'
     
@@ -71,6 +73,8 @@ class CreateModuleView(PermissionRequiredMixin, CreateView):
 
 
 class CreatePhraseView(PermissionRequiredMixin, CreateView):
+    """Admin page. Adds new phrases to the database."""
+
     permission_required = 'tommy.add_phrase'
     template_name = 'staff/add_phrase.html'
     
@@ -120,6 +124,8 @@ class CreatePhraseView(PermissionRequiredMixin, CreateView):
 
 
 class CreateTranslationView(PermissionRequiredMixin, CreateView):
+    """Admin page. Adds new phrase translations to the database."""
+
     permission_required = 'tommy.add_translation'
     template_name = 'staff/add_translation.html'
     
@@ -174,8 +180,10 @@ class CreateTranslationView(PermissionRequiredMixin, CreateView):
         return redirect(success_url)
 
 
-# Views for editing modules, phrases and translations
+# Three views for editing content
 class UpdateModuleView(PermissionRequiredMixin, UpdateView):
+    """Admin page. Edits modules in the database."""
+
     permission_required = 'tommy.change_module'
     template_name = 'staff/edit_module.html'
     
@@ -207,6 +215,8 @@ class UpdateModuleView(PermissionRequiredMixin, UpdateView):
 
 
 class UpdatePhraseView(PermissionRequiredMixin, UpdateView):
+    """Admin page. Edits phrases in the database."""
+
     permission_required = 'tommy.change_phrase'
     template_name = 'staff/edit_phrase.html'
     
@@ -240,6 +250,8 @@ class UpdatePhraseView(PermissionRequiredMixin, UpdateView):
 
 
 class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
+    """Admin page. Edits phrase translations in the database."""
+
     permission_required = 'tommy.change_translation'
     template_name = 'staff/edit_translation.html'
     
@@ -283,8 +295,13 @@ class UpdateTranslationView(PermissionRequiredMixin, UpdateView):
         return redirect(success_url)
 
 
-# Views for mass database update of modules, phrases and translations
+# Two views for mass database updates from CSV to SQL
 class CsvToDbTestView(PermissionRequiredMixin, View):
+    """
+    Admin page. Tests whether import_data.csv is correctly populated to mass edit data.
+    Otherwise it provides feedback on errors that need correction.
+    """
+
     permission_required = [
         'tommy.add_module',
         'tommy.add_phrase',
@@ -512,6 +529,11 @@ class CsvToDbTestView(PermissionRequiredMixin, View):
 
 
 class CsvToDbUpdateView(PermissionRequiredMixin, ListView):
+    """
+    Admin page. GET shows summary of changes that will be made to the database based on
+    import_data.csv. If the CSV is free of errors, POST updates the SQL database.
+    """
+
     permission_required = [
         'tommy.add_module',
         'tommy.add_phrase',
