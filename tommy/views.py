@@ -12,6 +12,9 @@ import string
 from .models import Module, Phrase, Translation, Profile, UserPhraseStrength
 from .forms import ProfileForm, TestForm
 
+# Constants for setting user phrase view counts, evaluating accuracy and errors in testing views.
+INITIATE_COUNT, UNASSESSED_ACCURACY, UNASSESSED_SCORE, MAX_ERRORS = 1, False, -1, 100
+
 
 def eval_word(user_answer_word, correct_word):
     """
@@ -85,7 +88,7 @@ def eval_tranlation(user_answer, correct_translation):
     if answer_str == correct_str:
         return FULL_SCORE, error_count
     
-    # One word phrase is evaluated for spelling errors and additional words
+    # One word translation is evaluated for spelling errors and superfluous words
     elif actual_word_count == 1:
         if answer_word_count == 1:
             return eval_word(user_answer, correct_translation)
@@ -98,9 +101,9 @@ def eval_tranlation(user_answer, correct_translation):
                     return word_accuracy * factor, error_count
             return FAIL, answer_str_len
 
-    # Multiple word phrase evaluates accuracy of phrases separately
+    # Multiple word translation evaluates accuracy of words separately
     else:
-        # If the number of words is the same compare the words
+        # If the number of words is the same compare the words one by one
         if answer_word_count == actual_word_count:
             for i in range(actual_word_count):
                 if answer_words[i] == correct_words[i]:
@@ -113,26 +116,26 @@ def eval_tranlation(user_answer, correct_translation):
         # Otherwise search for the words in the full string
         else:
             if correct_str in answer_str or answer_str in correct_str:
-                # May result in negative score - OK but can be imporved TODO
-                accuracy = ( actual_str_len 
-                            - abs( actual_str_len - answer_str_len ) ) / actual_str_len * FULL_SCORE
+                accuracy = ( ( actual_str_len - abs( actual_str_len - answer_str_len ) )
+                            / actual_str_len * FULL_SCORE )
+                accuracy = accuracy if accuracy > FAIL else FAIL
                 error_count += abs(actual_str_len - answer_str_len)
                 return accuracy, error_count
             else:
-                factor = ( ( actual_word_count 
-                            - abs( answer_word_count - actual_word_count ) ) / actual_word_count )
+                factor = ( ( actual_word_count - abs( answer_word_count - actual_word_count ) )
+                          / actual_word_count )
                 correct_word_count = 0
-                # Counts too many errors - consider revision
+                # TODO - This error count is not ideal and can be improved
                 for word in correct_words:
                     if word in answer_words:
                         correct_word_count += 1
                     else:
-                        error_count += len(word)
+                        error_count += int(len(word) / 2)
                 for word in answer_words:
                     if word not in correct_words:
-                        error_count += len(word)
+                        error_count += int(len(word) / 2)
                 accuracy = (correct_word_count / actual_word_count) * factor * FULL_SCORE
-                return accuracy, error_count / 2
+                return accuracy, error_count
 
 
 def feedback(user_answer, correct_translation, errors, score):
@@ -495,8 +498,8 @@ class ModulesView(LoginRequiredMixin, ListView):
 
 class LearnView(LoginRequiredMixin, View):
     """
-    Test form. Prompts user to translate phrases from a learning module chosen
-    randomly one at a time. (Does not test accent and punctuation.)
+    Test form. Prompts user to translate phrases from a learning module. Chooses
+    random phrase one at a time. (Does not test accent and punctuation.)
     """
     template_name = 'tommy/learn.html'
 
@@ -586,36 +589,42 @@ class LearnView(LoginRequiredMixin, View):
             # TODO Add error message to template
             return render(request, self.template_name, context)
 
-        # Set phrase to learned. Calculate and set user phrase strength data. Generate feedback.
-        MAX_ERRORS = 100
-
+        # Track the phrase as learned by the user and initiate view count.
         testing_phrase.learned = True
-        testing_phrase.views = 1
-        response_accuracy = False
-        response_score, errors = -1, MAX_ERRORS
-        matched_translation, feedback_html = "", ""
+        testing_phrase.views = INITIATE_COUNT
+
+        # Set variables to evaluate score and prepare feedback.
+        response_accuracy = UNASSESSED_ACCURACY
+        response_score = UNASSESSED_SCORE
+        errors = MAX_ERRORS
+        matched_translation = ""
+        feedback_html = ""
         cleaned_answer = unidecode(user_answer.lower())
-        # print("\nUser answer:", user_answer, "Cleanded:", cleaned_answer)
+
+        # Find a translation that best matches the user's answer and evaluate score and errors
         for translation in translations:
             cleaned_test_phrase = unidecode(translation.translation.lower())
-            # print("Phrase:", translation.translation, "Cleaned:", cleaned_test_phrase)
             translation_score, error_count = eval_tranlation(cleaned_answer, cleaned_test_phrase)
             if translation_score > response_score:
                 response_score, errors = translation_score, error_count
                 matched_translation = cleaned_test_phrase
-        if not matched_translation:
-            matched_translation =  translations[0].translation
+        if not matched_translation: # Use a dummy translation if user's answer has no match.
+            matched_translation = translations[0].translation
         feedback_html = feedback(user_answer, matched_translation, errors, response_score)
-        translation_length = len(
+
+        # If evaluation passes mark, add points to user profile and raise user phrase strength score.
+        translation_len = len(
             matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
-        if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
-            testing_phrase.correct = 1
+        if ((translation_len < 10) and (response_score >= 85)) or response_score >= 90:
+            testing_phrase.correct += 1
             testing_phrase.strength = round(response_score)
             # Add XP points to user profile
             profile.xp += 5
             profile.save()
             response_accuracy = True
+        
+        # Save the phrase strength object tracked for current user.
         testing_phrase.save()
 
         # Prepare data for feedback view
