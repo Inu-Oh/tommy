@@ -612,19 +612,18 @@ class LearnView(LoginRequiredMixin, View):
             matched_translation = translations[0].translation
         feedback_html = feedback(user_answer, matched_translation, errors, response_score)
 
-        # If evaluation passes mark, add points to user profile and raise user phrase strength score.
+        # If evaluation passes mark, add points to user profile and raise user phrase strength.
         translation_len = len(
             matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         if ((translation_len < 10) and (response_score >= 85)) or response_score >= 90:
             testing_phrase.correct += 1
             testing_phrase.strength = round(response_score)
-            # Add XP points to user profile
             profile.xp += 5
             profile.save()
             response_accuracy = True
         
-        # Save the phrase strength object tracked for current user.
+        # Save the user's phrase score.
         testing_phrase.save()
 
         # Prepare data for feedback view
