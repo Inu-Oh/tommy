@@ -27,7 +27,7 @@ class PhraseQuizView(LoginRequiredMixin, View):
         # Delete session data from previously tested phrase if it exists
         if test_count > 0:
             try:
-                del request.session['testing_phrase']
+                del request.session['user_phrase_test_object']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -36,7 +36,7 @@ class PhraseQuizView(LoginRequiredMixin, View):
                 pass
             # The testing phrase id is only used in LearnView
             try:
-                del request.session['testing_phrase_id']
+                del request.session['user_phrase_test_object_id']
             except:
                 pass
 

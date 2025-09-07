@@ -34,12 +34,12 @@
 
 {% block content %}
 <div class="row p-4 container-fluid d-flex justify content between">
-    {% if not testing_phrase %}
+    {% if not user_phrase_test_object %}
     Error with feedback on testing phrase
     {% else %}
         <div class="ps-4 col-5 text-start">   
             <p class="fs-6 text-muted mb-1">Test phrase</p>
-            <p class="fs-3 lh-sm">{{ testing_phrase.phrase }}</p>
+            <p class="fs-3 lh-sm">{{ user_phrase_test_object.phrase }}</p>
         </div>
         <div class="ps-5 col-7 text-start">
             <p class="fs-6 text-muted mb-0">
