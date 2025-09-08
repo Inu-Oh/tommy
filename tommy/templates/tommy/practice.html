@@ -28,12 +28,12 @@
 
 {% block content %}
 <div class="container-fluid p-4 d-flex justify-content-between">  
-    {% if not user_phrase_test_object %}
+    {% if not user_phrase_strength %}
     <p>Learn phrases before doing practice</p>
     {% else %}
         <p class="fs-3 ps-5 lh-sm">
             <span class="fs-6 text-muted"></span><br>
-            {{ user_phrase_test_object.phrase }}</p>
+            {{ user_phrase_strength.phrase }}</p>
     {% endif %}
 </div>
 {% endblock content %}

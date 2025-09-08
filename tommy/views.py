@@ -267,9 +267,9 @@ class Home(LoginRequiredMixin, TemplateView):
             del request.session['module_id']
         except:
             pass
-        if request.session.get('user_phrase_test_object'):
+        if request.session.get('user_phrase_strength'):
             try:
-                del request.session['user_phrase_test_object']
+                del request.session['user_phrase_strength']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -278,10 +278,10 @@ class Home(LoginRequiredMixin, TemplateView):
                 pass
         
         # Get user phrase strength data for progress
-        user_phrase_strength = UserPhraseStrength.objects.filter(user=request.user)
-        if user_phrase_strength.count() > 0:
-            unlearned_phrase_count = user_phrase_strength.filter(learned=False).count()
-            learned_phrase_count = user_phrase_strength.filter(learned=True).count()
+        user_phrase_strength_set = UserPhraseStrength.objects.filter(user=request.user)
+        if user_phrase_strength_set.count() > 0:
+            unlearned_phrase_count = user_phrase_strength_set.filter(learned=False).count()
+            learned_phrase_count = user_phrase_strength_set.filter(learned=True).count()
             progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         else:
             progress = 0
@@ -505,10 +505,10 @@ class LearnView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_test_object'):
+        if request.session.get('user_phrase_strength'):
             try:
-                del request.session['user_phrase_test_object']
-                del request.session['user_phrase_test_object_id']
+                del request.session['user_phrase_strength']
+                del request.session['user_phrase_strength_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -526,11 +526,11 @@ class LearnView(LoginRequiredMixin, View):
                 user=request.user,
                 phrase__in=phrases
             )
-            user_phrase_test_object = choice(user_unlearned_phrase_objects)
-            phrase = phrases.get(id=user_phrase_test_object.phrase_id)
+            user_phrase_strength = choice(user_unlearned_phrase_objects)
+            phrase = phrases.get(id=user_phrase_strength.phrase_id)
 
             # Save phrase data to session to be access in POST
-            request.session['user_phrase_test_object_id'] = user_phrase_test_object.id
+            request.session['user_phrase_strength_id'] = user_phrase_strength.id
 
             # Module progress
             module_phrase_count = phrases.count()
@@ -545,7 +545,7 @@ class LearnView(LoginRequiredMixin, View):
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'module_progress': module_progress
             }
             return render(request, self.template_name, context)
@@ -558,15 +558,15 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         
         # Get an unlearned phrase for testing and its translations
-        user_phrase_test_object = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_test_object_id'))
-        translations = Translation.objects.filter(phrase=user_phrase_test_object.phrase)
-        phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+        user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
+        translations = Translation.objects.filter(phrase=user_phrase_strength.phrase)
+        phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         if not form.is_valid():
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
             }
             return render(request, self.template_name, context)
         translation_langauge = translations[0].language
@@ -583,15 +583,15 @@ class LearnView(LoginRequiredMixin, View):
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'message': "Invalid input"
             }
             # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Track the phrase as learned by the user and initiate view count.
-        user_phrase_test_object.learned = True
-        user_phrase_test_object.views = INITIATE_COUNT
+        user_phrase_strength.learned = True
+        user_phrase_strength.views = INITIATE_COUNT
 
         # Set variables to evaluate score and prepare feedback.
         response_score = UNASSESSED_SCORE
@@ -619,8 +619,8 @@ class LearnView(LoginRequiredMixin, View):
             matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         if ((translation_len < 10) and (response_score >= 85)) or response_score >= 90:
-            user_phrase_test_object.correct += 1
-            user_phrase_test_object.strength = round(response_score)
+            user_phrase_strength.correct += 1
+            user_phrase_strength.strength = round(response_score)
             profile.xp += 5
             profile.save()
             response_accuracy = True
@@ -628,11 +628,11 @@ class LearnView(LoginRequiredMixin, View):
             response_accuracy = False
         
         # Save the user's phrase score
-        user_phrase_test_object.save()
+        user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_test_object'] = user_phrase_test_object.phrase.phrase
+        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip() # remove ?
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:learn'
@@ -662,9 +662,9 @@ class PracticeView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
 
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_test_object'):
+        if request.session.get('user_phrase_strength'):
             try:
-                del request.session['user_phrase_test_object']
+                del request.session['user_phrase_strength']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -676,13 +676,13 @@ class PracticeView(LoginRequiredMixin, View):
         form = TestForm()
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-            user_phrase_test_object = phrase_strength_set.earliest('strength')
-            phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+            user_phrase_strength = phrase_strength_set.earliest('strength')
+            phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
             # Iterate test count for each phrase test before passing to session
@@ -697,8 +697,8 @@ class PracticeView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-        user_phrase_test_object = phrase_strength_set.earliest('strength')
-        phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+        user_phrase_strength = phrase_strength_set.earliest('strength')
+        phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
@@ -707,7 +707,7 @@ class PracticeView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
             return render(request, self.template_name, context)
@@ -723,14 +723,14 @@ class PracticeView(LoginRequiredMixin, View):
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'message': "Invalid input"
             }
             # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Increment user view of current phrase
-        user_phrase_test_object.views += 1
+        user_phrase_strength.views += 1
 
         # Set variables to evaluate user's translation of current prhase
         response_score = UNASSESSED_SCORE
@@ -758,20 +758,20 @@ class PracticeView(LoginRequiredMixin, View):
             matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         if (translation_len < 10 and response_score >= 85) or response_score >= 90:
-            user_phrase_test_object.correct += 1
+            user_phrase_strength.correct += 1
             response_accuracy = True
             profile.xp += 5
             profile.save()
         else:
             response_accuracy = False
-        user_phrase_test_object.strength = ((user_phrase_test_object.views - (user_phrase_test_object.views - user_phrase_test_object.correct)) * 100) / user_phrase_test_object.views
+        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
         
         # Save the user's phrase score
-        user_phrase_test_object.save()
+        user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_test_object'] = user_phrase_test_object.phrase.phrase
+        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
@@ -800,9 +800,9 @@ class ReviewView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
             
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_test_object'):
+        if request.session.get('user_phrase_strength'):
             try:
-                del request.session['user_phrase_test_object']
+                del request.session['user_phrase_strength']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -814,13 +814,13 @@ class ReviewView(LoginRequiredMixin, View):
         form = TestForm()
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-            user_phrase_test_object = phrase_strength_set.earliest('updated_at')
-            phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+            user_phrase_strength = phrase_strength_set.earliest('updated_at')
+            phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object - TODO is this needed in template
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object - TODO is this needed in template
                 'phrase': phrase,
             }
             # Iterate test count for each phrase test before passing to session
@@ -835,8 +835,8 @@ class ReviewView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
         phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-        user_phrase_test_object = phrase_strength_set.earliest('updated_at')
-        phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+        user_phrase_strength = phrase_strength_set.earliest('updated_at')
+        phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
@@ -845,7 +845,7 @@ class ReviewView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
             return render(request, self.template_name, context)
@@ -861,14 +861,14 @@ class ReviewView(LoginRequiredMixin, View):
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'message': "Invalid input"
             }
             # TODO Add error message to template
             return render(request, self.template_name, context)
         
         # Increment user view of current phrase
-        user_phrase_test_object.views += 1
+        user_phrase_strength.views += 1
 
         # Set variables to evaluate score and prepare feedback.
         response_score = UNASSESSED_SCORE
@@ -896,19 +896,19 @@ class ReviewView(LoginRequiredMixin, View):
             matched_translation.replace(" ", "").translate(str.maketrans("", "", string.punctuation))
         )
         if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
-            user_phrase_test_object.correct += 1
+            user_phrase_strength.correct += 1
             # Add XP points to user profile
             profile.xp += 5
             profile.save()
             response_accuracy = True
         else:
             response_accuracy = False
-        user_phrase_test_object.strength = ((user_phrase_test_object.views - (user_phrase_test_object.views - user_phrase_test_object.correct)) * 100) / user_phrase_test_object.views
-        user_phrase_test_object.save()
+        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
+        user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_test_object'] = user_phrase_test_object.phrase.phrase
+        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
@@ -936,10 +936,10 @@ class AccentView(LoginRequiredMixin, View):
         except:
             request.session['test_count'] = 0
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_test_object'):
+        if request.session.get('user_phrase_strength'):
             try:
-                del request.session['user_phrase_test_object']
-                del request.session['user_phrase_test_object_id']
+                del request.session['user_phrase_strength']
+                del request.session['user_phrase_strength_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -953,16 +953,16 @@ class AccentView(LoginRequiredMixin, View):
         # Select random unlearned phrase for testing and get its translationstry:
         try: 
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
-            user_phrase_test_object = choice(phrase_strength_set)
-            phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+            user_phrase_strength = choice(phrase_strength_set)
+            phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             # Save phrase data to session to be access in POST
-            request.session['user_phrase_test_object_id'] = user_phrase_test_object.id
+            request.session['user_phrase_strength_id'] = user_phrase_strength.id
 
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
             # Iterate test count for each phrase test before passing to session
@@ -976,8 +976,8 @@ class AccentView(LoginRequiredMixin, View):
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        user_phrase_test_object = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_test_object_id'))
-        phrase = Phrase.objects.get(id=user_phrase_test_object.phrase_id)
+        user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
+        phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
         translation_language = "English" if phrase.language == "French" else "French"
         translations = Translation.objects.filter(phrase=phrase, language=translation_language)
@@ -986,7 +986,7 @@ class AccentView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
             return render(request, self.template_name, context)
@@ -1002,14 +1002,14 @@ class AccentView(LoginRequiredMixin, View):
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
-                'user_phrase_test_object': user_phrase_test_object, # Phrase strength object
+                'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'message': "Invalid input"
             }
             # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Increment user view of current phrase
-        user_phrase_test_object.views += 1
+        user_phrase_strength.views += 1
 
         # Set variables to evaluate user's translation of current prhase
         response_accuracy = UNASSESSED_ACCURACY
@@ -1022,7 +1022,7 @@ class AccentView(LoginRequiredMixin, View):
             test_translation = translation.translation.translate(str.maketrans("", "", string.punctuation))
             response_score, error_count = eval_tranlation(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
-                user_phrase_test_object.correct += 1
+                user_phrase_strength.correct += 1
                 # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
@@ -1031,12 +1031,12 @@ class AccentView(LoginRequiredMixin, View):
                 break
             elif response_score > highest_score:
                 feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
-        user_phrase_test_object.strength = ((user_phrase_test_object.views - (user_phrase_test_object.views - user_phrase_test_object.correct)) * 100) / user_phrase_test_object.views
-        user_phrase_test_object.save()
+        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
+        user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_test_object'] = user_phrase_test_object.phrase.phrase
+        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
         request.session['user_answer'] = user_answer
         request.session['response_accuracy'] = response_accuracy
         request.session['module_id'] = module.id
@@ -1053,14 +1053,14 @@ class FeedbackView(LoginRequiredMixin, View):
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
-        user_phrase_test_object = request.session.get('user_phrase_test_object')
+        user_phrase_strength = request.session.get('user_phrase_strength')
         module = Module.objects.get(id=request.session.get('module_id'))
         phrase = Phrase.objects.get(
-            phrase=user_phrase_test_object,
+            phrase=user_phrase_strength,
             language=request.session.get('phrase_language'),
             module=module
         )
-        user_phrase_test_object = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+        user_phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
         user_answer = request.session.get('user_answer') # remove ?
         response_accuracy = request.session.get('response_accuracy')
         translations = Translation.objects.filter(phrase=phrase)
@@ -1102,7 +1102,7 @@ class FeedbackView(LoginRequiredMixin, View):
             'profile': profile,
             'user_answer': user_answer, # remove ?
             'response_accuracy': response_accuracy,
-            'user_phrase_test_object': user_phrase_test_object,
+            'user_phrase_strength': user_phrase_strength,
             'translations': translations,
             'testing_view': testing_view,
             'result': result,
