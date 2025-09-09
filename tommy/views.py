@@ -897,7 +897,6 @@ class ReviewView(LoginRequiredMixin, View):
         )
         if ((translation_length < 10) and (response_score >= 85)) or response_score >= 90:
             user_phrase_strength.correct += 1
-            # Add XP points to user profile
             profile.xp += 5
             profile.save()
             response_accuracy = True
@@ -1011,19 +1010,16 @@ class AccentView(LoginRequiredMixin, View):
         # Increment user view of current phrase
         user_phrase_strength.views += 1
 
-        # Set variables to evaluate user's translation of current prhase
-        response_accuracy = UNASSESSED_ACCURACY
+        # Set variable to help choose best translation for feedback
         highest_score = UNASSESSED_SCORE
-        feedback_html = ""
         
-        # Find a translation that best matches the user's answer, evaluate score, errors, and generate feedback
+        # Find a translation that exactly matches the user's answer. If yes, add points. Generate feedback.
         for translation in translations:
             test_user_ans = user_answer.translate(str.maketrans("", "", string.punctuation))
             test_translation = translation.translation.translate(str.maketrans("", "", string.punctuation))
             response_score, error_count = eval_tranlation(test_user_ans.lower(), test_translation.lower())
             if test_user_ans == test_translation:
                 user_phrase_strength.correct += 1
-                # Add XP points to user profile
                 profile.xp += 5
                 profile.save()
                 response_accuracy = True
@@ -1031,6 +1027,9 @@ class AccentView(LoginRequiredMixin, View):
                 break
             elif response_score > highest_score:
                 feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
+                response_accuracy = False
+        
+        # Update the user phrase strength score.
         user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
         user_phrase_strength.save()
 
