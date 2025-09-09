@@ -267,9 +267,9 @@ class Home(LoginRequiredMixin, TemplateView):
             del request.session['module_id']
         except:
             pass
-        if request.session.get('user_phrase_strength'):
+        if request.session.get('phrase'):
             try:
-                del request.session['user_phrase_strength']
+                del request.session['phrase']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -505,9 +505,9 @@ class LearnView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_strength'):
+        if request.session.get('phrase'):
             try:
-                del request.session['user_phrase_strength']
+                del request.session['phrase']
                 del request.session['user_phrase_strength_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
@@ -632,7 +632,7 @@ class LearnView(LoginRequiredMixin, View):
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
+        request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['user_answer'] = form.cleaned_data['answer'].strip() # remove ?
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:learn'
@@ -662,9 +662,9 @@ class PracticeView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
 
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_strength'):
+        if request.session.get('phrase'):
             try:
-                del request.session['user_phrase_strength']
+                del request.session['phrase']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -771,7 +771,7 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
+        request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
@@ -800,9 +800,9 @@ class ReviewView(LoginRequiredMixin, View):
             request.session['test_count'] = 0
             
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_strength'):
+        if request.session.get('phrase'):
             try:
-                del request.session['user_phrase_strength']
+                del request.session['phrase']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
                 del request.session['phrase_language']
@@ -907,7 +907,7 @@ class ReviewView(LoginRequiredMixin, View):
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
+        request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
         request.session['user_answer'] = form.cleaned_data['answer'].strip()
         request.session['response_accuracy'] = response_accuracy
@@ -920,7 +920,7 @@ class ReviewView(LoginRequiredMixin, View):
 class AccentView(LoginRequiredMixin, View):
     """
     Difficult test form. Prompts user to translate phrases one at a time. Selects
-    phrase not  seen by user in longest time. Tests accent and punctuation.
+    phrase randomly. Tests accent and punctuation.
     """
     template_name = 'tommy/accent.html'
 
@@ -935,9 +935,9 @@ class AccentView(LoginRequiredMixin, View):
         except:
             request.session['test_count'] = 0
         # Delete session data for previous testing phrase if it exists
-        if request.session.get('user_phrase_strength'):
+        if request.session.get('phrase'):
             try:
-                del request.session['user_phrase_strength']
+                del request.session['phrase']
                 del request.session['user_phrase_strength_id']
                 del request.session['user_answer']
                 del request.session['response_accuracy']
@@ -1035,7 +1035,7 @@ class AccentView(LoginRequiredMixin, View):
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
-        request.session['user_phrase_strength'] = user_phrase_strength.phrase.phrase
+        request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['user_answer'] = user_answer
         request.session['response_accuracy'] = response_accuracy
         request.session['module_id'] = module.id
@@ -1052,14 +1052,14 @@ class FeedbackView(LoginRequiredMixin, View):
 
     def get(self, request):
         profile = Profile.objects.get(user=request.user)
-        user_phrase_strength = request.session.get('user_phrase_strength')
+        phrase_str = request.session.get('phrase')
         module = Module.objects.get(id=request.session.get('module_id'))
         phrase = Phrase.objects.get(
-            phrase=user_phrase_strength,
+            phrase=phrase_str,
             language=request.session.get('phrase_language'),
             module=module
         )
-        user_phrase_strength = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+        
         user_answer = request.session.get('user_answer') # remove ?
         response_accuracy = request.session.get('response_accuracy')
         translations = Translation.objects.filter(phrase=phrase)
@@ -1101,7 +1101,7 @@ class FeedbackView(LoginRequiredMixin, View):
             'profile': profile,
             'user_answer': user_answer, # remove ?
             'response_accuracy': response_accuracy,
-            'user_phrase_strength': user_phrase_strength,
+            'phrase': phrase_str,
             'translations': translations,
             'testing_view': testing_view,
             'result': result,
