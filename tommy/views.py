@@ -519,8 +519,9 @@ class LearnView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user=request.user)
         form = TestForm()
         module = Module.objects.get(id=pk)
+        phrases = module.phrases_in_module.all()
         try: # Select random unlearned phrase for testing and get its translations
-            phrases = Phrase.objects.filter(module=module)
+            # TODO change: phrases = Phrase.objects.filter(module=module)
             user_unlearned_phrase_objects = UserPhraseStrength.objects.filter(
                 learned=False,
                 user=request.user,
@@ -559,8 +560,11 @@ class LearnView(LoginRequiredMixin, View):
         
         # Get an unlearned phrase for testing and its translations
         user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
-        translations = Translation.objects.filter(phrase=user_phrase_strength.phrase)
+        # TODO change: translations = Translation.objects.filter(phrase=user_phrase_strength.phrase)
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
+        translations = phrase.phrase_translations.all()
+        # TODO review change
+        print([t.translation for t in translations])
         if not form.is_valid():
             context = {
                 'profile': profile,
@@ -633,7 +637,7 @@ class LearnView(LoginRequiredMixin, View):
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
-        request.session['user_answer'] = form.cleaned_data['answer'].strip() # remove ?
+        request.session['user_answer'] = user_answer # Backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:learn'
         request.session['module_id'] = pk
@@ -773,7 +777,7 @@ class PracticeView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
-        request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['user_answer'] = user_answer # Backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:practice'
         request.session['phrase_language'] = phrase.language
@@ -909,7 +913,7 @@ class ReviewView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
-        request.session['user_answer'] = form.cleaned_data['answer'].strip()
+        request.session['user_answer'] = user_answer # Backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:review'
         request.session['phrase_language'] = phrase.language
@@ -1036,7 +1040,7 @@ class AccentView(LoginRequiredMixin, View):
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
-        request.session['user_answer'] = user_answer
+        request.session['user_answer'] = user_answer  # Backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['module_id'] = module.id
         request.session['testing_view'] = 'tommy:accent'
@@ -1099,7 +1103,7 @@ class FeedbackView(LoginRequiredMixin, View):
 
         context = {
             'profile': profile,
-            'user_answer': user_answer, # remove ?
+            'user_answer': user_answer, # Backup in csae of error with HTML
             'response_accuracy': response_accuracy,
             'phrase': phrase_str,
             'translations': translations,
