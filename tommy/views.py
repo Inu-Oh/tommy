@@ -528,6 +528,7 @@ class LearnView(LoginRequiredMixin, View):
                 phrase__in=phrases
             )
             user_phrase_strength = choice(user_unlearned_phrase_objects)
+            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = phrases.get(id=user_phrase_strength.phrase_id)
 
             # Save phrase data to session to be access in POST
@@ -681,6 +682,7 @@ class PracticeView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = phrase_strength_set.earliest('strength')
+            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
@@ -704,8 +706,9 @@ class PracticeView(LoginRequiredMixin, View):
         user_phrase_strength = phrase_strength_set.earliest('strength')
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        translation_language = "English" if phrase.language == "French" else "French"
-        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
+        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
             context = {
@@ -819,6 +822,7 @@ class ReviewView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = phrase_strength_set.earliest('updated_at')
+            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
@@ -842,8 +846,9 @@ class ReviewView(LoginRequiredMixin, View):
         user_phrase_strength = phrase_strength_set.earliest('updated_at')
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        translation_language = "English" if phrase.language == "French" else "French"
-        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
+        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
             context = {
@@ -957,6 +962,7 @@ class AccentView(LoginRequiredMixin, View):
         try: 
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = choice(phrase_strength_set)
+            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             # Save phrase data to session to be access in POST
@@ -982,8 +988,9 @@ class AccentView(LoginRequiredMixin, View):
         user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        translation_language = "English" if phrase.language == "French" else "French"
-        translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
+        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
+        translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
             context = {
@@ -1083,7 +1090,7 @@ class FeedbackView(LoginRequiredMixin, View):
         else:
             module_progress = None
 
-        # Feedback langauge
+        # Feedback phrases
         if response_accuracy:
             correct = [
                 "Amazing", "Awesome", "Great", "Yes!", "You got it", "Wow",
