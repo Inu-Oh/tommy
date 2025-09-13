@@ -521,7 +521,6 @@ class LearnView(LoginRequiredMixin, View):
         module = Module.objects.get(id=pk)
         phrases = module.phrases_in_module.all()
         try: # Select random unlearned phrase for testing and get its translations
-            # TODO change: phrases = Phrase.objects.filter(module=module)
             user_unlearned_phrase_objects = UserPhraseStrength.objects.filter(
                 learned=False,
                 user=request.user,
@@ -560,12 +559,12 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm(request.POST)
         
         # Get an unlearned phrase for testing and its translations
-        user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
-        # TODO change: translations = Translation.objects.filter(phrase=user_phrase_strength.phrase)
+        user_phrase_strength = UserPhraseStrength.objects.get(
+                    id=request.session.get('user_phrase_strength_id')
+                )
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         translations = phrase.phrase_translations.all()
-        # TODO review change
-        print([t.translation for t in translations])
+ 
         if not form.is_valid():
             context = {
                 'profile': profile,
@@ -706,8 +705,6 @@ class PracticeView(LoginRequiredMixin, View):
         user_phrase_strength = phrase_strength_set.earliest('strength')
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
-        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
         translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
@@ -771,7 +768,9 @@ class PracticeView(LoginRequiredMixin, View):
             profile.save()
         else:
             response_accuracy = False
-        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
+        user_phrase_strength.strength = ((
+            user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct))
+                * 100) / user_phrase_strength.views
         
         # Save the user's phrase score
         user_phrase_strength.save()
@@ -780,7 +779,7 @@ class PracticeView(LoginRequiredMixin, View):
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
-        request.session['user_answer'] = user_answer # Backup in csae of error with HTML
+        request.session['user_answer'] = user_answer # Used as backup in case of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:practice'
         request.session['phrase_language'] = phrase.language
@@ -828,7 +827,7 @@ class ReviewView(LoginRequiredMixin, View):
             context = {
                 'profile': profile,
                 'form': form,
-                'user_phrase_strength': user_phrase_strength, # Phrase strength object - TODO is this needed in template
+                'user_phrase_strength': user_phrase_strength,
                 'phrase': phrase,
             }
             # Iterate test count for each phrase test before passing to session
@@ -846,8 +845,6 @@ class ReviewView(LoginRequiredMixin, View):
         user_phrase_strength = phrase_strength_set.earliest('updated_at')
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
-        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
         translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
@@ -911,14 +908,16 @@ class ReviewView(LoginRequiredMixin, View):
             response_accuracy = True
         else:
             response_accuracy = False
-        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
+        user_phrase_strength.strength = ((
+            user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) 
+            * 100) / user_phrase_strength.views
         user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
         request.session['module_id'] = module.id
-        request.session['user_answer'] = user_answer # Backup in csae of error with HTML
+        request.session['user_answer'] = user_answer # Used as backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['testing_view'] = 'tommy:review'
         request.session['phrase_language'] = phrase.language
@@ -985,11 +984,11 @@ class AccentView(LoginRequiredMixin, View):
     def post(self, request):
         profile = Profile.objects.get(user=request.user)
         form = TestForm(request.POST)
-        user_phrase_strength = UserPhraseStrength.objects.get(id=request.session.get('user_phrase_strength_id'))
+        user_phrase_strength = UserPhraseStrength.objects.get(
+                    id=request.session.get('user_phrase_strength_id')
+                )
         phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
         module = Module.objects.get(name=phrase.module)
-        # TODO change: translation_language = "English" if phrase.language == "French" else "French"
-        # TODO change: translations = Translation.objects.filter(phrase=phrase, language=translation_language)
         translations = phrase.phrase_translations.all()
 
         if not form.is_valid():
@@ -1034,20 +1033,26 @@ class AccentView(LoginRequiredMixin, View):
                 profile.xp += 5
                 profile.save()
                 response_accuracy = True
-                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
+                feedback_html = accent_feedback(
+                    user_answer, translation.translation, error_count, response_score
+                )
                 break
             elif response_score > highest_score:
-                feedback_html = accent_feedback(user_answer, translation.translation, error_count, response_score)
+                feedback_html = accent_feedback(
+                    user_answer, translation.translation, error_count, response_score
+                )
                 response_accuracy = False
         
         # Update the user phrase strength score.
-        user_phrase_strength.strength = ((user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct)) * 100) / user_phrase_strength.views
+        user_phrase_strength.strength = ((
+            user_phrase_strength.views - (user_phrase_strength.views - user_phrase_strength.correct))
+                * 100) / user_phrase_strength.views
         user_phrase_strength.save()
 
         # Prepare data for feedback view
         success_url = reverse_lazy('tommy:feedback')
         request.session['phrase'] = user_phrase_strength.phrase.phrase
-        request.session['user_answer'] = user_answer  # Backup in csae of error with HTML
+        request.session['user_answer'] = user_answer  # Used as backup in csae of error with HTML
         request.session['response_accuracy'] = response_accuracy
         request.session['module_id'] = module.id
         request.session['testing_view'] = 'tommy:accent'
@@ -1110,7 +1115,7 @@ class FeedbackView(LoginRequiredMixin, View):
 
         context = {
             'profile': profile,
-            'user_answer': user_answer, # Backup in csae of error with HTML
+            'user_answer': user_answer, # Used as backup in csae of error with HTML
             'response_accuracy': response_accuracy,
             'phrase': phrase_str,
             'translations': translations,
