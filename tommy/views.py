@@ -655,7 +655,7 @@ class PracticeView(LoginRequiredMixin, View):
     template_name = 'tommy/practice.html'
 
     def get(self, request):
-        # Set or increment the exercise session test count. End exerice after count 15.
+        # Set or reset the exercise session test count. End exerice after count 15.
         try:
             test_count = request.session.get('test_count')
             if test_count >= 12:
@@ -690,7 +690,7 @@ class PracticeView(LoginRequiredMixin, View):
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
-            # Iterate test count for each phrase test before passing to session
+            # Increment test count for each phrase test before passing to session
             request.session['test_count'] += 1
 
             return render(request, self.template_name, context)
@@ -795,7 +795,7 @@ class ReviewView(LoginRequiredMixin, View):
     template_name = 'tommy/review.html'
 
     def get(self, request):
-        # Set or increment the exercise session test count. End exerice after count 15.
+        # Set or reset the exercise session test count. End exerice after count 15.
         try:
             test_count = request.session.get('test_count')
             if test_count >= 15:
@@ -830,7 +830,7 @@ class ReviewView(LoginRequiredMixin, View):
                 'user_phrase_strength': user_phrase_strength,
                 'phrase': phrase,
             }
-            # Iterate test count for each phrase test before passing to session
+            # Increment test count for each phrase test before passing to session
             request.session['test_count'] += 1
 
             return render(request, self.template_name, context)
@@ -933,7 +933,7 @@ class AccentView(LoginRequiredMixin, View):
     template_name = 'tommy/accent.html'
 
     def get(self, request):
-        # Set or increment the exercise session test count. End exerice after count 15.
+        # Set or reset the exercise session test count. End exerice after count 15.
         try:
             test_count = request.session.get('test_count')
             if test_count >= 12:
@@ -973,8 +973,9 @@ class AccentView(LoginRequiredMixin, View):
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
                 'phrase': phrase,
             }
-            # Iterate test count for each phrase test before passing to session
+            # Increment test count for each phrase test before passing to session
             request.session['test_count'] += 1
+            
 
             return render(request, self.template_name, context)
         except:
