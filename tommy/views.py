@@ -467,6 +467,12 @@ class ModulesView(LoginRequiredMixin, ListView):
         progress = int((learned_phrase_count * 100) / (learned_phrase_count + unlearned_phrase_count))
         modules = Module.objects.all()
 
+        if msg := request.session.get('module_complete_msg'):
+            module_complete_msg = msg
+            del request.session['module_complete_msg']
+        else:
+            module_complete_msg = ""
+
         # Create lists of modules the user has and has not completed
         open_modules = []
         closed_modules = []
@@ -492,6 +498,7 @@ class ModulesView(LoginRequiredMixin, ListView):
             'modules': modules,
             'open_modules': open_modules,
             'closed_modules': closed_modules,
+            'module_complete_msg': module_complete_msg,
         }
         return render(request, self.template_name, context)
 
@@ -520,17 +527,14 @@ class LearnView(LoginRequiredMixin, View):
         form = TestForm()
         module = Module.objects.get(id=pk)
         phrases = module.phrases_in_module.all()
-        try: # Select random unlearned phrase for testing and get its translations
+        try: # Select random unlearned phrase for testing and save it to session for access in POST
             user_unlearned_phrase_objects = UserPhraseStrength.objects.filter(
                 learned=False,
                 user=request.user,
                 phrase__in=phrases
             )
             user_phrase_strength = choice(user_unlearned_phrase_objects)
-            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = phrases.get(id=user_phrase_strength.phrase_id)
-
-            # Save phrase data to session to be access in POST
             request.session['user_phrase_strength_id'] = user_phrase_strength.id
 
             # Module progress
@@ -551,7 +555,9 @@ class LearnView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
         except: # If no unlearned phrase is found, redirect to home page
-            finished_learning_url = reverse_lazy('tommy:home')
+            msg = f'Congrats! You finished the "{module.name}" module.'
+            request.session['module_complete_msg'] = msg
+            finished_learning_url = reverse_lazy('tommy:modules')
             return redirect(finished_learning_url)
     
     def post(self, request, pk):
@@ -579,7 +585,7 @@ class LearnView(LoginRequiredMixin, View):
         # Validate and clean user's answer - TODO or refresh page with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
-        for char in "][}{)($@:":
+        for char in "][}{)($@:": # TODO review this
             if char in user_answer:
                 invalid_input = True
         if invalid_input:
@@ -681,7 +687,6 @@ class PracticeView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = phrase_strength_set.earliest('strength')
-            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
@@ -821,7 +826,6 @@ class ReviewView(LoginRequiredMixin, View):
         try:
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = phrase_strength_set.earliest('updated_at')
-            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             context = {
@@ -859,7 +863,7 @@ class ReviewView(LoginRequiredMixin, View):
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
-        for char in "][}{)($@:":
+        for char in "][}{)($@:": # TODO review this
             if char in user_answer:
                 invalid_input = True
         if invalid_input:
@@ -961,7 +965,6 @@ class AccentView(LoginRequiredMixin, View):
         try: 
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = choice(phrase_strength_set)
-            # TODO try to change to: phrase = user_phrase_strength.user_strength.get()
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
 
             # Save phrase data to session to be access in POST
@@ -1004,7 +1007,7 @@ class AccentView(LoginRequiredMixin, View):
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_input = False
-        for char in "][}{)($@:":
+        for char in "][}{)($@:": # TODO review this
             if char in user_answer:
                 invalid_input = True
         if invalid_input:

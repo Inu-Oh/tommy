@@ -31,5 +31,5 @@ class TranslationAdmin(admin.ModelAdmin):
 
 @admin.register(UserPhraseStrength) # Dev only. Disable before production
 class UserPhraseStrengthAdmin(admin.ModelAdmin):
-    list_display = ('user', 'learned', 'phrase', 'strength')
+    list_display = ('__str__', 'user', 'learned', 'phrase', 'strength')
     list_filter = ('user', 'learned', 'phrase')

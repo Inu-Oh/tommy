@@ -51,7 +51,7 @@ class Phrase(models.Model):
         validators=[MinLengthValidator(1, "This phrase is too short")]
     )
     phrase_strength = models.ManyToManyField(settings.AUTH_USER_MODEL,
-        through='UserPhraseStrength', related_name='user_strength') # TODO review related_name
+        through='UserPhraseStrength')
     module = models.ForeignKey(Module, null=True, on_delete=models.SET_NULL,
         related_name='phrases_in_module')
     
@@ -138,6 +138,4 @@ class UserPhraseStrength(models.Model):
                 and phrase_language_test)
 
     def __str__(self):
-        rep = f'User: {self.user.username}; Phrase: "{self.phrase.phrase}"; '
-        rep += f'Learned: "{self.learned}"; Strength: {self.strength}'
-        return rep
+        return f'{self.user.username}  "{self.phrase.phrase}"'
