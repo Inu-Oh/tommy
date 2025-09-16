@@ -584,19 +584,24 @@ class LearnView(LoginRequiredMixin, View):
 
         # Validate and clean user's answer - TODO or refresh page with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
-        invalid_input = False
-        for char in "][}{)($@:": # TODO review this
-            if char in user_answer:
-                invalid_input = True
-        if invalid_input:
+        invalid_chars = False
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
+                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
+            if val in user_answer:
+                invalid_chars = True
+        if invalid_chars or not form.is_valid():
+            if not form.is_valid():
+                msg = "Please try again"
+            else:
+                msg = "Only letters, commas and apostrophes allowed"
+        if invalid_chars:
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': "Invalid input"
+                'message': msg
             }
-            # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Track the phrase as learned by the user and initiate view count.
@@ -723,19 +728,24 @@ class PracticeView(LoginRequiredMixin, View):
 
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
-        invalid_input = False
-        for char in "][}{)($@:": # TODO review this 
-            if char in user_answer:
-                invalid_input = True
-        if invalid_input:
+        invalid_chars = False
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
+                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
+            if val in user_answer:
+                invalid_chars = True
+        if invalid_chars or not form.is_valid():
+            if not form.is_valid():
+                msg = "Please try again"
+            else:
+                msg = "Only letters, commas and apostrophes allowed"
+        if invalid_chars:
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': "Invalid input"
+                'message': msg
             }
-            # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Increment user view of current phrase
@@ -862,19 +872,24 @@ class ReviewView(LoginRequiredMixin, View):
 
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
-        invalid_input = False
-        for char in "][}{)($@:": # TODO review this
-            if char in user_answer:
-                invalid_input = True
-        if invalid_input:
+        invalid_chars = False
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
+                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
+            if val in user_answer:
+                invalid_chars = True
+        if invalid_chars or not form.is_valid():
+            if not form.is_valid():
+                msg = "Please try again"
+            else:
+                msg = "Only letters, commas and apostrophes allowed"
+        if invalid_chars:
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': "Invalid input"
+                'message': msg
             }
-            # TODO Add error message to template
             return render(request, self.template_name, context)
         
         # Increment user view of current phrase
@@ -1006,19 +1021,24 @@ class AccentView(LoginRequiredMixin, View):
 
         # Validate and clean user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
-        invalid_input = False
-        for char in "][}{)($@:": # TODO review this
-            if char in user_answer:
-                invalid_input = True
-        if invalid_input:
+        invalid_chars = False
+        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
+                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
+            if val in user_answer:
+                invalid_chars = True
+        if invalid_chars or not form.is_valid():
+            if not form.is_valid():
+                msg = "Please try again"
+            else:
+                msg = "Only letters, commas and apostrophes allowed"
+        if invalid_chars:
             context = {
                 'profile': profile,
                 'form': form,
                 'phrase': phrase,
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': "Invalid input"
+                'message': msg
             }
-            # TODO Add error message to template
             return render(request, self.template_name, context)
 
         # Increment user view of current phrase
