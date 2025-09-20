@@ -208,7 +208,7 @@ class TranslationTestCase(TestCase):
 
 
 class UserPhraseStrengthTestCase(TestCase):
-
+    
     def setUp(self):
         
         # Create users

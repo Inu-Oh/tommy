@@ -582,7 +582,7 @@ class LearnView(LoginRequiredMixin, View):
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
 
-        # Validate and clean user's answer - TODO or refresh page with Invalid input message
+        # Clean and validate user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_chars = False
         for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
@@ -726,7 +726,7 @@ class PracticeView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - or refresh with Invalid input message
+        # Clean and validate user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_chars = False
         for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
@@ -870,7 +870,7 @@ class ReviewView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - or refresh with Invalid input message
+        # Clean and validate user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_chars = False
         for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
@@ -1019,7 +1019,7 @@ class AccentView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Validate and clean user's answer before testing - or refresh with Invalid input message
+        # Clean and validate user's answer before testing - or refresh with Invalid input message
         user_answer = form.cleaned_data['answer'].strip()
         invalid_chars = False
         for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
