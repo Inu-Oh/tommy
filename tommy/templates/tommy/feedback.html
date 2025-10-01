@@ -7,7 +7,7 @@
         <p class="fs-4 ps-3 fw-bolder">{{ profile.name }}</p>
         {% if module_progress %}
             <div style="width:39%" class="pb-2">
-                <label for="prog-bar">Module progress</label>
+                <label for="prog-bar">Module progress (Module: {{ module_name }})</label>
                 <div class="progress" id="prog-bar" style="width: 100%; height: 25px;">
                     <div class="progress-bar progress-bar-striped bg-danger fw-bold fs-6"
                         role="progressbar" style="width: {{ module_progress }}%;"
@@ -38,14 +38,14 @@
     Error with feedback on testing phrase
     {% else %}
         <div class="ps-4 col-5 text-start">   
-            <p class="fs-6 text-muted mb-1">Test phrase</p>
+            <p class="fs-6 text-muted mb-1">Test phrase ({{ phrase.language }})</p>
             <p class="fs-3 lh-sm">{{ phrase }}</p>
         </div>
         <div class="ps-5 col-7 text-start">
             <p class="fs-6 text-muted mb-0">
                 {% if translations|length == 1 %}
                 Translation{% else %}
-                Translations{% endif %}</p>
+                Translations{% endif %} ({{ translations.0.language }})</p>
             {% for translation in translations %}
                 <p class="fs-4 lh-sm mb-1">{{ translation.translation }}&nbsp;</p>
             {% endfor %}

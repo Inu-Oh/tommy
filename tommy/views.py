@@ -551,7 +551,8 @@ class LearnView(LoginRequiredMixin, View):
                 'form': form,
                 'phrase': phrase,
                 'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'module_progress': module_progress
+                'module_progress': module_progress,
+                'module_name': module.name
             }
             return render(request, self.template_name, context)
         except: # If no unlearned phrase is found, redirect to home page
@@ -1141,13 +1142,14 @@ class FeedbackView(LoginRequiredMixin, View):
             'profile': profile,
             'user_answer': user_answer, # Used as backup in csae of error with HTML
             'response_accuracy': response_accuracy,
-            'phrase': phrase_str,
+            'phrase': phrase,
             'translations': translations,
             'testing_view': testing_view,
             'result': result,
             'module_id': module_id,
             'feedback_html': feedback_html,
-            'module_progress': module_progress
+            'module_progress': module_progress,
+            'module_name': module.name
         }
         # Retrieve and pass on test count for the current exercise session
         return render(request, self.template_name, context)

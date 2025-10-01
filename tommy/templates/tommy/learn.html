@@ -6,7 +6,7 @@
     <div class="container-fluid">
         <p class="fs-4 ps-3 fw-bolder">{{ profile.name }}</p>
         <div style="width:39%" class="pb-2">
-            <label for="prog-bar">Module progress</label>
+            <label for="prog-bar">Module progress (Module: {{ module_name }})</label>
             <div class="progress" id="prog-bar" style="width: 100%; height: 25px;">
                 <div class="progress-bar progress-bar-striped bg-danger fw-bold fs-6"
                     role="progressbar" style="width: {{ module_progress }}%;"
