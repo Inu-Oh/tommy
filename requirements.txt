@@ -1,4 +1,4 @@
-# To activate this run
+# To activate this run on a Python 3.9.21 environment
 #
 # pip install -r requirements42.txt
 # python -m django --version
