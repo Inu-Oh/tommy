@@ -59,7 +59,7 @@ class Phrase(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta: # Converted from unique_together to Meta.indexes - run: python -Wa manage.py test
-        constraints = [
+        constraints = [ # models.functions.Lower('name'),
             models.UniqueConstraint(fields=['phrase', 'language'], name='unique_phrase_language')
         ]
 
