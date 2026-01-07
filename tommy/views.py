@@ -1138,6 +1138,11 @@ class FeedbackView(LoginRequiredMixin, View):
         except:
             module_id = None
 
+        # Testing - remove later next three lines
+        phr_str = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
+        print(phr_str, "updated:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
+        print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
+
         context = {
             'profile': profile,
             'user_answer': user_answer, # Used as backup in csae of error with HTML
