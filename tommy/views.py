@@ -546,6 +546,12 @@ class LearnView(LoginRequiredMixin, View):
             ).count()
             module_progress = round( (learned_count / module_phrase_count) * 100 )
 
+            # Debug info for server log TODO - remove later
+            phr_str = user_phrase_strength
+            print("\nBefore testing:", end=" ")
+            print(phr_str, "updated at:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
+            print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
+
             context = {
                 'profile': profile,
                 'form': form,
@@ -694,6 +700,12 @@ class PracticeView(LoginRequiredMixin, View):
             phrase_strength_set = UserPhraseStrength.objects.filter(learned=True, user=request.user)
             user_phrase_strength = phrase_strength_set.earliest('strength')
             phrase = Phrase.objects.get(id=user_phrase_strength.phrase_id)
+
+            # Debug info for server log TODO - remove later
+            phr_str = user_phrase_strength
+            print("\nBefore testing:", end=" ")
+            print(phr_str, "updated at:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
+            print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
 
             context = {
                 'profile': profile,
@@ -1138,10 +1150,12 @@ class FeedbackView(LoginRequiredMixin, View):
         except:
             module_id = None
 
-        # Testing - remove later next three lines
+        # Testing data for server log  TODO - remove later
         phr_str = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
-        print(phr_str, "updated:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
+        print("\nAfter testing:", end=" ")
+        print(phr_str, "updated at:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
         print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
+        print(feedback_html)
 
         context = {
             'profile': profile,
