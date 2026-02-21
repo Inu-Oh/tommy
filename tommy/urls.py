@@ -1,5 +1,5 @@
 from django.urls import path
-from . import generic_views, views
+from . import views
 
 app_name = 'tommy'
 urlpatterns = [
@@ -17,9 +17,6 @@ urlpatterns = [
 
     # Modules view
     path('modules', views.ModulesView.as_view(), name='modules'),
-
-    # Generic view - for inheritence only not actual use
-    path('placeholder', generic_views.PhraseQuizView.as_view(), name='placeholder'),
 
     # Learn new phrases
     path('learn/<int:pk>', views.LearnView.as_view(), name='learn'),

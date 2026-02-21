@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import TemplateView, UpdateView, View, CreateView, ListView
 
 from datetime import datetime
+import html
 from random import choice
 from unidecode import unidecode
 import string
@@ -546,12 +547,6 @@ class LearnView(LoginRequiredMixin, View):
             ).count()
             module_progress = round( (learned_count / module_phrase_count) * 100 )
 
-            # Debug info for server log TODO - remove later
-            phr_str = user_phrase_strength
-            print("\nBefore testing:", end=" ")
-            print(phr_str, "updated at:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
-            print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
-
             context = {
                 'profile': profile,
                 'form': form,
@@ -589,27 +584,8 @@ class LearnView(LoginRequiredMixin, View):
         translation_langauge = translations[0].language
         phrase_language = "French" if translation_langauge == "English" else "English"
 
-        # Clean and validate user's answer before testing - or refresh with Invalid input message
-        user_answer = form.cleaned_data['answer'].strip()
-        invalid_chars = False
-        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
-                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
-            if val in user_answer:
-                invalid_chars = True
-        if invalid_chars or not form.is_valid():
-            if not form.is_valid():
-                msg = "Please try again"
-            else:
-                msg = "Only letters, commas and apostrophes allowed"
-        if invalid_chars:
-            context = {
-                'profile': profile,
-                'form': form,
-                'phrase': phrase,
-                'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': msg
-            }
-            return render(request, self.template_name, context)
+        # Clean user's answer and escape any html entities before testing
+        user_answer = html.escape(form.cleaned_data['answer'].strip())
 
         # Track the phrase as learned by the user and initiate view count.
         user_phrase_strength.learned = True
@@ -739,27 +715,8 @@ class PracticeView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Clean and validate user's answer before testing - or refresh with Invalid input message
-        user_answer = form.cleaned_data['answer'].strip()
-        invalid_chars = False
-        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
-                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
-            if val in user_answer:
-                invalid_chars = True
-        if invalid_chars or not form.is_valid():
-            if not form.is_valid():
-                msg = "Please try again"
-            else:
-                msg = "Only letters, commas and apostrophes allowed"
-        if invalid_chars:
-            context = {
-                'profile': profile,
-                'form': form,
-                'phrase': phrase,
-                'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': msg
-            }
-            return render(request, self.template_name, context)
+        # Clean user's answer and escape any html entities before testing
+        user_answer = html.escape(form.cleaned_data['answer'].strip())
 
         # Increment user view of current phrase
         user_phrase_strength.views += 1
@@ -883,27 +840,8 @@ class ReviewView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Clean and validate user's answer before testing - or refresh with Invalid input message
-        user_answer = form.cleaned_data['answer'].strip()
-        invalid_chars = False
-        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
-                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
-            if val in user_answer:
-                invalid_chars = True
-        if invalid_chars or not form.is_valid():
-            if not form.is_valid():
-                msg = "Please try again"
-            else:
-                msg = "Only letters, commas and apostrophes allowed"
-        if invalid_chars:
-            context = {
-                'profile': profile,
-                'form': form,
-                'phrase': phrase,
-                'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': msg
-            }
-            return render(request, self.template_name, context)
+        # Clean user's answer and escape any html entities before testing
+        user_answer = html.escape(form.cleaned_data['answer'].strip())
         
         # Increment user view of current phrase
         user_phrase_strength.views += 1
@@ -1032,27 +970,8 @@ class AccentView(LoginRequiredMixin, View):
             }
             return render(request, self.template_name, context)
 
-        # Clean and validate user's answer before testing - or refresh with Invalid input message
-        user_answer = form.cleaned_data['answer'].strip()
-        invalid_chars = False
-        for val in ["]", "[", "}", "{", ")", "(", "$", "@", ">", "<", '"', ":", ";", "\\",
-                    "=", "+", ".", "onerror", "onclick", "onload", "onmouseover"]:
-            if val in user_answer:
-                invalid_chars = True
-        if invalid_chars or not form.is_valid():
-            if not form.is_valid():
-                msg = "Please try again"
-            else:
-                msg = "Only letters, commas and apostrophes allowed"
-        if invalid_chars:
-            context = {
-                'profile': profile,
-                'form': form,
-                'phrase': phrase,
-                'user_phrase_strength': user_phrase_strength, # Phrase strength object
-                'message': msg
-            }
-            return render(request, self.template_name, context)
+        # Clean user's answer and escape any html entities before testing
+        user_answer = html.escape(form.cleaned_data['answer'].strip())
 
         # Increment user view of current phrase
         user_phrase_strength.views += 1
@@ -1149,13 +1068,6 @@ class FeedbackView(LoginRequiredMixin, View):
             module_id = request.session.get('module_id')
         except:
             module_id = None
-
-        # Testing data for server log  TODO - remove later
-        phr_str = UserPhraseStrength.objects.get(phrase=phrase, user=request.user)
-        print("\nAfter testing:", end=" ")
-        print(phr_str, "updated at:", phr_str.updated_at, "\nviews:", phr_str.views, end=" ")
-        print("correctly answered:", phr_str.correct, "strength:", phr_str.strength)
-        print(feedback_html)
 
         context = {
             'profile': profile,
